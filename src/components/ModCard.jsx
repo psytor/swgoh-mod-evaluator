@@ -41,30 +41,48 @@ const STAT_ROLL_RANGES = {
   56: { min: 1.125, max: 2.25 }       // Protection %
 };
 
+// Secondary stat roll ranges for 6-dot mods
+const STAT_ROLL_RANGES_6DOT = {
+  1: { min: 270, max: 540 },          // Health
+  5: { min: 3, max: 6 },              // Speed
+  16: { min: 1.175, max: 2.35 },      // Critical Damage %
+  17: { min: 1.5, max: 3 },           // Potency %
+  18: { min: 1.5, max: 3 },           // Tenacity %
+  28: { min: 460, max: 920 },         // Protection
+  41: { min: 25, max: 50 },           // Offense
+  42: { min: 8, max: 16 },            // Defense
+  48: { min: 0.85, max: 1.7 },        // Offense %
+  49: { min: 2, max: 4 },             // Defense %
+  53: { min: 1.175, max: 2.35 },      // Critical Chance %
+  55: { min: 1, max: 2 },             // Health %
+  56: { min: 1.5, max: 3 }            // Protection %
+};
+
 // Calculate efficiency for a single secondary stat
-function calculateStatEfficiency(statId, statValue, rolls) {
-  const range = STAT_ROLL_RANGES[statId];
+function calculateStatEfficiency(statId, statValue, rolls, is6Dot = false) {
+  const ranges = is6Dot ? STAT_ROLL_RANGES_6DOT : STAT_ROLL_RANGES;
+  const range = ranges[statId];
   if (!range || rolls === 0) return 0;
   
-  // For percentage stats, the ranges are stored as percentages (1.125 means 1.125%)
-  // but statValue is in decimal form (0.01125 means 1.125%)
-  // So we need to convert statValue to percentage to match the range format
+  // For percentage stats, convert decimal to percentage to match range format
   let actualValue = statValue;
   if ([16, 17, 18, 48, 49, 53, 55, 56].includes(statId)) {
-    actualValue = statValue * 100; // Convert decimal to percentage
+    actualValue = statValue * 100;
   }
   
-  // Maximum possible value = max roll * number of rolls
-  const maxPossible = range.max * rolls;
+  // Calculate the average roll value
+  const avgRollValue = actualValue / rolls;
   
-  // Efficiency = actual value / max possible
-  const efficiency = (actualValue / maxPossible) * 100;
+  // Calculate efficiency based on where the average roll falls between min and max
+  // This gives 0% for minimum rolls and 100% for maximum rolls
+  const efficiency = ((avgRollValue - range.min) / (range.max - range.min)) * 100;
   
-  return efficiency;
+  // Ensure efficiency is between 0 and 100
+  return Math.max(0, Math.min(100, efficiency));
 }
 
 // Calculate overall mod efficiency (average of all secondaries)
-function calculateModEfficiency(secondaryStats) {
+function calculateModEfficiency(secondaryStats, is6Dot = false) {
   if (!secondaryStats || secondaryStats.length === 0) return 0;
   
   let totalEfficiency = 0;
@@ -73,10 +91,10 @@ function calculateModEfficiency(secondaryStats) {
   secondaryStats.forEach(stat => {
     const statId = stat.stat.unitStatId;
     const statValue = parseInt(stat.stat.statValueDecimal) / 10000;
-    const rolls = stat.statRolls || 1; // Default to 1 if not specified
+    const rolls = stat.statRolls || 1;
     
-    const efficiency = calculateStatEfficiency(statId, statValue, rolls);
-    if (efficiency > 0) {
+    const efficiency = calculateStatEfficiency(statId, statValue, rolls, is6Dot);
+    if (efficiency >= 0) { // Changed from > 0 to >= 0 to include 0% efficiency
       totalEfficiency += efficiency;
       statCount++;
     }
@@ -279,6 +297,7 @@ function ModCard({ mod }) {
   const setType = MOD_SETS[setTypeKey] || "UnknownSet";
   
   const dots = parseInt(mod.definitionId[1]);
+  const is6Dot = dots === 6;
   
   const slotTypeKey = mod.definitionId[2];
   const slotType = MOD_SLOTS[slotTypeKey] || "UnknownShape";
@@ -286,7 +305,7 @@ function ModCard({ mod }) {
   const modColorName = MOD_TIERS[mod.tier] || "Grey";
   
   // Calculate mod efficiency
-  const modEfficiency = calculateModEfficiency(mod.secondaryStat);
+  const modEfficiency = calculateModEfficiency(mod.secondaryStat, is6Dot);
   
   const primaryStatId = mod.primaryStat?.stat?.unitStatId;
   const primaryStatName = STAT_NAMES[primaryStatId] || `Stat ${primaryStatId}`;
@@ -343,7 +362,7 @@ function ModCard({ mod }) {
               const rolls = stat.statRolls || 0;
               
               // Calculate individual stat efficiency
-              const statEfficiency = calculateStatEfficiency(statId, statValue, rolls);
+              const statEfficiency = calculateStatEfficiency(statId, statValue, rolls, is6Dot);
               
               const formatValue = () => {
                 if ([16, 17, 18, 48, 49, 53, 55, 56].includes(statId)) {
