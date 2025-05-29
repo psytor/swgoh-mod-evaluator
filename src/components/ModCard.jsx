@@ -113,6 +113,8 @@ const MOD_TIER_COLORS = {
 
 /**
  * Component to render the visual mod shape with its set icon.
+ * CHANGED: Takes modTierName (e.g., "Green") instead of colorHex for tinting.
+ * Applies CSS tint class instead of inline filter.
  */
 function ModShapeVisual({ shapeType, setType, modTierName, shapeAtlasUrl, setAtlasUrl, shapeSpriteData, setSpriteData, setIconLayoutConfig }) {
   if (!shapeType || !shapeSpriteData[shapeType]) {
@@ -122,8 +124,6 @@ function ModShapeVisual({ shapeType, setType, modTierName, shapeAtlasUrl, setAtl
   const mainShapeCoords = shapeSpriteData[shapeType]?.Main;
   const innerShapeCoords = shapeSpriteData[shapeType]?.Inner;
   const layers = [];
-
-  const tintClassName = modTierName ? `tint-${modTierName.toLowerCase()}` : '';
 
   // 1. Main Shape Layer (No tint)
   if (mainShapeCoords) {
@@ -175,7 +175,9 @@ function ModShapeVisual({ shapeType, setType, modTierName, shapeAtlasUrl, setAtl
     const scaleX = targetSize / originalSpriteWidth;
     const scaleY = targetSize / originalSpriteHeight;
     
-    // const filterStyle = ... // REMOVE THIS filterStyle definition
+    const filterStyle = colorHex && colorHex !== MOD_TIER_COLORS.Grey
+      ? `brightness(0) saturate(100%) drop-shadow(0 0 0 ${colorHex})`
+      : undefined;
 
     layers.push(
       <div
@@ -212,7 +214,6 @@ function ModShapeVisual({ shapeType, setType, modTierName, shapeAtlasUrl, setAtl
   return <>{layers}</>;
 }
 
-
 function ModCard({ mod }) {
   const setTypeKey = mod.definitionId[0];
   const setType = MOD_SETS[setTypeKey] || "UnknownSet";
@@ -222,14 +223,18 @@ function ModCard({ mod }) {
   const slotTypeKey = mod.definitionId[2];
   const slotType = MOD_SLOTS[slotTypeKey] || "UnknownShape";
   
-  // modColorName will be "Grey", "Green", "Blue", "Purple", "Gold" (from MOD_TIERS)
   const modColorName = MOD_TIERS[mod.tier] || "Grey";
-  // const actualColorHex = MOD_TIER_COLORS[modColorName]; // This was for the old filter, can be removed if not used elsewhere by ModShapeVisual
-
-  const primaryStatId = mod.primaryStat?.stat?.unitStatId;
-  // ... (rest of primary stat logic is fine) ...
   
-  const formatPrimaryStat = () => { /* ... (unchanged) ... */ };
+  const primaryStatId = mod.primaryStat?.stat?.unitStatId;
+  const primaryStatName = STAT_NAMES[primaryStatId] || `Stat ${primaryStatId}`;
+  const primaryStatValue = parseInt(mod.primaryStat?.stat?.statValueDecimal) / 10000;
+  
+  const formatPrimaryStat = () => {
+    if ([16, 17, 18, 48, 49, 53, 55, 56].includes(primaryStatId)) {
+      return `${(primaryStatValue * 100).toFixed(2)}%`;
+    }
+    return Math.floor(primaryStatValue).toString();
+  };
 
   return (
     <div className={`mod-card mod-${modColorName.toLowerCase()}`}>
@@ -240,19 +245,20 @@ function ModCard({ mod }) {
       <div className="mod-top-section">
         <div className="mod-left-side">
           <div className="mod-dots">
-            {/* ... (dots rendering unchanged) ... */}
+            {[...Array(7)].map((_, i) => (
+              <span key={i} className={`dot ${i < dots ? 'filled' : 'empty'}`}>●</span>
+            ))}
           </div>
           <div className="mod-shape-placeholder">
             <ModShapeVisual
               shapeType={slotType === "UnknownShape" ? null : slotType}
               setType={setType === "UnknownSet" ? null : setType}
-              // CHANGED: Pass modColorName (e.g., "Green") instead of actualColorHex
               modTierName={modColorName}
               shapeAtlasUrl={charactermodsAtlas}
               setAtlasUrl={miscAtlas}
               shapeSpriteData={MOD_SHAPE_SPRITES}
               setSpriteData={MOD_SET_SPRITES}
-              setIconLayoutConfig={SET_ICON_LAYOUT_CONFIG} // This correctly uses the embedded constant
+              setIconLayoutConfig={SET_ICON_LAYOUT_CONFIG}
             />
           </div>
           <div className="mod-level">
@@ -261,7 +267,34 @@ function ModCard({ mod }) {
         </div>
         
         <div className="mod-right-side">
-          {/* ... (Primary and Secondary stats - unchanged) ... */}
+          <div className="mod-primary">
+            <span className="stat-name">{primaryStatName}</span>
+            <span className="stat-value">{formatPrimaryStat()}</span>
+          </div>
+          
+          <div className="mod-secondaries">
+            {mod.secondaryStat && mod.secondaryStat.map((stat, index) => {
+              const statId = stat.stat.unitStatId;
+              const statName = STAT_NAMES[statId] || `Stat ${statId}`;
+              const statValue = parseInt(stat.stat.statValueDecimal) / 10000;
+              const rolls = stat.statRolls || 0;
+              
+              const formatValue = () => {
+                if ([16, 17, 18, 48, 49, 53, 55, 56].includes(statId)) {
+                  return `${(statValue * 100).toFixed(2)}%`;
+                }
+                return Math.floor(statValue).toString();
+              };
+              
+              return (
+                <div key={index} className="secondary-stat">
+                  <span className="stat-value">{formatValue()}</span>
+                  <span className="stat-name">{statName}</span>
+                  <span className="stat-rolls">({rolls})</span>
+                </div>
+              );
+            })}
+          </div>
         </div>
       </div>
       
