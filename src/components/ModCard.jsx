@@ -113,8 +113,7 @@ const MOD_TIER_COLORS = {
 
 /**
  * Component to render the visual mod shape with its set icon.
- * CHANGED: Takes modTierName (e.g., "Green") instead of colorHex for tinting.
- * Applies CSS tint class instead of inline filter.
+ * CORRECTED: Ensures tintClassName is defined and old filterStyle is fully removed.
  */
 function ModShapeVisual({ shapeType, setType, modTierName, shapeAtlasUrl, setAtlasUrl, shapeSpriteData, setSpriteData, setIconLayoutConfig }) {
   if (!shapeType || !shapeSpriteData[shapeType]) {
@@ -125,6 +124,9 @@ function ModShapeVisual({ shapeType, setType, modTierName, shapeAtlasUrl, setAtl
   const innerShapeCoords = shapeSpriteData[shapeType]?.Inner;
   const layers = [];
 
+  const tintClassName = modTierName ? `tint-${modTierName.toLowerCase()}` : '';
+
+
   // 1. Main Shape Layer (No tint)
   if (mainShapeCoords) {
     const leftOffset = (80 - mainShapeCoords.w) / 2;
@@ -132,7 +134,7 @@ function ModShapeVisual({ shapeType, setType, modTierName, shapeAtlasUrl, setAtl
     layers.push(
       <div
         key="main-shape"
-        className="mod-shape-layer mod-shape-main" // No tint class
+        className="mod-shape-layer mod-shape-main"
         style={{
           width: `${mainShapeCoords.w}px`, height: `${mainShapeCoords.h}px`,
           backgroundImage: `url(${shapeAtlasUrl})`,
