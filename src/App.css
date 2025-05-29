@@ -1,0 +1,10 @@
+.app {
+  min-height: 100vh;
+}
+
+/* Center only the ally code entry */
+.app:has(.ally-code-container) {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
