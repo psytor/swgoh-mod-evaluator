@@ -24,6 +24,60 @@ const STAT_NAMES = {
   55: "Health %", 56: "Protection %"
 };
 
+// Secondary stat roll ranges for 5-dot mods
+const STAT_ROLL_RANGES = {
+  1: { min: 214.3, max: 428.6 },      // Health
+  5: { min: 3, max: 6 },               // Speed
+  16: { min: 1.125, max: 2.25 },      // Critical Damage %
+  17: { min: 1.125, max: 2.25 },      // Potency %
+  18: { min: 1.125, max: 2.25 },      // Tenacity %
+  28: { min: 415.3, max: 830.6 },     // Protection
+  41: { min: 22.8, max: 45.6 },       // Offense
+  42: { min: 4.9, max: 9.8 },         // Defense
+  48: { min: 0.281, max: 0.563 },     // Offense %
+  49: { min: 0.85, max: 1.70 },       // Defense %
+  53: { min: 1.125, max: 2.25 },      // Critical Chance %
+  55: { min: 0.563, max: 1.125 },     // Health %
+  56: { min: 1.125, max: 2.25 }       // Protection %
+};
+
+// Calculate efficiency for a single secondary stat
+function calculateStatEfficiency(statId, statValue, rolls) {
+  const range = STAT_ROLL_RANGES[statId];
+  if (!range || rolls === 0) return 0;
+  
+  // Maximum possible value = max roll * number of rolls
+  const maxPossible = range.max * rolls;
+  
+  // Efficiency = actual value / max possible
+  const efficiency = (statValue / maxPossible) * 100;
+  
+  return efficiency;
+}
+
+// Calculate overall mod efficiency (average of all secondaries)
+function calculateModEfficiency(secondaryStats) {
+  if (!secondaryStats || secondaryStats.length === 0) return 0;
+  
+  let totalEfficiency = 0;
+  let statCount = 0;
+  
+  secondaryStats.forEach(stat => {
+    const statId = stat.stat.unitStatId;
+    const statValue = parseInt(stat.stat.statValueDecimal) / 10000;
+    const rolls = stat.statRolls || 1; // Default to 1 if not specified
+    
+    const efficiency = calculateStatEfficiency(statId, statValue, rolls);
+    if (efficiency > 0) {
+      totalEfficiency += efficiency;
+      statCount++;
+    }
+  });
+  
+  // Return average efficiency
+  return statCount > 0 ? totalEfficiency / statCount : 0;
+}
+
 // Sprite data for Mod Shapes (Main and Inner layers)
 const MOD_SHAPE_SPRITES = {
     "Square":   { "Main": { "x": 696, "y": 117, "w": 79, "h": 77 }, "Inner": { "x": 647, "y": 31, "w": 80, "h": 80 } },
@@ -223,6 +277,9 @@ function ModCard({ mod }) {
   
   const modColorName = MOD_TIERS[mod.tier] || "Grey";
   
+  // Calculate mod efficiency
+  const modEfficiency = calculateModEfficiency(mod.secondaryStat);
+  
   const primaryStatId = mod.primaryStat?.stat?.unitStatId;
   const primaryStatName = STAT_NAMES[primaryStatId] || `Stat ${primaryStatId}`;
   const primaryStatValue = parseInt(mod.primaryStat?.stat?.statValueDecimal) / 10000;
@@ -236,8 +293,8 @@ function ModCard({ mod }) {
 
   return (
     <div className={`mod-card mod-${modColorName.toLowerCase()}`}>
-      <div className="mod-recommendation-placeholder">
-        {/* Recommendation will go here */}
+      <div className="mod-efficiency">
+        {modEfficiency.toFixed(1)}%
       </div>
       
       <div className="mod-top-section">
@@ -277,6 +334,9 @@ function ModCard({ mod }) {
               const statValue = parseInt(stat.stat.statValueDecimal) / 10000;
               const rolls = stat.statRolls || 0;
               
+              // Calculate individual stat efficiency
+              const statEfficiency = calculateStatEfficiency(statId, statValue, rolls);
+              
               const formatValue = () => {
                 if ([16, 17, 18, 48, 49, 53, 55, 56].includes(statId)) {
                   return `${(statValue * 100).toFixed(2)}%`;
@@ -288,7 +348,7 @@ function ModCard({ mod }) {
                 <div key={index} className="secondary-stat">
                   <span className="stat-value">{formatValue()}</span>
                   <span className="stat-name">{statName}</span>
-                  <span className="stat-rolls">({rolls})</span>
+                  <span className="stat-rolls">({rolls}) {statEfficiency > 0 ? `${statEfficiency.toFixed(0)}%` : ''}</span>
                 </div>
               );
             })}
