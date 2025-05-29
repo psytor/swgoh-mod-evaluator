@@ -113,7 +113,7 @@ const MOD_TIER_COLORS = {
 
 /**
  * Component to render the visual mod shape with its set icon.
- * CORRECTED: Ensures tintClassName is defined and old filterStyle is fully removed.
+ * THIS TIME FOR REAL: Ensures tintClassName is defined and old filterStyle is TRULY removed.
  */
 function ModShapeVisual({ shapeType, setType, modTierName, shapeAtlasUrl, setAtlasUrl, shapeSpriteData, setSpriteData, setIconLayoutConfig }) {
   if (!shapeType || !shapeSpriteData[shapeType]) {
@@ -124,6 +124,7 @@ function ModShapeVisual({ shapeType, setType, modTierName, shapeAtlasUrl, setAtl
   const innerShapeCoords = shapeSpriteData[shapeType]?.Inner;
   const layers = [];
 
+  // This line is correct and defines the class for tinting.
   const tintClassName = modTierName ? `tint-${modTierName.toLowerCase()}` : '';
 
 
@@ -176,10 +177,6 @@ function ModShapeVisual({ shapeType, setType, modTierName, shapeAtlasUrl, setAtl
 
     const scaleX = targetSize / originalSpriteWidth;
     const scaleY = targetSize / originalSpriteHeight;
-    
-    const filterStyle = colorHex && colorHex !== MOD_TIER_COLORS.Grey
-      ? `brightness(0) saturate(100%) drop-shadow(0 0 0 ${colorHex})`
-      : undefined;
 
     layers.push(
       <div
@@ -200,7 +197,6 @@ function ModShapeVisual({ shapeType, setType, modTierName, shapeAtlasUrl, setAtl
             transformOrigin: '0 0',
             left: `-${spriteX * scaleX}px`,
             top: `-${spriteY * scaleY}px`,
-            // filter: filterStyle, WebkitFilter: filterStyle, // REMOVE THIS LINE
           }}
         />
       </div>
