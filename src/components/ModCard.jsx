@@ -46,11 +46,19 @@ function calculateStatEfficiency(statId, statValue, rolls) {
   const range = STAT_ROLL_RANGES[statId];
   if (!range || rolls === 0) return 0;
   
+  // For percentage stats, the ranges are stored as percentages (1.125 means 1.125%)
+  // but statValue is in decimal form (0.01125 means 1.125%)
+  // So we need to convert statValue to percentage to match the range format
+  let actualValue = statValue;
+  if ([16, 17, 18, 48, 49, 53, 55, 56].includes(statId)) {
+    actualValue = statValue * 100; // Convert decimal to percentage
+  }
+  
   // Maximum possible value = max roll * number of rolls
   const maxPossible = range.max * rolls;
   
   // Efficiency = actual value / max possible
-  const efficiency = (statValue / maxPossible) * 100;
+  const efficiency = (actualValue / maxPossible) * 100;
   
   return efficiency;
 }
