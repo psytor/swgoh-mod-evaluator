@@ -104,6 +104,23 @@
   -ms-interpolation-mode: nearest-neighbor;
 }
 
+/* Color tinting for white sprites */
+.tint-grey {
+    filter: brightness(0) saturate(100%) invert(50%) sepia(0%) saturate(0%) hue-rotate(0deg) brightness(100%) contrast(100%);
+}
+.tint-green {
+    filter: brightness(0) saturate(100%) invert(68%) sepia(97%) saturate(435%) hue-rotate(68deg) brightness(103%) contrast(92%);
+}
+.tint-blue {
+    filter: brightness(0) saturate(100%) invert(44%) sepia(93%) saturate(1352%) hue-rotate(196deg) brightness(100%) contrast(92%);
+}
+.tint-purple {
+    filter: brightness(0) saturate(100%) invert(32%) sepia(98%) saturate(1255%) hue-rotate(248deg) brightness(97%) contrast(92%);
+}
+.tint-gold {
+    filter: brightness(0) saturate(100%) invert(82%) sepia(56%) saturate(452%) hue-rotate(356deg) brightness(101%) contrast(106%);
+}
+
 /* Fallback style for set text if visual config fails (from ModShapeVisual component) */
 .mod-set-text {
   font-size: 11px;
