@@ -225,6 +225,15 @@
 .secondary-stat .stat-name { color: #cbd5e1; flex: 1; }
 .secondary-stat .stat-rolls { color: #64748b; font-size: 11px; margin-left: auto; }
 
+.mod-top-section-calibration {
+  clear: both; /* Important if left/right sides are floated */
+  padding-top: 8px;
+  font-size: 0.8em;
+  color: #cbd5e1; /* A light grayish blue, adjust as needed */
+  text-align: center;
+  width: 100%; /* Make it span the full width of the top section */
+}
+
 /* Character Name */
 .mod-character {
   text-align: center;
