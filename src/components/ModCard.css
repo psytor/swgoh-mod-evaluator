@@ -1,11 +1,11 @@
 .mod-card {
   background-color: #1e293b;
   border-radius: 12px;
-  padding: 16px;
+  padding: 40px 16px 16px 16px; /* Increased top padding from 16px to 40px */
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
   border: 2px solid #334155;
   transition: transform 0.2s, box-shadow 0.2s;
-  min-height: 250px;
+  min-height: 280px; /* Increased from 250px to accommodate the extra padding */
   position: relative;
 }
 
@@ -14,18 +14,40 @@
   box-shadow: 0 6px 12px rgba(0, 0, 0, 0.4);
 }
 
-/* Efficiency Display */
+/* Efficiency Display - repositioned to use the new padding space */
 .mod-efficiency {
   position: absolute;
-  top: 10px;
+  top: 8px; /* Moved closer to the top edge */
   right: 10px;
   background-color: #374151;
   color: #f3f4f6;
-  padding: 4px 12px;
+  padding: 6px 14px; /* Slightly increased padding for better visibility */
   border-radius: 12px;
   font-weight: 600;
   font-size: 14px;
+  z-index: 10; /* Ensure it stays on top */
 }
+
+/* Future recommendation space - positioned next to efficiency */
+.mod-recommendation {
+  position: absolute;
+  top: 8px;
+  left: 10px;
+  background-color: #059669; /* Green for keep, can be changed based on recommendation */
+  color: #f3f4f6;
+  padding: 6px 12px;
+  border-radius: 12px;
+  font-weight: 600;
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  z-index: 10;
+}
+
+/* Recommendation color variants */
+.mod-recommendation.keep { background-color: #059669; } /* Green */
+.mod-recommendation.upgrade { background-color: #d97706; } /* Orange */
+.mod-recommendation.sell { background-color: #dc2626; } /* Red */
 
 /* Color-coded borders based on mod tier */
 .mod-card.mod-grey { border-color: #6b7280; }
@@ -58,7 +80,12 @@
   font-weight: 700;
 }
 
-/* Top Section Layout */
+.mod-card.mod-6dot .mod-recommendation {
+  background: linear-gradient(135deg, #059669, #047857);
+  font-weight: 700;
+}
+
+/* Top Section Layout - no changes needed, the padding handles the spacing */
 .mod-top-section {
   display: flex;
   gap: 15px;
