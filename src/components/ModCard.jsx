@@ -420,7 +420,9 @@ function ModCard({ mod }) {
             })}
           </div>
         </div>
-        Test
+        <div className='mod-top-section-calibration'>
+            Calibration Left: 
+        </div>
       </div>
       
       <div className="mod-character">
