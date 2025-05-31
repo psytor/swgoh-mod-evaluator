@@ -90,6 +90,7 @@
   display: flex;
   gap: 15px;
   margin-bottom: 10px;
+  flex-wrap: wrap;
 }
 
 /* Left Side - Shape and Details */
