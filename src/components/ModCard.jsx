@@ -24,47 +24,70 @@ const STAT_NAMES = {
   55: "Health %", 56: "Protection %"
 };
 
-// Secondary stat roll ranges for 5-dot mods
+// Divisor values for decoding API bounds
+const STAT_BOUND_DIVISORS = {
+  1: 100000,   // Health (flat)
+  5: 100000,   // Speed (flat)
+  16: 1000,    // Critical Damage % (percentage)
+  17: 1000,    // Potency % (percentage)
+  18: 1000,    // Tenacity % (percentage)
+  28: 100000,  // Protection (flat)
+  41: 100000,  // Offense (flat)
+  42: 100000,  // Defense (flat)
+  48: 1000,    // Offense % (percentage)
+  49: 1000,    // Defense % (percentage)
+  53: 1000,    // Critical Chance % (percentage)
+  55: 1000,    // Health % (percentage)
+  56: 1000     // Protection % (percentage)
+};
+
+// Stats that should use discrete positioning (integer values)
+const DISCRETE_STATS = [5]; // Speed only
+
+// Fallback values if API data is missing (these match your documentation)
 const STAT_ROLL_RANGES = {
-  1: { min: 214.3, max: 428.6 },      // Health
-  5: { min: 3, max: 6 },               // Speed
-  16: { min: 1.125, max: 2.25 },      // Critical Damage %
-  17: { min: 1.125, max: 2.25 },      // Potency %
-  18: { min: 1.125, max: 2.25 },      // Tenacity %
-  28: { min: 415.3, max: 830.6 },     // Protection
-  41: { min: 22.8, max: 45.6 },       // Offense
-  42: { min: 4.9, max: 9.8 },         // Defense
-  48: { min: 0.281, max: 0.563 },     // Offense %
-  49: { min: 0.85, max: 1.70 },       // Defense %
-  53: { min: 1.125, max: 2.25 },      // Critical Chance %
-  55: { min: 0.563, max: 1.125 },     // Health %
-  56: { min: 1.125, max: 2.25 }       // Protection %
+  1: { min: 270, max: 540 },      // Health
+  5: { min: 3, max: 6 },          // Speed
+  16: { min: 1.175, max: 2.35 },  // Critical Damage %
+  17: { min: 1.5, max: 3 },       // Potency %
+  18: { min: 1.5, max: 3 },       // Tenacity %
+  28: { min: 460, max: 920 },     // Protection
+  41: { min: 25, max: 50 },       // Offense
+  42: { min: 8, max: 16 },        // Defense
+  48: { min: 0.85, max: 1.7 },    // Offense %
+  49: { min: 2, max: 4 },         // Defense %
+  53: { min: 1.175, max: 2.35 },  // Critical Chance %
+  55: { min: 1, max: 2 },         // Health %
+  56: { min: 1.5, max: 3 }        // Protection %
 };
 
-// Secondary stat roll ranges for 6-dot mods
-const STAT_ROLL_RANGES_6DOT = {
-  1: { min: 270, max: 540 },          // Health
-  5: { min: 3, max: 6 },              // Speed
-  16: { min: 1.175, max: 2.35 },      // Critical Damage %
-  17: { min: 1.5, max: 3 },           // Potency %
-  18: { min: 1.5, max: 3 },           // Tenacity %
-  28: { min: 460, max: 920 },         // Protection
-  41: { min: 25, max: 50 },           // Offense
-  42: { min: 8, max: 16 },            // Defense
-  48: { min: 0.85, max: 1.7 },        // Offense %
-  49: { min: 2, max: 4 },             // Defense %
-  53: { min: 1.175, max: 2.35 },      // Critical Chance %
-  55: { min: 1, max: 2 },             // Health %
-  56: { min: 1.5, max: 3 }            // Protection %
-};
+// 6-dot mods use same values according to your documentation
+const STAT_ROLL_RANGES_6DOT = STAT_ROLL_RANGES;
 
-// Calculate efficiency for a single secondary stat
-function calculateStatEfficiency(statId, statValue, rolls, is6Dot = false) {
-  const ranges = is6Dot ? STAT_ROLL_RANGES_6DOT : STAT_ROLL_RANGES;
-  const range = ranges[statId];
-  if (!range || rolls === 0) return 0;
+// Calculate efficiency for a single secondary stat using position-based approach
+function calculateStatEfficiency(stat, is6Dot = false) {
+  const statId = stat.stat.unitStatId;
+  const statValue = parseInt(stat.stat.statValueDecimal) / 10000;
+  const rolls = stat.statRolls || 1;
   
-  // For percentage stats, convert decimal to percentage to match range format
+  // Extract bounds from the stat data if available
+  let min, max;
+  if (stat.statRollerBoundsMin && stat.statRollerBoundsMax) {
+    const divisor = STAT_BOUND_DIVISORS[statId] || 100000;
+    min = parseInt(stat.statRollerBoundsMin) / divisor;
+    max = parseInt(stat.statRollerBoundsMax) / divisor;
+  } else {
+    // Fallback to hardcoded values if API data is missing
+    const ranges = is6Dot ? STAT_ROLL_RANGES_6DOT : STAT_ROLL_RANGES;
+    const range = ranges[statId];
+    if (!range) return 0;
+    min = range.min;
+    max = range.max;
+  }
+  
+  if (rolls === 0) return 0;
+  
+  // For percentage stats, ensure we're working with the right scale
   let actualValue = statValue;
   if ([16, 17, 18, 48, 49, 53, 55, 56].includes(statId)) {
     actualValue = statValue * 100;
@@ -73,12 +96,19 @@ function calculateStatEfficiency(statId, statValue, rolls, is6Dot = false) {
   // Calculate the average roll value
   const avgRollValue = actualValue / rolls;
   
-  // Calculate efficiency based on where the average roll falls between min and max
-  // This gives 0% for minimum rolls and 100% for maximum rolls
-  const efficiency = ((avgRollValue - range.min) / (range.max - range.min)) * 100;
-  
-  // Ensure efficiency is between 0 and 100
-  return Math.max(0, Math.min(100, efficiency));
+  // Use different calculation for discrete vs continuous stats
+  if (DISCRETE_STATS.includes(statId)) {
+    // Discrete positioning for Speed
+    const positions = Math.round(max - min) + 1; // e.g., 3,4,5,6 = 4 positions
+    const position = Math.round(avgRollValue - min) + 1; // 1-based position
+    return (position / positions) * 100;
+  } else {
+    // Continuous positioning with adjustment to avoid 0%
+    const positions = 10; // Reasonable granularity for continuous stats
+    const rawEfficiency = (avgRollValue - min) / (max - min);
+    const adjustedPosition = 1 + rawEfficiency * (positions - 1);
+    return (adjustedPosition / positions) * 100;
+  }
 }
 
 // Calculate overall mod efficiency (average of all secondaries)
@@ -89,12 +119,8 @@ function calculateModEfficiency(secondaryStats, is6Dot = false) {
   let statCount = 0;
   
   secondaryStats.forEach(stat => {
-    const statId = stat.stat.unitStatId;
-    const statValue = parseInt(stat.stat.statValueDecimal) / 10000;
-    const rolls = stat.statRolls || 1;
-    
-    const efficiency = calculateStatEfficiency(statId, statValue, rolls, is6Dot);
-    if (efficiency >= 0) { // Changed from > 0 to >= 0 to include 0% efficiency
+    const efficiency = calculateStatEfficiency(stat, is6Dot);
+    if (efficiency >= 0) { // Include 0% efficiency in the average
       totalEfficiency += efficiency;
       statCount++;
     }
@@ -104,22 +130,36 @@ function calculateModEfficiency(secondaryStats, is6Dot = false) {
   return statCount > 0 ? totalEfficiency / statCount : 0;
 }
 
-// Sprite data for Mod Shapes (Main and Inner layers)
-const MOD_SHAPE_SPRITES = {
-    "Square":   { "Main": { "x": 696, "y": 117, "w": 79, "h": 77 }, "Inner": { "x": 647, "y": 31, "w": 80, "h": 80 } },
-    "Arrow":    { "Main": { "x": 696, "y": 195, "w": 79, "h": 77 }, "Inner": { "x": 566, "y": 31, "w": 80, "h": 80 } },
-    "Diamond":  { "Main": { "x": 696, "y": 433, "w": 79, "h": 79 }, "Inner": { "x": 161, "y": 31, "w": 80, "h": 80 } },
-    "Triangle": { "Main": { "x": 854, "y": 212, "w": 78, "h": 64 }, "Inner": { "x": 851, "y": 130, "w": 81, "h": 67 } },
-    "Circle":   { "Main": { "x": 775, "y": 354, "w": 79, "h": 78 }, "Inner": { "x": 404, "y": 31, "w": 80, "h": 80 } },
-    "Cross":    { "Main": { "x": 729, "y": 37,  "w": 76, "h": 79 }, "Inner": { "x": 696, "y": 352, "w": 78, "h": 80 } }
+// Sprite data for 5-Dot Mod Shapes (Main and Inner layers)
+const MOD_SHAPE_SPRITES_5DOT = {
+  "Square":   { "Main": { "x": 696, "y": 117, "w": 79, "h": 77 }, "Inner": { "x": 647, "y": 31, "w": 80, "h": 80 } },
+  "Arrow":    { "Main": { "x": 696, "y": 195, "w": 79, "h": 77 }, "Inner": { "x": 566, "y": 31, "w": 80, "h": 80 } },
+  "Diamond":  { "Main": { "x": 696, "y": 433, "w": 79, "h": 79 }, "Inner": { "x": 161, "y": 31, "w": 80, "h": 80 } },
+  "Triangle": { "Main": { "x": 854, "y": 212, "w": 78, "h": 64 }, "Inner": { "x": 851, "y": 130, "w": 81, "h": 67 } },
+  "Circle":   { "Main": { "x": 775, "y": 354, "w": 79, "h": 78 }, "Inner": { "x": 404, "y": 31, "w": 80, "h": 80 } },
+  "Cross":    { "Main": { "x": 729, "y": 37,  "w": 76, "h": 79 }, "Inner": { "x": 696, "y": 352, "w": 78, "h": 80 } }
+};
+
+// Sprite data for 6-Dot Mod Shapes (6 Dots frame and Inner layer)
+const MOD_SHAPE_SPRITES_6DOT = {
+  "Square":   { "Main": { "x": 855, "y": 278, "w": 78, "h": 75 }, "Inner": { "x": 647, "y": 31, "w": 80, "h": 80 } },
+  "Arrow":    { "Main": { "x": 776, "y": 198, "w": 77, "h": 76 }, "Inner": { "x": 566, "y": 31, "w": 80, "h": 80 } },
+  "Diamond":  { "Main": { "x": 777, "y": 434, "w": 77, "h": 78 }, "Inner": { "x": 161, "y": 31, "w": 80, "h": 80 } },
+  "Triangle": { "Main": { "x": 887, "y": 66,  "w": 76, "h": 63 }, "Inner": { "x": 851, "y": 130, "w": 81, "h": 67 } },
+  "Circle":   { "Main": { "x": 696, "y": 273, "w": 78, "h": 78 }, "Inner": { "x": 404, "y": 31, "w": 80, "h": 80 } },
+  "Cross":    { "Main": { "x": 776, "y": 275, "w": 76, "h": 78 }, "Inner": { "x": 696, "y": 352, "w": 78, "h": 80 } }
 };
 
 // Sprite data for Mod Set Icons
 const MOD_SET_SPRITES = {
-    "Critical Chance": { "x": 1265, "y": 358, "w": 120, "h": 120 }, "Critical Damage": { "x": 1195, "y": 992, "w": 120, "h": 120 },
-    "Defense": { "x": 1250, "y": 1255, "w": 120, "h": 120 }, "Health": { "x": 1278, "y": 1128, "w": 120, "h": 120 },
-    "Offense": { "x": 1408, "y": 1126, "w": 120, "h": 120 }, "Potency": { "x": 1143, "y": 1117, "w": 126, "h": 126 },
-    "Speed": { "x": 1107, "y": 747, "w": 120, "h": 120 }, "Tenacity": { "x": 1288, "y": 1385, "w": 120, "h": 120 }
+  "Critical Chance": { "x": 1265, "y": 358, "w": 120, "h": 120 },
+  "Critical Damage": { "x": 1195, "y": 992, "w": 120, "h": 120 },
+  "Defense": { "x": 1250, "y": 1255, "w": 120, "h": 120 },
+  "Health": { "x": 1278, "y": 1128, "w": 120, "h": 120 },
+  "Offense": { "x": 1408, "y": 1126, "w": 120, "h": 120 },
+  "Potency": { "x": 1122, "y": 1147, "w": 120, "h": 120 },
+  "Speed": { "x": 1107, "y": 747, "w": 120, "h": 120 },
+  "Tenacity": { "x": 1288, "y": 1385, "w": 120, "h": 120 }
 };
 
 const SET_ICON_LAYOUT_CONFIG = {
@@ -183,7 +223,7 @@ const SET_ICON_LAYOUT_CONFIG = {
     "Speed": { "size": 22, "offsetX": 28, "offsetY": 28 },
     "Tenacity": { "size": 21, "offsetX": 29, "offsetY": 29 }
   }
-}
+};
 
 // Hex colors for mod tiers (matching CSS border colors)
 const MOD_TIER_COLORS = {
@@ -193,9 +233,11 @@ const MOD_TIER_COLORS = {
 
 /**
  * Component to render the visual mod shape with its set icon.
- * THIS TIME FOR REAL: Ensures tintClassName is defined and old filterStyle is TRULY removed.
  */
-function ModShapeVisual({ shapeType, setType, modTierName, shapeAtlasUrl, setAtlasUrl, shapeSpriteData, setSpriteData, setIconLayoutConfig }) {
+function ModShapeVisual({ shapeType, setType, modTierName, is6Dot, shapeAtlasUrl, setAtlasUrl, shapeSpriteData5Dot, shapeSpriteData6Dot, setSpriteData, setIconLayoutConfig }) {
+  // Select appropriate sprite data based on 5-dot or 6-dot
+  const shapeSpriteData = is6Dot ? shapeSpriteData6Dot : shapeSpriteData5Dot;
+  
   if (!shapeType || !shapeSpriteData[shapeType]) {
     return <div style={{width: '80px', height: '80px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '10px', color: '#64748b'}}>?</div>;
   }
@@ -204,9 +246,7 @@ function ModShapeVisual({ shapeType, setType, modTierName, shapeAtlasUrl, setAtl
   const innerShapeCoords = shapeSpriteData[shapeType]?.Inner;
   const layers = [];
 
-  // This line is correct and defines the class for tinting.
   const tintClassName = modTierName ? `tint-${modTierName.toLowerCase()}` : '';
-
 
   // 1. Main Shape Layer (No tint)
   if (mainShapeCoords) {
@@ -234,14 +274,12 @@ function ModShapeVisual({ shapeType, setType, modTierName, shapeAtlasUrl, setAtl
     layers.push(
       <div
         key="inner-shape"
-        // CHANGED: Apply tintClassName, remove inline filter
         className={`mod-shape-layer mod-shape-inner ${tintClassName}`}
         style={{
           width: `${innerShapeCoords.w}px`, height: `${innerShapeCoords.h}px`,
           backgroundImage: `url(${shapeAtlasUrl})`,
           backgroundPosition: `-${innerShapeCoords.x}px -${innerShapeCoords.y}px`,
           left: `${leftOffset}px`, top: `${topOffset}px`,
-          // filter: filterStyle, WebkitFilter: filterStyle, // REMOVE THIS LINE
         }}
       />
     );
@@ -261,7 +299,6 @@ function ModShapeVisual({ shapeType, setType, modTierName, shapeAtlasUrl, setAtl
     layers.push(
       <div
         key="set-icon-container"
-        // CHANGED: Apply tintClassName to the container
         className={`mod-shape-set-icon-container ${tintClassName}`}
         style={{
           width: `${targetSize}px`, height: `${targetSize}px`,
@@ -319,7 +356,7 @@ function ModCard({ mod }) {
   };
 
   return (
-    <div className={`mod-card mod-${modColorName.toLowerCase()}`}>
+    <div className={`mod-card mod-${modColorName.toLowerCase()} ${is6Dot ? 'mod-6dot' : ''}`}>
       <div className="mod-efficiency">
         {modEfficiency.toFixed(1)}%
       </div>
@@ -336,9 +373,11 @@ function ModCard({ mod }) {
               shapeType={slotType === "UnknownShape" ? null : slotType}
               setType={setType === "UnknownSet" ? null : setType}
               modTierName={modColorName}
+              is6Dot={is6Dot}
               shapeAtlasUrl={charactermodsAtlas}
               setAtlasUrl={miscAtlas}
-              shapeSpriteData={MOD_SHAPE_SPRITES}
+              shapeSpriteData5Dot={MOD_SHAPE_SPRITES_5DOT}
+              shapeSpriteData6Dot={MOD_SHAPE_SPRITES_6DOT}
               setSpriteData={MOD_SET_SPRITES}
               setIconLayoutConfig={SET_ICON_LAYOUT_CONFIG}
             />
@@ -362,7 +401,7 @@ function ModCard({ mod }) {
               const rolls = stat.statRolls || 0;
               
               // Calculate individual stat efficiency
-              const statEfficiency = calculateStatEfficiency(statId, statValue, rolls, is6Dot);
+              const statEfficiency = calculateStatEfficiency(stat, is6Dot);
               
               const formatValue = () => {
                 if ([16, 17, 18, 48, 49, 53, 55, 56].includes(statId)) {
