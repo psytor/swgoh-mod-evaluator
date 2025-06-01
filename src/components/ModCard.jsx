@@ -64,11 +64,53 @@ const STAT_ROLL_RANGES = {
 // 6-dot mods use same values according to your documentation
 const STAT_ROLL_RANGES_6DOT = STAT_ROLL_RANGES;
 
+function getCalibrationInfo(mod) {
+  const dots = parseInt(mod.definitionId[1]);
+  if (dots !== 6) return null;
+  
+  const tier = mod.tier;
+  const rerollCount = mod.rerollCount || 0;
+  
+  // Calculate total calibrations based on tier
+  const totalCalibrations = {
+    1: 2, // Grey (6-E)
+    2: 3, // Green (6-D)
+    3: 4, // Blue (6-C)
+    4: 5, // Purple (6-B)
+    5: 6  // Gold (6-A)
+  };
+  
+  const total = totalCalibrations[tier] || 0;
+  const remaining = Math.max(0, total - rerollCount);
+  
+  return { remaining, total };
+}
+
 // Speed-Only Evaluation Logic
 function getSpeedRecommendation(mod, evaluationMode) {
   const tier = mod.tier;
   const level = mod.level;
   
+  // Check if this is an Arrow with Speed Primary
+  const primaryStatId = mod.primaryStat?.stat?.unitStatId;
+  const slotTypeKey = mod.definitionId[2];
+  
+  if (slotTypeKey === '2' && primaryStatId === 5) { // Arrow slot with Speed primary
+    if (level === 15) {
+      return {
+        type: 'slice',
+        text: 'Slice',
+        className: 'slice'
+      };
+    } else {
+      return {
+        type: 'keep',
+        text: 'Keep',
+        className: 'keep'
+      };
+    }
+  }
+
   // Find speed in secondary stats
   let speedValue = 0;
   let hasSpeed = false;
@@ -588,6 +630,19 @@ function ModCard({ mod, evaluationMode = 'basic' }) {
           </div>
         </div>
       </div>
+
+      {(() => {
+        const calibrationInfo = getCalibrationInfo(mod);
+        if (calibrationInfo) {
+          return (
+            <div className="mod-calibration">
+              <span className="calibration-label">Calibrations Left:</span>
+              <span className="calibration-value">{calibrationInfo.remaining}/{calibrationInfo.total}</span>
+            </div>
+          );
+        }
+        return null;
+      })()}
       
       <div className="mod-character">
         {mod.characterName}
