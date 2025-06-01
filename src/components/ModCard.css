@@ -156,7 +156,7 @@
 
 /* Color tinting for white sprites */
 .tint-grey {
-    filter: brightness(0) saturate(100%) invert(50%) sepia(0%) saturate(0%) hue-rotate(0deg) brightness(100%) contrast(100%);
+    filter: brightness(0) saturate(100%) invert(82%) sepia(10%) saturate(1363%) hue-rotate(163deg) brightness(95%) contrast(89%);
 }
 .tint-green {
     filter: brightness(0) saturate(100%) invert(68%) sepia(97%) saturate(435%) hue-rotate(68deg) brightness(103%) contrast(92%);
