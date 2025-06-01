@@ -1,8 +1,9 @@
 import { useState, useEffect } from 'react'
 import ModCard from './ModCard'
+import { getSpeedRecommendation } from './ModCard' // Need to export this from ModCard.jsx
 import './ModList.css'
 
-function ModList({ playerData, evaluationMode }) {
+function ModList({ playerData, evaluationMode, filterType = 'all' }) {
   const [mods, setMods] = useState([])
   const [loading, setLoading] = useState(true)
 
@@ -35,15 +36,26 @@ function ModList({ playerData, evaluationMode }) {
     return <div className="loading">Processing mods...</div>
   }
 
+  // Filter mods based on filterType
+  const filteredMods = mods.filter(mod => {
+    if (filterType === 'all') return true
+    
+    const recommendation = getSpeedRecommendation(mod, evaluationMode)
+    return recommendation.type === filterType
+  })
+
   return (
     <div className="mod-list-container">
       <div className="mod-list-header">
         <h1>Your Mods</h1>
-        <p>Found {mods.length} mods (5-dot and 6-dot only)</p>
+        <p>
+          Showing {filteredMods.length} of {mods.length} mods 
+          {filterType !== 'all' && ` (${filterType} only)`}
+        </p>
       </div>
       
       <div className="mod-grid">
-        {mods.map((mod, index) => (
+        {filteredMods.map((mod, index) => (
           <ModCard key={mod.id || index} mod={mod} evaluationMode={evaluationMode} />
         ))}
       </div>

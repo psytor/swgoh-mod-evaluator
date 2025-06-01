@@ -92,12 +92,22 @@ function getCalibrationInfo(mod) {
 function getSpeedRecommendation(mod, evaluationMode) {
   const tier = mod.tier;
   const level = mod.level;
+  const dots = parseInt(mod.definitionId[1]);
   
   // Check if this is an Arrow with Speed Primary
   const primaryStatId = mod.primaryStat?.stat?.unitStatId;
   const slotTypeKey = mod.definitionId[2];
   
   if (slotTypeKey === '2' && primaryStatId === 5) { // Arrow slot with Speed primary
+    // 6-dot Gold mods are already maxed
+    if (dots === 6 && tier === 5) {
+      return {
+        type: 'keep',
+        text: 'Keep',
+        className: 'keep'
+      };
+    }
+    
     if (level === 15) {
       return {
         type: 'slice',
@@ -161,7 +171,8 @@ function getSpeedRecommendation(mod, evaluationMode) {
   }
   
   // If mod is level 15 and meets slice threshold, recommend slicing
-  if (level === 15 && speedValue >= sliceThreshold) {
+  // UNLESS it's a 6-dot Gold mod (already maxed)
+  if (level === 15 && speedValue >= sliceThreshold && !(dots === 6 && tier === 5)) {
     return {
       type: 'slice',
       text: 'Slice',
@@ -652,5 +663,7 @@ function ModCard({ mod, evaluationMode = 'basic' }) {
     </div>
   );
 }
+
+export { getSpeedRecommendation };
 
 export default ModCard;

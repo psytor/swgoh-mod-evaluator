@@ -37,12 +37,7 @@
   font-weight: 500;
 }
 
-.mode-buttons {
-  display: flex;
-  gap: 8px;
-}
-
-.mode-button {
+.mode-dropdown {
   background-color: #1e293b;
   color: #cbd5e1;
   border: 1px solid #334155;
@@ -53,18 +48,12 @@
   transition: all 0.2s;
 }
 
-.mode-button:hover {
+.mode-dropdown:hover {
   background-color: #334155;
   color: #e2e8f0;
 }
 
-.mode-button.active {
-  background-color: #3b82f6;
-  color: #ffffff;
+.mode-dropdown:focus {
+  outline: none;
   border-color: #3b82f6;
-}
-
-.mode-button.active:hover {
-  background-color: #2563eb;
-  border-color: #2563eb;
 }
