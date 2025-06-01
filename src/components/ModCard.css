@@ -51,8 +51,8 @@
 
 /* Color-coded borders based on mod tier */
 .mod-card.mod-grey { border-color: #C0EEEE; }
-.mod-card.mod-green { border-color: #10b981; }
-.mod-card.mod-blue { border-color: #3b82f6; }
+.mod-card.mod-green { border-color: #98FE33; }
+.mod-card.mod-blue { border-color: #1D99FF; }
 .mod-card.mod-purple { border-color: #8b5cf6; }
 .mod-card.mod-gold { border-color: #f59e0b; }
 
@@ -156,13 +156,13 @@
 
 /* Color tinting for white sprites */
 .tint-grey {
-    filter: brightness(0) saturate(100%) invert(82%) sepia(10%) saturate(1363%) hue-rotate(163deg) brightness(95%) contrast(89%);
+    filter: brightness(0) saturate(100%) invert(85%) sepia(10%) saturate(1300%) hue-rotate(170deg) brightness(110%) contrast(90%);
 }
 .tint-green {
-    filter: brightness(0) saturate(100%) invert(68%) sepia(97%) saturate(435%) hue-rotate(68deg) brightness(103%) contrast(92%);
+    filter: brightness(0) saturate(100%) invert(77%) sepia(96%) saturate(642%) hue-rotate(38deg) brightness(105%) contrast(95%);
 }
 .tint-blue {
-    filter: brightness(0) saturate(100%) invert(44%) sepia(93%) saturate(1352%) hue-rotate(196deg) brightness(100%) contrast(92%);
+    filter: brightness(0) saturate(100%) invert(52%) sepia(73%) saturate(2375%) hue-rotate(188deg) brightness(102%) contrast(101%);
 }
 .tint-purple {
     filter: brightness(0) saturate(100%) invert(32%) sepia(98%) saturate(1255%) hue-rotate(248deg) brightness(97%) contrast(92%);
