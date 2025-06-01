@@ -54,7 +54,7 @@
 .mod-card.mod-green { border-color: #98FE33; }
 .mod-card.mod-blue { border-color: #1D99FF; }
 .mod-card.mod-purple { border-color: #8b5cf6; }
-.mod-card.mod-gold { border-color: #f59e0b; }
+.mod-card.mod-gold { border-color: #ffcc33; }
 
 /* 6-Dot Mod Special Styling */
 .mod-card.mod-6dot {
@@ -168,7 +168,7 @@
     filter: brightness(0) saturate(100%) invert(32%) sepia(98%) saturate(1255%) hue-rotate(248deg) brightness(97%) contrast(92%);
 }
 .tint-gold {
-    filter: brightness(0) saturate(100%) invert(82%) sepia(56%) saturate(452%) hue-rotate(356deg) brightness(101%) contrast(106%);
+    filter: brightness(0) saturate(100%) invert(85%) sepia(89%) saturate(652%) hue-rotate(359deg) brightness(98%) contrast(103%);
 }
 
 /* Fallback style for set text */
