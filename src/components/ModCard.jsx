@@ -69,7 +69,7 @@ function getCalibrationInfo(mod) {
   if (dots !== 6) return null;
   
   const tier = mod.tier;
-  const rerollCount = mod.rerollCount || 0;
+  const rerolledCount = mod.rerolledCount || 0;
   
   // Calculate total calibrations based on tier
   const totalCalibrations = {
@@ -81,7 +81,7 @@ function getCalibrationInfo(mod) {
   };
   
   const total = totalCalibrations[tier] || 0;
-  const remaining = Math.max(0, total - rerollCount);
+  const remaining = Math.max(0, total - rerolledCount);
   
   return { remaining, total };
 }
