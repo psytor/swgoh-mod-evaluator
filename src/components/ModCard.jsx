@@ -36,6 +36,7 @@ const STAT_BOUND_DIVISORS = {
   42: 100000,  // Defense (flat)
   48: 1000,    // Offense % (percentage)
   49: 1000,    // Defense % (percentage)
+  52: 1000,    // Accuracy %
   53: 1000,    // Critical Chance % (percentage)
   54: 1000,    // Critical Avoidance % (percentage)
   55: 1000,    // Health % (percentage)
@@ -291,7 +292,7 @@ function calculateStatEfficiency(stat, is6Dot = false) {
   
   // For percentage stats, ensure we're working with the right scale
   let actualValue = statValue;
-  if ([16, 17, 18, 48, 49, 53, 54, 55, 56].includes(statId)) {
+  if ([16, 17, 18, 48, 49, 52, 53, 54, 55, 56].includes(statId)) {
     actualValue = statValue * 100;
   }
   
@@ -554,7 +555,7 @@ function ModCard({ mod, evaluationMode = 'basic' }) {
   const primaryStatValue = parseInt(mod.primaryStat?.stat?.statValueDecimal) / 10000;
   
   const formatPrimaryStat = () => {
-    if ([16, 17, 18, 48, 49, 53, 54, 55, 56].includes(primaryStatId)) {
+    if ([16, 17, 18, 48, 49, 52, 53, 54, 55, 56].includes(primaryStatId)) {
       return `${(primaryStatValue * 100).toFixed(2)}%`;
     }
     return Math.floor(primaryStatValue).toString();
@@ -614,7 +615,7 @@ function ModCard({ mod, evaluationMode = 'basic' }) {
               const statEfficiency = calculateStatEfficiency(stat, is6Dot);
               
               const formatValue = () => {
-                if ([16, 17, 18, 48, 49, 53, 54, 55, 56].includes(statId)) {
+                if ([16, 17, 18, 48, 49, 52, 53, 54, 55, 56].includes(statId)) {
                   return `${(statValue * 100).toFixed(2)}%`;
                 }
                 return Math.floor(statValue).toString();
