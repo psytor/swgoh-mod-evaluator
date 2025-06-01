@@ -168,7 +168,7 @@
     filter: brightness(0) saturate(100%) invert(32%) sepia(98%) saturate(1255%) hue-rotate(248deg) brightness(97%) contrast(92%);
 }
 .tint-gold {
-    filter: brightness(0) saturate(100%) invert(85%) sepia(89%) saturate(652%) hue-rotate(359deg) brightness(98%) contrast(103%);
+    filter: brightness(0) saturate(100%) invert(85%) sepia(56%) saturate(552%) hue-rotate(353deg) brightness(101%) contrast(104%);
 }
 
 /* Fallback style for set text */
