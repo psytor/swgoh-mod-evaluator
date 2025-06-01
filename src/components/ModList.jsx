@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react'
 import ModCard from './ModCard'
 import './ModList.css'
 
-function ModList({ playerData }) {
+function ModList({ playerData, evaluationMode }) {
   const [mods, setMods] = useState([])
   const [loading, setLoading] = useState(true)
 
@@ -14,10 +14,14 @@ function ModList({ playerData }) {
       playerData.rosterUnit.forEach(unit => {
         if (unit.equippedStatMod && unit.equippedStatMod.length > 0) {
           unit.equippedStatMod.forEach(mod => {
-            extractedMods.push({
-              ...mod,
-              characterName: unit.definitionId // We'll make this pretty later
-            })
+            // Only include 5-dot and 6-dot mods
+            const dots = parseInt(mod.definitionId[1])
+            if (dots >= 5) {
+              extractedMods.push({
+                ...mod,
+                characterName: unit.definitionId // We'll make this pretty later
+              })
+            }
           })
         }
       })
@@ -35,12 +39,12 @@ function ModList({ playerData }) {
     <div className="mod-list-container">
       <div className="mod-list-header">
         <h1>Your Mods</h1>
-        <p>Found {mods.length} mods equipped on your characters</p>
+        <p>Found {mods.length} mods (5-dot and 6-dot only)</p>
       </div>
       
       <div className="mod-grid">
         {mods.map((mod, index) => (
-          <ModCard key={mod.id || index} mod={mod} />
+          <ModCard key={mod.id || index} mod={mod} evaluationMode={evaluationMode} />
         ))}
       </div>
     </div>

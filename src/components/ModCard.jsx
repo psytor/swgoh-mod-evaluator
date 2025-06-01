@@ -64,6 +64,165 @@ const STAT_ROLL_RANGES = {
 // 6-dot mods use same values according to your documentation
 const STAT_ROLL_RANGES_6DOT = STAT_ROLL_RANGES;
 
+// Speed-Only Evaluation Logic
+function getSpeedRecommendation(mod, evaluationMode) {
+  const tier = mod.tier;
+  const level = mod.level;
+  
+  // Find speed in secondary stats
+  let speedValue = 0;
+  let hasSpeed = false;
+  
+  if (mod.secondaryStat) {
+    const speedStat = mod.secondaryStat.find(stat => stat.stat.unitStatId === 5);
+    if (speedStat) {
+      hasSpeed = true;
+      speedValue = Math.floor(parseInt(speedStat.stat.statValueDecimal) / 10000);
+    }
+  }
+  
+  // Determine if we can fully evaluate the mod
+  const canFullyEvaluate = canModBeFullyEvaluated(tier, level);
+  
+  // If we can't fully evaluate yet, tell them to level up
+  if (!canFullyEvaluate) {
+    return {
+      type: 'level',
+      text: `Level to ${getNextLevelTarget(tier, level)}`,
+      className: 'level'
+    };
+  }
+  
+  // At this point, we can fully evaluate (level 12+)
+  // If no speed at all, it's a sell
+  if (!hasSpeed) {
+    return {
+      type: 'sell',
+      text: 'Sell',
+      className: 'sell'
+    };
+  }
+  
+  // Check thresholds based on tier and mode
+  const keepThreshold = getKeepThreshold(tier, evaluationMode);
+  const sliceThreshold = getSliceThreshold(tier, evaluationMode);
+  
+  // If the mod doesn't meet keep threshold, sell it
+  if (speedValue < keepThreshold) {
+    return {
+      type: 'sell',
+      text: 'Sell',
+      className: 'sell'
+    };
+  }
+  
+  // If mod is level 15 and meets slice threshold, recommend slicing
+  if (level === 15 && speedValue >= sliceThreshold) {
+    return {
+      type: 'slice',
+      text: 'Slice',
+      className: 'slice'
+    };
+  }
+  
+  // Otherwise, it's a keeper
+  return {
+    type: 'keep',
+    text: 'Keep',
+    className: 'keep'
+  };
+}
+
+function canModBeFullyEvaluated(tier, level) {
+  // We need level 12 to see all rolls
+  return level >= 12;
+}
+
+function getNextLevelTarget(tier, level) {
+  // Grey: straight to 12
+  if (tier === 1) return 12;
+  
+  // For others, we need to see all secondaries first
+  const neededReveals = 4 - (tier - 1); // How many reveals we need
+  
+  if (neededReveals > 0) {
+    // Need to reveal secondaries
+    if (level < 3 && neededReveals >= 4) return 3;
+    if (level < 6 && neededReveals >= 3) return 6;
+    if (level < 9 && neededReveals >= 2) return 9;
+    if (level < 12 && neededReveals >= 1) return 12;
+  }
+  
+  // If all secondaries visible but not level 12, go to 12
+  return 12;
+}
+
+function getKeepThreshold(tier, mode) {
+  if (mode === 'basic') {
+    // Basic mode thresholds
+    switch(tier) {
+      case 1: // Grey
+      case 2: // Green
+        return 0; // Any speed
+      case 3: // Blue
+      case 4: // Purple
+        return 6;
+      case 5: // Gold
+        return 8;
+      default:
+        return 0;
+    }
+  } else {
+    // Strict mode thresholds
+    switch(tier) {
+      case 1: // Grey
+        return 0; // Any speed
+      case 2: // Green
+        return 5;
+      case 3: // Blue
+        return 8;
+      case 4: // Purple
+        return 10;
+      case 5: // Gold
+        return 10;
+      default:
+        return 0;
+    }
+  }
+}
+
+function getSliceThreshold(tier, mode) {
+  if (mode === 'basic') {
+    // Basic slicing thresholds
+    switch(tier) {
+      case 1: // Grey
+        return 0; // Any speed
+      case 2: // Green
+        return 5;
+      case 3: // Blue
+        return 8;
+      case 4: // Purple
+        return 10;
+      default:
+        return 0;
+    }
+  } else {
+    // Strict slicing thresholds
+    switch(tier) {
+      case 1: // Grey
+        return 0; // Any speed
+      case 2: // Green
+        return 8;
+      case 3: // Blue
+        return 12;
+      case 4: // Purple
+        return 15;
+      default:
+        return 0;
+    }
+  }
+}
+
 // Calculate efficiency for a single secondary stat using position-based approach
 function calculateStatEfficiency(stat, is6Dot = false) {
   const statId = stat.stat.unitStatId;
@@ -329,7 +488,7 @@ function ModShapeVisual({ shapeType, setType, modTierName, is6Dot, shapeAtlasUrl
   return <>{layers}</>;
 }
 
-function ModCard({ mod }) {
+function ModCard({ mod, evaluationMode = 'basic' }) {
   const setTypeKey = mod.definitionId[0];
   const setType = MOD_SETS[setTypeKey] || "UnknownSet";
   
@@ -344,6 +503,9 @@ function ModCard({ mod }) {
   // Calculate mod efficiency
   const modEfficiency = calculateModEfficiency(mod.secondaryStat, is6Dot);
   
+  // Get speed recommendation
+  const recommendation = getSpeedRecommendation(mod, evaluationMode);
+  
   const primaryStatId = mod.primaryStat?.stat?.unitStatId;
   const primaryStatName = STAT_NAMES[primaryStatId] || `Stat ${primaryStatId}`;
   const primaryStatValue = parseInt(mod.primaryStat?.stat?.statValueDecimal) / 10000;
@@ -357,6 +519,11 @@ function ModCard({ mod }) {
 
   return (
     <div className={`mod-card mod-${modColorName.toLowerCase()} ${is6Dot ? 'mod-6dot' : ''}`}>
+      {/* Recommendation Badge */}
+      <div className={`mod-recommendation ${recommendation.className}`}>
+        {recommendation.text}
+      </div>
+      
       <div className="mod-efficiency">
         {modEfficiency.toFixed(1)}%
       </div>
@@ -419,9 +586,6 @@ function ModCard({ mod }) {
               );
             })}
           </div>
-        </div>
-        <div className='mod-top-section-calibration'>
-            Calibration Left: 
         </div>
       </div>
       

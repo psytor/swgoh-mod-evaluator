@@ -247,3 +247,46 @@
   overflow: hidden;
   text-overflow: ellipsis;
 }
+
+/* Recommendation badges - positioned on the left side */
+.mod-recommendation {
+  position: absolute;
+  top: 8px;
+  left: 10px;
+  color: #f3f4f6;
+  padding: 6px 12px;
+  border-radius: 12px;
+  font-weight: 600;
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  z-index: 10;
+}
+
+/* Recommendation color variants */
+.mod-recommendation.keep { 
+  background-color: #059669; /* Green */
+}
+
+.mod-recommendation.sell { 
+  background-color: #dc2626; /* Red */
+}
+
+.mod-recommendation.slice { 
+  background-color: #7c3aed; /* Purple */
+}
+
+.mod-recommendation.level { 
+  background-color: #d97706; /* Orange */
+}
+
+/* Special styling for 6-dot recommendations */
+.mod-6dot .mod-recommendation.keep {
+  background: linear-gradient(135deg, #059669, #047857);
+  font-weight: 700;
+}
+
+.mod-6dot .mod-recommendation.slice {
+  background: linear-gradient(135deg, #7c3aed, #6d28d9);
+  font-weight: 700;
+}
