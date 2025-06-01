@@ -20,7 +20,7 @@ const MOD_TIERS = {
 const STAT_NAMES = {
   1: "Health", 5: "Speed", 16: "Critical Damage %", 17: "Potency %",
   18: "Tenacity %", 28: "Protection", 41: "Offense", 42: "Defense",
-  48: "Offense %", 49: "Defense %", 53: "Critical Chance %",
+  48: "Offense %", 49: "Defense %", 53: "Critical Chance %", 54: "Critical Avoidance %",
   55: "Health %", 56: "Protection %"
 };
 
@@ -37,6 +37,7 @@ const STAT_BOUND_DIVISORS = {
   48: 1000,    // Offense % (percentage)
   49: 1000,    // Defense % (percentage)
   53: 1000,    // Critical Chance % (percentage)
+  54: 1000,    // Critical Avoidance % (percentage)
   55: 1000,    // Health % (percentage)
   56: 1000     // Protection % (percentage)
 };
