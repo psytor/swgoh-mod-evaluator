@@ -20,7 +20,7 @@ const MOD_TIERS = {
 const STAT_NAMES = {
   1: "Health", 5: "Speed", 16: "Critical Damage %", 17: "Potency %",
   18: "Tenacity %", 28: "Protection", 41: "Offense", 42: "Defense",
-  48: "Offense %", 49: "Defense %", 53: "Critical Chance %", 54: "Critical Avoidance %",
+  48: "Offense %", 49: "Defense %", 52: "Accuracy %", 53: "Critical Chance %", 54: "Critical Avoidance %",
   55: "Health %", 56: "Protection %"
 };
 
