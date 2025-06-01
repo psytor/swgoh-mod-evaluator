@@ -1,5 +1,6 @@
 .app {
   min-height: 100vh;
+  padding-top: 50px;
 }
 
 /* Center only the ally code entry */
@@ -14,8 +15,10 @@
   background-color: #0f172a;
   border-bottom: 1px solid #334155;
   padding: 12px 0;
-  position: sticky;
+  position: fixed;
   top: 0;
+  left: 0;
+  right: 0;
   z-index: 100;
 }
 
