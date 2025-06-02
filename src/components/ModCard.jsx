@@ -672,7 +672,7 @@ function ModCard({ mod, evaluationMode = 'basic' }) {
       })()}
       
       <div className="mod-character">
-        {mod.characterName}
+        {getCharacterDisplayName(mod.characterName)}
       </div>
     </div>
   );
