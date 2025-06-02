@@ -640,7 +640,7 @@ function ModCard({ mod, evaluationMode = 'basic' }) {
               const statId = stat.stat.unitStatId;
               const statName = STAT_NAMES[statId] || `Stat ${statId}`;
               const statValue = parseInt(stat.stat.statValueDecimal) / 10000;
-              const rolls = stat.statRolls || 0;
+              const rolls = stat.statRolls || 1;
               
               // Calculate individual stat efficiency
               const statEfficiency = calculateStatEfficiency(stat, is6Dot);
