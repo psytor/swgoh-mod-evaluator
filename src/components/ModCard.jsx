@@ -555,13 +555,12 @@ function getCharacterDisplayName(characterId) {
   const baseId = characterId.split(':')[0];
   console.log('Looking for:', baseId);
 
-  // Look up in the JSON
-  const characterData = characterNames[baseId];
+  // Search through the array for matching unit
+  const character = characterNames.find(char => char[0] === baseId);
   console.log('Found character:', character);
-
   
   // Return the display name (index 2) or fallback to base ID
-  return characterData?.[2] || baseId;
+  return character ? character[2] : baseId;
 }
 
 function ModCard({ mod, evaluationMode = 'basic' }) {
