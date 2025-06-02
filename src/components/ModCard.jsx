@@ -553,9 +553,12 @@ function getCharacterDisplayName(characterId) {
   
   // Extract the base ID (before the colon)
   const baseId = characterId.split(':')[0];
-  
+  console.log('Looking for:', baseId);
+
   // Look up in the JSON
   const characterData = characterNames[baseId];
+  console.log('Found character:', character);
+
   
   // Return the display name (index 2) or fallback to base ID
   return characterData?.[2] || baseId;
