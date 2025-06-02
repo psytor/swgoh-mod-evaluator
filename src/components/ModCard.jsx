@@ -546,6 +546,8 @@ function ModShapeVisual({ shapeType, setType, modTierName, is6Dot, shapeAtlasUrl
 function ModCard({ mod, evaluationMode = 'basic' }) {
   const setTypeKey = mod.definitionId[0];
   const setType = MOD_SETS[setTypeKey] || "UnknownSet";
+
+  const charName = mod.characterName
   
   const dots = parseInt(mod.definitionId[1]);
   const is6Dot = dots === 6;
@@ -658,7 +660,7 @@ function ModCard({ mod, evaluationMode = 'basic' }) {
       })()}
       
       <div className="mod-character">
-        {mod.characterName}
+        {charName}
       </div>
     </div>
   );
