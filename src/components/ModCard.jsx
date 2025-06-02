@@ -547,7 +547,7 @@ function ModCard({ mod, evaluationMode = 'basic' }) {
   const setTypeKey = mod.definitionId[0];
   const setType = MOD_SETS[setTypeKey] || "UnknownSet";
 
-  const charName = mod.characterName.split(':'[0])
+  const charName = mod.characterName.split(':')[0]
   
   const dots = parseInt(mod.definitionId[1]);
   const is6Dot = dots === 6;
