@@ -1,6 +1,7 @@
 import './ModCard.css';
 import charactermodsAtlas from '../assets/charactermods_datacard_atlas.png';
 import miscAtlas from '../assets/misc_atlas.png';
+import characterNames from '../assets/charname.json';
 
 // Mappings from the API documentation
 const MOD_SETS = {
@@ -543,12 +544,23 @@ function ModShapeVisual({ shapeType, setType, modTierName, is6Dot, shapeAtlasUrl
   return <>{layers}</>;
 }
 
+function getCharacterDisplayName(characterId) {
+  if (!characterId) return 'Unknown';
+  
+  // Extract the base ID (before the colon)
+  const baseId = characterId.split(':')[0];
+  
+  // Look up in the JSON
+  const characterData = characterNames[baseId];
+  
+  // Return the display name (index 2) or fallback to base ID
+  return characterData?.[2] || baseId;
+}
+
 function ModCard({ mod, evaluationMode = 'basic' }) {
   const setTypeKey = mod.definitionId[0];
   const setType = MOD_SETS[setTypeKey] || "UnknownSet";
 
-  const charName = mod.characterName.split(':')[0]
-  
   const dots = parseInt(mod.definitionId[1]);
   const is6Dot = dots === 6;
   
@@ -660,7 +672,7 @@ function ModCard({ mod, evaluationMode = 'basic' }) {
       })()}
       
       <div className="mod-character">
-        {charName}
+        {mod.characterName}
       </div>
     </div>
   );
