@@ -2,10 +2,23 @@ import { useState, useEffect } from 'react'
 import ModCard from './ModCard'
 import { getSpeedRecommendation } from './ModCard' // Need to export this from ModCard.jsx
 import './ModList.css'
+import { getSpeedRecommendation, getCharacterDisplayName } from './ModCard'
 
 function ModList({ playerData, evaluationMode, onModeChange, filterType, onFilterChange }) {
   const [mods, setMods] = useState([])
   const [loading, setLoading] = useState(true)
+
+  const [selectedCharacter, setSelectedCharacter] = useState('all')
+  const [characterList, setCharacterList] = useState([])
+
+  // Build unique character list
+  const uniqueCharacters = [...new Set(extractedMods.map(mod => mod.characterName))]
+    .sort((a, b) => {
+      const nameA = getCharacterDisplayName(a)
+      const nameB = getCharacterDisplayName(b)
+      return nameA.localeCompare(nameB)
+    })
+  setCharacterList(uniqueCharacters)
 
   const [activeFilters, setActiveFilters] = useState(['all'])
 
@@ -58,6 +71,12 @@ function ModList({ playerData, evaluationMode, onModeChange, filterType, onFilte
 
   // Filter mods based on activeFilters
   const filteredMods = mods.filter(mod => {
+    // Character filter
+    if (selectedCharacter !== 'all' && mod.characterName !== selectedCharacter) {
+      return false
+    }
+    
+    // Recommendation filter
     if (activeFilters.includes('all')) return true
     
     const recommendation = getSpeedRecommendation(mod, evaluationMode)
@@ -123,6 +142,22 @@ return (
                   Level
                 </button>
               </div>
+            </div>
+
+            <div className="filter-group">
+              <label>Character:</label>
+              <select 
+                value={selectedCharacter} 
+                onChange={(e) => setSelectedCharacter(e.target.value)}
+                className="filter-dropdown"
+              >
+                <option value="all">All Characters</option>
+                {characterList.map(charId => (
+                  <option key={charId} value={charId}>
+                    {getCharacterDisplayName(charId)}
+                  </option>
+                ))}
+              </select>
             </div>
           </div>
         </div>
