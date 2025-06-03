@@ -54,8 +54,8 @@ function ModList({ playerData, evaluationMode, onModeChange, filterType, onFilte
     // Build unique character list
     const uniqueCharacters = [...new Set(extractedMods.map(mod => mod.characterName))]
       .sort((a, b) => {
-        const nameA = getCharacterDisplayName(a)
-        const nameB = getCharacterDisplayName(b)
+        const nameA = getCharacterDisplayName(a).name
+        const nameB = getCharacterDisplayName(b).name
         return nameA.localeCompare(nameB)
       })
     setCharacterList(uniqueCharacters)
