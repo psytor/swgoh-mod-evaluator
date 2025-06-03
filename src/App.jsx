@@ -24,33 +24,6 @@ function App() {
 
   return (
     <div className="app">
-      {/* Persistent Mode Selector Bar */}
-      <div className="mode-selector-bar">
-      <div className="mode-selector-container">
-        <span className="mode-label">Evaluation Mode:</span>
-        <select 
-          value={evaluationMode} 
-          onChange={(e) => handleModeChange(e.target.value)}
-          className="mode-dropdown"
-        >
-          <option value="basic">Basic (Keep Any Speed)</option>
-          <option value="strict">Strict (Limited Inventory)</option>
-        </select>
-        
-        <span className="mode-label">Filter:</span>
-        <select 
-          value={filterType} 
-          onChange={(e) => setFilterType(e.target.value)}
-          className="mode-dropdown"
-        >
-          <option value="all">All Mods</option>
-          <option value="keep">Keep Only</option>
-          <option value="sell">Sell Only</option>
-          <option value="slice">Slice Only</option>
-          <option value="level">Need Leveling</option>
-        </select>
-      </div>
-    </div>
 
       {!playerData ? (
         <AllyCodeEntry onDataFetched={setPlayerData} />
