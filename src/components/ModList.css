@@ -1,3 +1,82 @@
+.mod-list-wrapper {
+  width: 100%;
+  padding-top: 120px; /* Space for fixed filter bar */
+}
+
+.filter-bar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  background-color: #0f172a;
+  border-bottom: 2px solid #334155;
+  z-index: 100;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+}
+
+.filter-bar-content {
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 20px;
+}
+
+.filter-bar-header {
+  text-align: center;
+  margin-bottom: 20px;
+}
+
+.filter-bar-header h1 {
+  font-size: 28px;
+  color: #3b82f6;
+  margin: 0;
+}
+
+.mod-count {
+  color: #94a3b8;
+  font-size: 14px;
+  margin-top: 5px;
+}
+
+.filter-controls {
+  display: flex;
+  justify-content: center;
+  gap: 30px;
+  flex-wrap: wrap;
+}
+
+.filter-group {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.filter-group label {
+  color: #94a3b8;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.filter-dropdown {
+  background-color: #1e293b;
+  color: #cbd5e1;
+  border: 1px solid #334155;
+  padding: 6px 16px;
+  border-radius: 8px;
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.filter-dropdown:hover {
+  background-color: #334155;
+  color: #e2e8f0;
+}
+
+.filter-dropdown:focus {
+  outline: none;
+  border-color: #3b82f6;
+}
+
 .mod-list-container {
   width: 100%;
   max-width: 1400px;
@@ -5,28 +84,10 @@
   padding: 20px;
 }
 
-.mod-list-header {
-  text-align: center;
-  margin-bottom: 40px;
-  padding-top: 20px;
-}
-
-.mod-list-header h1 {
-  font-size: 36px;
-  color: #3b82f6;
-  margin-bottom: 10px;
-}
-
-.mod-list-header p {
-  color: #94a3b8;
-  font-size: 18px;
-}
-
 .mod-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
   gap: 20px;
-  padding: 20px 0;
 }
 
 .loading {
