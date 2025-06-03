@@ -10,15 +10,6 @@ function ModList({ playerData, evaluationMode, onModeChange, filterType, onFilte
   const [selectedCharacter, setSelectedCharacter] = useState('all')
   const [characterList, setCharacterList] = useState([])
 
-  // Build unique character list
-  const uniqueCharacters = [...new Set(extractedMods.map(mod => mod.characterName))]
-    .sort((a, b) => {
-      const nameA = getCharacterDisplayName(a)
-      const nameB = getCharacterDisplayName(b)
-      return nameA.localeCompare(nameB)
-    })
-  setCharacterList(uniqueCharacters)
-
   const [activeFilters, setActiveFilters] = useState(['all'])
 
   const toggleFilter = (filterName) => {
@@ -63,6 +54,15 @@ function ModList({ playerData, evaluationMode, onModeChange, filterType, onFilte
     setMods(extractedMods)
     setLoading(false)
   }, [playerData])
+
+  // Build unique character list
+  const uniqueCharacters = [...new Set(extractedMods.map(mod => mod.characterName))]
+    .sort((a, b) => {
+      const nameA = getCharacterDisplayName(a)
+      const nameB = getCharacterDisplayName(b)
+      return nameA.localeCompare(nameB)
+    })
+  setCharacterList(uniqueCharacters)
 
   if (loading) {
     return <div className="loading">Processing mods...</div>
