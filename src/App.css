@@ -1,6 +1,5 @@
 .app {
   min-height: 100vh;
-  padding-top: 50px;
 }
 
 /* Center only the ally code entry */
@@ -8,4 +7,5 @@
   display: flex;
   align-items: center;
   justify-content: center;
+  padding-top: 0;
 }
