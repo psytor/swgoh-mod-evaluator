@@ -50,19 +50,21 @@ function ModList({ playerData, evaluationMode, onModeChange, filterType, onFilte
         }
       })
     }
+
+    // Build unique character list
+    const uniqueCharacters = [...new Set(extractedMods.map(mod => mod.characterName))]
+      .sort((a, b) => {
+        const nameA = getCharacterDisplayName(a)
+        const nameB = getCharacterDisplayName(b)
+        return nameA.localeCompare(nameB)
+      })
+    setCharacterList(uniqueCharacters)
     
     setMods(extractedMods)
     setLoading(false)
   }, [playerData])
 
-  // Build unique character list
-  const uniqueCharacters = [...new Set(extractedMods.map(mod => mod.characterName))]
-    .sort((a, b) => {
-      const nameA = getCharacterDisplayName(a)
-      const nameB = getCharacterDisplayName(b)
-      return nameA.localeCompare(nameB)
-    })
-  setCharacterList(uniqueCharacters)
+
 
   if (loading) {
     return <div className="loading">Processing mods...</div>
