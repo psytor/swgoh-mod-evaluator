@@ -1,8 +1,7 @@
 import { useState, useEffect } from 'react'
 import ModCard from './ModCard'
-import { getSpeedRecommendation } from './ModCard' // Need to export this from ModCard.jsx
-import './ModList.css'
 import { getSpeedRecommendation, getCharacterDisplayName } from './ModCard'
+import './ModList.css'
 
 function ModList({ playerData, evaluationMode, onModeChange, filterType, onFilterChange }) {
   const [mods, setMods] = useState([])
