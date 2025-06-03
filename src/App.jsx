@@ -28,7 +28,13 @@ function App() {
       {!playerData ? (
         <AllyCodeEntry onDataFetched={setPlayerData} />
       ) : (
-        <ModList playerData={playerData} evaluationMode={evaluationMode} filterType={filterType} />
+        <ModList 
+          playerData={playerData} 
+          evaluationMode={evaluationMode}
+          onModeChange={handleModeChange}
+          filterType={filterType}
+          onFilterChange={setFilterType}
+        />
       )}
     </div>
   )
