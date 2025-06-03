@@ -96,6 +96,21 @@ return (
           
           <div className="filter-controls">
             <div className="filter-group">
+              <label>Character:</label>
+              <select 
+                value={selectedCharacter} 
+                onChange={(e) => setSelectedCharacter(e.target.value)}
+                className="filter-dropdown"
+              >
+                <option value="all">All Characters</option>
+                {characterList.map(charId => (
+                  <option key={charId} value={charId}>
+                    {getCharacterDisplayName(charId)}
+                  </option>
+                ))}
+              </select>
+            </div>
+            <div className="filter-group">
               <label>Evaluation Mode:</label>
               <select 
                 value={evaluationMode} 
