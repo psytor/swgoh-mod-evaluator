@@ -127,3 +127,22 @@
 .toggle-button.active:hover {
   background-color: #2563eb;
 }
+
+.mod-summary {
+  display: flex;
+  gap: 20px;
+  justify-content: center;
+  margin-top: 10px;
+  font-size: 14px;
+}
+
+.mod-summary span {
+  padding: 4px 12px;
+  border-radius: 6px;
+  font-weight: 500;
+}
+
+.stat-keep { background-color: #059669; color: white; }
+.stat-sell { background-color: #dc2626; color: white; }
+.stat-slice { background-color: #7c3aed; color: white; }
+.stat-level { background-color: #d97706; color: white; }

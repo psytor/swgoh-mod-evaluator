@@ -84,6 +84,13 @@ function ModList({ playerData, evaluationMode, onModeChange, filterType, onFilte
     return activeFilters.includes(recommendation.type)
   })
 
+  // Calculate summary statistics
+  const modStats = filteredMods.reduce((acc, mod) => {
+    const recommendation = getSpeedRecommendation(mod, evaluationMode)
+    acc[recommendation.type] = (acc[recommendation.type] || 0) + 1
+    return acc
+  }, {})
+
 return (
     <div className="mod-list-wrapper">
       <div className="filter-bar">
@@ -93,6 +100,14 @@ return (
             <p className="mod-count">
               Showing {filteredMods.length} of {mods.length} mods
               {!activeFilters.includes('all') && ` (${activeFilters.join(', ')})`}
+              {filteredMods.length > 0 && (
+                <div className="mod-summary">
+                  {modStats.keep && <span className="stat-keep">{modStats.keep} to keep</span>}
+                  {modStats.sell && <span className="stat-sell">{modStats.sell} to sell</span>}
+                  {modStats.slice && <span className="stat-slice">{modStats.slice} to slice</span>}
+                  {modStats.level && <span className="stat-level">{modStats.level} to level</span>}
+                </div>
+              )}
             </p>
           </div>
           
