@@ -553,14 +553,23 @@ function getCharacterDisplayName(characterId) {
   
   // Extract the base ID (before the colon)
   const baseId = characterId.split(':')[0];
-  console.log('Looking for:', baseId);
-
+  
   // Search through the array for matching unit
   const character = characterNames.find(char => char[0] === baseId);
-  console.log('Found character:', character);
   
-  // Return the display name (index 2) or fallback to base ID
-  return character ? character[2] : baseId;
+  // If not found, return the ID with a warning flag
+  if (!character) {
+    return { 
+      name: baseId, 
+      hasWarning: true 
+    };
+  }
+  
+  // Return the display name (index 2)
+  return { 
+    name: character[2], 
+    hasWarning: false 
+  };
 }
 
 function ModCard({ mod, evaluationMode = 'basic' }) {
@@ -678,7 +687,15 @@ function ModCard({ mod, evaluationMode = 'basic' }) {
       })()}
       
       <div className="mod-character">
-        {getCharacterDisplayName(mod.characterName)}
+        {(() => {
+          const charInfo = getCharacterDisplayName(mod.characterName);
+          return (
+            <>
+              {charInfo.hasWarning && <span className="character-warning">⚠️ </span>}
+              {charInfo.name}
+            </>
+          );
+        })()}
       </div>
     </div>
   );

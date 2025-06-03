@@ -120,11 +120,14 @@ return (
                 className="filter-dropdown"
               >
                 <option value="all">All Characters</option>
-                {characterList.map(charId => (
-                  <option key={charId} value={charId}>
-                    {getCharacterDisplayName(charId)}
-                  </option>
-                ))}
+                  {characterList.map(charId => {
+                    const charInfo = getCharacterDisplayName(charId);
+                    return (
+                      <option key={charId} value={charId}>
+                        {charInfo.hasWarning ? `⚠️ ${charInfo.name}` : charInfo.name}
+                      </option>
+                    );
+                  })}
               </select>
             </div>
             <div className="filter-group">

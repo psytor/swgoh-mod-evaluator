@@ -310,3 +310,8 @@
   color: #60a5fa;
   font-weight: 600;
 }
+
+.character-warning {
+  color: #f59e0b;
+  margin-right: 4px;
+}
