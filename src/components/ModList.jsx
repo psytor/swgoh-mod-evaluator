@@ -7,6 +7,26 @@ function ModList({ playerData, evaluationMode, onModeChange, filterType, onFilte
   const [mods, setMods] = useState([])
   const [loading, setLoading] = useState(true)
 
+  const [activeFilters, setActiveFilters] = useState(['all'])
+
+  const toggleFilter = (filterName) => {
+    setActiveFilters(prev => {
+      if (filterName === 'all') {
+        return ['all']
+      }
+      
+      let newFilters = prev.filter(f => f !== 'all')
+      
+      if (prev.includes(filterName)) {
+        newFilters = newFilters.filter(f => f !== filterName)
+      } else {
+        newFilters = [...newFilters, filterName]
+      }
+      
+      return newFilters.length === 0 ? ['all'] : newFilters
+    })
+  }
+
   useEffect(() => {
     // Extract all mods from player data
     const extractedMods = []
@@ -36,12 +56,12 @@ function ModList({ playerData, evaluationMode, onModeChange, filterType, onFilte
     return <div className="loading">Processing mods...</div>
   }
 
-  // Filter mods based on filterType
+  // Filter mods based on activeFilters
   const filteredMods = mods.filter(mod => {
-    if (filterType === 'all') return true
+    if (activeFilters.includes('all')) return true
     
     const recommendation = getSpeedRecommendation(mod, evaluationMode)
-    return recommendation.type === filterType
+    return activeFilters.includes(recommendation.type)
   })
 
 return (
@@ -52,7 +72,7 @@ return (
             <h1>Your Mods</h1>
             <p className="mod-count">
               Showing {filteredMods.length} of {mods.length} mods
-              {filterType !== 'all' && ` (${filterType} only)`}
+              {!activeFilters.includes('all') && ` (${activeFilters.join(', ')})`}
             </p>
           </div>
           
@@ -70,18 +90,39 @@ return (
             </div>
             
             <div className="filter-group">
-              <label>Show:</label>
-              <select 
-                value={filterType} 
-                onChange={(e) => onFilterChange(e.target.value)}
-                className="filter-dropdown"
-              >
-                <option value="all">All Mods</option>
-                <option value="keep">Keep Only</option>
-                <option value="sell">Sell Only</option>
-                <option value="slice">Slice Only</option>
-                <option value="level">Need Leveling</option>
-              </select>
+              <label>Filter:</label>
+              <div className="toggle-filters">
+                <button 
+                  className={`toggle-button ${activeFilters.includes('all') ? 'active' : ''}`}
+                  onClick={() => toggleFilter('all')}
+                >
+                  All
+                </button>
+                <button 
+                  className={`toggle-button ${activeFilters.includes('keep') ? 'active' : ''}`}
+                  onClick={() => toggleFilter('keep')}
+                >
+                  Keep
+                </button>
+                <button 
+                  className={`toggle-button ${activeFilters.includes('sell') ? 'active' : ''}`}
+                  onClick={() => toggleFilter('sell')}
+                >
+                  Sell
+                </button>
+                <button 
+                  className={`toggle-button ${activeFilters.includes('slice') ? 'active' : ''}`}
+                  onClick={() => toggleFilter('slice')}
+                >
+                  Slice
+                </button>
+                <button 
+                  className={`toggle-button ${activeFilters.includes('level') ? 'active' : ''}`}
+                  onClick={() => toggleFilter('level')}
+                >
+                  Level
+                </button>
+              </div>
             </div>
           </div>
         </div>
