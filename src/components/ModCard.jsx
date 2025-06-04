@@ -576,7 +576,8 @@ function getCharacterDisplayName(characterId) {
   };
 }
 
-function ModCard({ mod, evaluationMode = 'basic' }) {
+function ModCard({ mod, evaluationMode = 'basic', isTempLocked = false, onToggleTempLock }) {
+
   const setTypeKey = mod.definitionId[0];
   const setType = MOD_SETS[setTypeKey] || "UnknownSet";
 
@@ -592,7 +593,8 @@ function ModCard({ mod, evaluationMode = 'basic' }) {
   const modEfficiency = calculateModEfficiency(mod.secondaryStat, is6Dot);
   
   // Get speed recommendation
-  const recommendation = getSpeedRecommendation(mod, evaluationMode);
+  const isLocked = mod.locked || isTempLocked
+  const recommendation = getSpeedRecommendation(mod, evaluationMode, isLocked)
   
   const primaryStatId = mod.primaryStat?.stat?.unitStatId;
   const primaryStatName = STAT_NAMES[primaryStatId] || `Stat ${primaryStatId}`;
@@ -700,6 +702,16 @@ function ModCard({ mod, evaluationMode = 'basic' }) {
             </>
           );
         })()}
+      </div>
+      <div className="mod-lock-container">
+        <button 
+          className={`mod-lock-button ${mod.locked ? 'game-locked' : ''} ${isTempLocked ? 'temp-locked' : ''}`}
+          onClick={() => !mod.locked && onToggleTempLock(mod.id)}
+          disabled={mod.locked}
+          title={mod.locked ? 'Locked in game' : (isTempLocked ? 'Click to unlock' : 'Click to lock')}
+        >
+          {(mod.locked || isTempLocked) ? '🔒' : '🔓'}
+        </button>
       </div>
     </div>
   );
