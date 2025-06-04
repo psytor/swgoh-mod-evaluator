@@ -86,13 +86,15 @@ function ModList({ playerData, evaluationMode, onModeChange, filterType, onFilte
     // Recommendation filter
     if (activeFilters.includes('all')) return true
     
-    const recommendation = getSpeedRecommendation(mod, evaluationMode)
+    const isLocked = mod.locked || tempLockedMods.includes(mod.id)
+    const recommendation = getSpeedRecommendation(mod, evaluationMode, isLocked)
     return activeFilters.includes(recommendation.type)
   })
 
   // Calculate summary statistics
   const modStats = filteredMods.reduce((acc, mod) => {
-    const recommendation = getSpeedRecommendation(mod, evaluationMode)
+    const isLocked = mod.locked || tempLockedMods.includes(mod.id)
+    const recommendation = getSpeedRecommendation(mod, evaluationMode, isLocked)
     acc[recommendation.type] = (acc[recommendation.type] || 0) + 1
     return acc
   }, {})
