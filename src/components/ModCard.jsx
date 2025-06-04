@@ -725,6 +725,6 @@ function ModCard({ mod, evaluationMode = 'basic', isTempLocked = false, onToggle
   );
 }
 
-export { getSpeedRecommendation };
+export { getSpeedRecommendation, getCharacterDisplayName };
 
 export default ModCard;
