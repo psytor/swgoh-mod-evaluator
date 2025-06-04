@@ -1,13 +1,12 @@
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 
-// https://vitejs.dev/config/
-export default defineConfig({
+export default defineConfig(({ command }) => ({
   plugins: [react()],
-  base: '/mod-eval-dev/',
+  base: command === 'serve' ? '/mod-eval-dev/' : '/mod-evaluator/',
   server: {
-    host: '0.0.0.0', // Listen on all network interfaces
-    port: 5173,      // You can change this if needed
+    host: '0.0.0.0',
+    port: 5173,
     hmr: {
       clientPort: 80,
       host: 'farmroadmap.dynv6.net',
@@ -15,4 +14,4 @@ export default defineConfig({
     },
     allowedHosts: ['farmroadmap.dynv6.net', 'localhost']
   }
-})
+}))
