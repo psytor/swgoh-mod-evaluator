@@ -12,6 +12,12 @@ function ModList({ playerData, evaluationMode, onModeChange, filterType, onFilte
 
   const [activeFilters, setActiveFilters] = useState(['all'])
 
+  const [tempLockedMods, setTempLockedMods] = useState(() => {
+    // Load temporary locks from localStorage
+    const saved = localStorage.getItem('swgoh_temp_locked_mods')
+    return saved ? JSON.parse(saved) : []
+  })
+
   const toggleFilter = (filterName) => {
     setActiveFilters(prev => {
       if (filterName === 'all') {
@@ -90,6 +96,18 @@ function ModList({ playerData, evaluationMode, onModeChange, filterType, onFilte
     acc[recommendation.type] = (acc[recommendation.type] || 0) + 1
     return acc
   }, {})
+
+  const toggleTempLock = (modId) => {
+    setTempLockedMods(prev => {
+      const newLocks = prev.includes(modId) 
+        ? prev.filter(id => id !== modId)
+        : [...prev, modId]
+      
+      // Save to localStorage
+      localStorage.setItem('swgoh_temp_locked_mods', JSON.stringify(newLocks))
+      return newLocks
+    })
+  }
 
 return (
     <div className="mod-list-wrapper">
@@ -186,7 +204,13 @@ return (
       <div className="mod-list-container">
         <div className="mod-grid">
           {filteredMods.map((mod, index) => (
-            <ModCard key={mod.id || index} mod={mod} evaluationMode={evaluationMode} />
+            <ModCard 
+              key={mod.id || index} 
+              mod={mod} 
+              evaluationMode={evaluationMode}
+              isTempLocked={tempLockedMods.includes(mod.id)}
+              onToggleTempLock={toggleTempLock}
+            />
           ))}
         </div>
       </div>
