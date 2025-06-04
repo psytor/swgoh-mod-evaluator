@@ -97,9 +97,11 @@ return (
         <div className="filter-bar-content">
           <div className="filter-bar-header">
             <h1>Your Mods</h1>
-            <p className="mod-count">
-              Showing {filteredMods.length} of {mods.length} mods
-              {!activeFilters.includes('all') && ` (${activeFilters.join(', ')})`}
+            <div className="mod-stats">
+              <p className="mod-count">
+                Showing {filteredMods.length} of {mods.length} mods
+                {!activeFilters.includes('all') && ` (${activeFilters.join(', ')})`}
+              </p>
               {filteredMods.length > 0 && (
                 <div className="mod-summary">
                   {modStats.keep && <span className="stat-keep">{modStats.keep} to keep</span>}
@@ -108,7 +110,7 @@ return (
                   {modStats.level && <span className="stat-level">{modStats.level} to level</span>}
                 </div>
               )}
-            </p>
+            </div>
           </div>
           
           <div className="filter-controls">
