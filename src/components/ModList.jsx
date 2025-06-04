@@ -83,11 +83,21 @@ function ModList({ playerData, evaluationMode, onModeChange, filterType, onFilte
       return false
     }
     
+    // Handle locked filter specially
+    if (activeFilters.includes('locked') && !activeFilters.includes('all')) {
+      const isLocked = mod.locked || tempLockedMods.includes(mod.id)
+      if (!isLocked) return false
+    }
+    
     // Recommendation filter
     if (activeFilters.includes('all')) return true
     
     const isLocked = mod.locked || tempLockedMods.includes(mod.id)
     const recommendation = getSpeedRecommendation(mod, evaluationMode, isLocked)
+    
+    // If we're filtering by locked, also include it
+    if (activeFilters.includes('locked') && isLocked) return true
+    
     return activeFilters.includes(recommendation.type)
   })
 
@@ -196,6 +206,12 @@ return (
                   onClick={() => toggleFilter('level')}
                 >
                   Level
+                </button>
+                <button 
+                  className={`toggle-button ${activeFilters.includes('locked') ? 'active' : ''}`}
+                  onClick={() => toggleFilter('locked')}
+                >
+                  Locked
                 </button>
               </div>
             </div>
