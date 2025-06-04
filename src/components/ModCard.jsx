@@ -548,28 +548,32 @@ function ModShapeVisual({ shapeType, setType, modTierName, is6Dot, shapeAtlasUrl
   return <>{layers}</>;
 }
 
+const CHARACTER_ID_FIXES = {
+  'VEERS': 'VEERS_GENERAL',
+  // Add more mappings here as you find them
+};
+
 function getCharacterDisplayName(characterId) {
-  if (!characterId) {
-    console.log('No character ID provided');
-    return { name: 'Unknown', hasWarning: true };
-  }
+  if (!characterId) return { name: 'Unknown', hasWarning: true };
   
   // Extract the base ID (before the colon)
-  const baseId = characterId.split(':')[0];
-  console.log('Looking for:', baseId, 'from full ID:', characterId);
-
+  let baseId = characterId.split(':')[0];
+  
+  // Check if this ID needs to be remapped
+  if (CHARACTER_ID_FIXES[baseId]) {
+    baseId = CHARACTER_ID_FIXES[baseId];
+  }
+  
   // Search through the array for matching unit
   const character = characterNames.find(char => char[0] === baseId);
   
-  if (!character) {
-    console.log('Character not found in JSON:', baseId);
+  if (!character || !character[2]) {
     return { 
-      name: baseId || 'Unknown', 
+      name: baseId, 
       hasWarning: true 
     };
   }
   
-  console.log('Found character:', character[2]);
   return { 
     name: character[2], 
     hasWarning: false 
