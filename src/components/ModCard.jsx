@@ -549,23 +549,27 @@ function ModShapeVisual({ shapeType, setType, modTierName, is6Dot, shapeAtlasUrl
 }
 
 function getCharacterDisplayName(characterId) {
-  if (!characterId) return 'Unknown';
+  if (!characterId) {
+    console.log('No character ID provided');
+    return { name: 'Unknown', hasWarning: true };
+  }
   
   // Extract the base ID (before the colon)
   const baseId = characterId.split(':')[0];
-  
+  console.log('Looking for:', baseId, 'from full ID:', characterId);
+
   // Search through the array for matching unit
   const character = characterNames.find(char => char[0] === baseId);
   
-  // If not found, return the ID with a warning flag
   if (!character) {
+    console.log('Character not found in JSON:', baseId);
     return { 
-      name: baseId, 
+      name: baseId || 'Unknown', 
       hasWarning: true 
     };
   }
   
-  // Return the display name (index 2)
+  console.log('Found character:', character[2]);
   return { 
     name: character[2], 
     hasWarning: false 
