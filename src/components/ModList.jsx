@@ -37,7 +37,6 @@ function ModList({ playerData, evaluationMode, onModeChange, filterType, onFilte
     if (playerData?.rosterUnit) {
       playerData.rosterUnit.forEach(unit => {
         if (unit.equippedStatMod && unit.equippedStatMod.length > 0) {
-          console.log('Character unit ID:', unit.definitionId); // Add this line
           unit.equippedStatMod.forEach(mod => {
             // Only include 5-dot and 6-dot mods
             const dots = parseInt(mod.definitionId[1])

@@ -3,10 +3,6 @@ import charactermodsAtlas from '../assets/charactermods_datacard_atlas.png';
 import miscAtlas from '../assets/misc_atlas.png';
 import characterNames from '../assets/charname.json';
 
-// Add this right after the import to check if JSON loaded
-console.log('Character names loaded:', characterNames);
-console.log('First few entries:', characterNames?.slice(0, 5));
-
 // Mappings from the API documentation
 const MOD_SETS = {
   1: "Health", 2: "Offense", 3: "Defense", 4: "Speed",
