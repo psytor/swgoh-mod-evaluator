@@ -98,6 +98,14 @@ function getSpeedRecommendation(mod, evaluationMode) {
   // Check if this is an Arrow with Speed Primary
   const primaryStatId = mod.primaryStat?.stat?.unitStatId;
   const slotTypeKey = mod.definitionId[2];
+
+  if (isLocked) {
+    return {
+      type: 'keep',
+      text: 'Locked',
+      className: 'keep'
+    }
+  }
   
   if (slotTypeKey === '2' && primaryStatId === 5) { // Arrow slot with Speed primary
     // 6-dot Gold mods are already maxed
@@ -717,6 +725,6 @@ function ModCard({ mod, evaluationMode = 'basic', isTempLocked = false, onToggle
   );
 }
 
-export { getSpeedRecommendation, getCharacterDisplayName };
+export { getSpeedRecommendation };
 
 export default ModCard;
