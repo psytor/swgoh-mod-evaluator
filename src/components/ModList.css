@@ -146,3 +146,87 @@
 .stat-sell { background-color: #dc2626; color: white; }
 .stat-slice { background-color: #7c3aed; color: white; }
 .stat-level { background-color: #d97706; color: white; }
+
+/* Collection Efficiency Styles */
+.collection-efficiency {
+  background-color: #1e293b;
+  border-radius: 8px;
+  padding: 15px;
+  margin: 15px 0 0 0;
+  border: 1px solid #334155;
+}
+
+.collection-overall {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  margin-bottom: 10px;
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.efficiency-label {
+  color: #94a3b8;
+}
+
+.efficiency-value {
+  color: #60a5fa;
+  font-size: 18px;
+  font-weight: 700;
+}
+
+.efficiency-count {
+  color: #64748b;
+  font-size: 14px;
+  font-weight: 400;
+}
+
+.collection-breakdown {
+  display: flex;
+  gap: 15px;
+  flex-wrap: wrap;
+  justify-content: center;
+  font-size: 14px;
+}
+
+.breakdown-item {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  padding: 4px 8px;
+  border-radius: 4px;
+}
+
+.breakdown-keep {
+  background-color: rgba(5, 150, 105, 0.2);
+  color: #10b981;
+}
+
+.breakdown-sell {
+  background-color: rgba(220, 38, 38, 0.2);
+  color: #ef4444;
+}
+
+.breakdown-slice {
+  background-color: rgba(124, 58, 237, 0.2);
+  color: #8b5cf6;
+}
+
+.breakdown-level {
+  background-color: rgba(217, 119, 6, 0.2);
+  color: #f59e0b;
+}
+
+.breakdown-label {
+  font-weight: 500;
+}
+
+.breakdown-value {
+  font-weight: 600;
+}
+
+.breakdown-count {
+  opacity: 0.8;
+  font-size: 12px;
+}

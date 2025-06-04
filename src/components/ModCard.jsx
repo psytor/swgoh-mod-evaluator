@@ -286,7 +286,6 @@ function getSliceThreshold(tier, mode) {
 }
 
 // Calculate efficiency for a single secondary stat using position-based approach
-// Calculate efficiency for a single secondary stat using position-based approach
 function calculateStatEfficiency(stat, is6Dot = false) {
   const statId = stat.stat.unitStatId;
   const statValue = parseInt(stat.stat.statValueDecimal) / 10000;
@@ -716,6 +715,6 @@ function ModCard({ mod, evaluationMode = 'basic', isTempLocked = false, onToggle
   );
 }
 
-export { getSpeedRecommendation, getCharacterDisplayName };
+export { getSpeedRecommendation, getCharacterDisplayName, calculateModEfficiency };
 
 export default ModCard;

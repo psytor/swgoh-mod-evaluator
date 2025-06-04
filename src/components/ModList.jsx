@@ -1,7 +1,81 @@
 import { useState, useEffect } from 'react'
 import ModCard from './ModCard'
-import { getSpeedRecommendation, getCharacterDisplayName } from './ModCard'
+import { getSpeedRecommendation, getCharacterDisplayName, calculateModEfficiency } from './ModCard'
 import './ModList.css'
+
+// Calculate collection efficiency
+function calculateCollectionEfficiency(mods, evaluationMode, tempLockedMods = []) {
+  if (!mods || mods.length === 0) return { average: 0, count: 0, breakdown: {} };
+  
+  let totalEfficiency = 0;
+  let modCount = 0;
+  const breakdown = {
+    keep: { total: 0, count: 0 },
+    sell: { total: 0, count: 0 },
+    slice: { total: 0, count: 0 },
+    level: { total: 0, count: 0 }
+  };
+  
+  mods.forEach(mod => {
+    const dots = parseInt(mod.definitionId[1]);
+    const is6Dot = dots === 6;
+    
+    // Calculate mod efficiency
+    const modEfficiency = calculateModEfficiency(mod.secondaryStat, is6Dot);
+    
+    if (modEfficiency > 0) {
+      totalEfficiency += modEfficiency;
+      modCount++;
+      
+      // Get recommendation for breakdown
+      const isLocked = mod.locked || tempLockedMods.includes(mod.id);
+      const recommendation = getSpeedRecommendation(mod, evaluationMode, isLocked);
+      if (breakdown[recommendation.type]) {
+        breakdown[recommendation.type].total += modEfficiency;
+        breakdown[recommendation.type].count++;
+      }
+    }
+  });
+  
+  return {
+    average: modCount > 0 ? totalEfficiency / modCount : 0,
+    count: modCount,
+    breakdown: Object.keys(breakdown).reduce((acc, key) => {
+      acc[key] = {
+        ...breakdown[key],
+        average: breakdown[key].count > 0 ? breakdown[key].total / breakdown[key].count : 0
+      };
+      return acc;
+    }, {})
+  };
+}
+
+// Component to display collection efficiency
+function CollectionEfficiencyDisplay({ collectionStats }) {
+  return (
+    <div className="collection-efficiency">
+      <div className="collection-overall">
+        <span className="efficiency-label">Collection Average:</span>
+        <span className="efficiency-value">{collectionStats.average.toFixed(1)}%</span>
+        <span className="efficiency-count">({collectionStats.count} mods)</span>
+      </div>
+      
+      <div className="collection-breakdown">
+        {Object.entries(collectionStats.breakdown).map(([type, stats]) => {
+          if (stats.count === 0) return null;
+          
+          return (
+            <div key={type} className={`breakdown-item breakdown-${type}`}>
+              <span className="breakdown-label">{type.charAt(0).toUpperCase() + type.slice(1)}:</span>
+              <span className="breakdown-value">{stats.average.toFixed(1)}%</span>
+              <span className="breakdown-count">({stats.count})</span>
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
 
 function ModList({ playerData, evaluationMode, onModeChange, filterType, onFilterChange }) {
   const [mods, setMods] = useState([])
@@ -109,6 +183,9 @@ function ModList({ playerData, evaluationMode, onModeChange, filterType, onFilte
     return acc
   }, {})
 
+  // Calculate collection efficiency 
+  const collectionStats = calculateCollectionEfficiency(filteredMods, evaluationMode, tempLockedMods);
+
   const toggleTempLock = (modId) => {
     setTempLockedMods(prev => {
       const newLocks = prev.includes(modId) 
@@ -121,7 +198,7 @@ function ModList({ playerData, evaluationMode, onModeChange, filterType, onFilte
     })
   }
 
-return (
+  return (
     <div className="mod-list-wrapper">
       <div className="filter-bar">
         <div className="filter-bar-content">
@@ -133,11 +210,14 @@ return (
                 {!activeFilters.includes('all') && ` (${activeFilters.join(', ')})`}
               </p>
               {filteredMods.length > 0 && (
-                <div className="mod-summary">
-                  {modStats.keep && <span className="stat-keep">{modStats.keep} to keep</span>}
-                  {modStats.sell && <span className="stat-sell">{modStats.sell} to sell</span>}
-                  {modStats.slice && <span className="stat-slice">{modStats.slice} to slice</span>}
-                  {modStats.level && <span className="stat-level">{modStats.level} to level</span>}
+                <div>
+                  <div className="mod-summary">
+                    {modStats.keep && <span className="stat-keep">{modStats.keep} to keep</span>}
+                    {modStats.sell && <span className="stat-sell">{modStats.sell} to sell</span>}
+                    {modStats.slice && <span className="stat-slice">{modStats.slice} to slice</span>}
+                    {modStats.level && <span className="stat-level">{modStats.level} to level</span>}
+                  </div>
+                  <CollectionEfficiencyDisplay collectionStats={collectionStats} />
                 </div>
               )}
             </div>
