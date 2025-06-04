@@ -44,9 +44,6 @@ const STAT_BOUND_DIVISORS = {
   56: 1000     // Protection % (percentage)
 };
 
-// Stats that should use discrete positioning (integer values)
-const DISCRETE_STATS = [5]; // Speed only
-
 // Fallback values if API data is missing (these match your documentation)
 const STAT_ROLL_RANGES = {
   1: { min: 270, max: 540 },      // Health
@@ -289,6 +286,7 @@ function getSliceThreshold(tier, mode) {
 }
 
 // Calculate efficiency for a single secondary stat using position-based approach
+// Calculate efficiency for a single secondary stat using position-based approach
 function calculateStatEfficiency(stat, is6Dot = false) {
   const statId = stat.stat.unitStatId;
   const statValue = parseInt(stat.stat.statValueDecimal) / 10000;
@@ -320,19 +318,11 @@ function calculateStatEfficiency(stat, is6Dot = false) {
   // Calculate the average roll value
   const avgRollValue = actualValue / rolls;
   
-  // Use different calculation for discrete vs continuous stats
-  if (DISCRETE_STATS.includes(statId)) {
-    // Discrete positioning for Speed
-    const positions = Math.round(max - min) + 1; // e.g., 3,4,5,6 = 4 positions
-    const position = Math.round(avgRollValue - min) + 1; // 1-based position
-    return (position / positions) * 100;
-  } else {
-    // Continuous positioning with adjustment to avoid 0%
-    const positions = 10; // Reasonable granularity for continuous stats
-    const rawEfficiency = (avgRollValue - min) / (max - min);
-    const adjustedPosition = 1 + rawEfficiency * (positions - 1);
-    return (adjustedPosition / positions) * 100;
-  }
+  // Use continuous positioning for ALL stats (including Speed)
+  const positions = 10; // Reasonable granularity for continuous stats
+  const rawEfficiency = (avgRollValue - min) / (max - min);
+  const adjustedPosition = 1 + rawEfficiency * (positions - 1);
+  return (adjustedPosition / positions) * 100;
 }
 
 // Calculate overall mod efficiency (average of all secondaries)
