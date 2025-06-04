@@ -90,7 +90,8 @@ function getCalibrationInfo(mod) {
 }
 
 // Speed-Only Evaluation Logic
-function getSpeedRecommendation(mod, evaluationMode) {
+function getSpeedRecommendation(mod, evaluationMode, isLocked = false) {
+
   const tier = mod.tier;
   const level = mod.level;
   const dots = parseInt(mod.definitionId[1]);
