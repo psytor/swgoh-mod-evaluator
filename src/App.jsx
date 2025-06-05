@@ -8,8 +8,6 @@ function App() {
   const [playerData, setPlayerData] = useState(null)
   const [evaluationMode, setEvaluationMode] = useState('basic') // 'basic' or 'strict'
   const [filterType, setFilterType] = useState('all') // 'all', 'keep', 'sell', 'slice', 'level'
-  const [savedPlayers, setSavedPlayers] = useState(loadSavedPlayers())
-  const [currentPlayer, setCurrentPlayer] = useState(loadLastUsedPlayer())
 
   useEffect(() => {
     if (currentPlayer && currentPlayer.data) {
@@ -56,6 +54,9 @@ function App() {
     setEvaluationMode(mode)
     localStorage.setItem('swgoh_evaluation_mode', mode)
   }
+
+  const [savedPlayers, setSavedPlayers] = useState(loadSavedPlayers())
+  const [currentPlayer, setCurrentPlayer] = useState(loadLastUsedPlayer())
 
   // Handle player switch
   const handlePlayerSwitch = (allyCode) => {
