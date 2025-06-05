@@ -351,7 +351,9 @@ function ModList({ playerData, evaluationMode, onModeChange, filterType, onFilte
               </p>
               {filteredMods.length > 0 && (
                 <div>
+                  <div className="mod-summary">
                   <CollectionEfficiencyDisplay collectionStats={collectionStats} modStats={modStats} />
+                  </div>
                 </div>
               )}
             </div>
