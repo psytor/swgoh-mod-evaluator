@@ -397,7 +397,7 @@
   display: flex;
   align-items: center;
   gap: 5px;
-  padding: 4px 8px;
+  padding: 3px 6px;
   border-radius: 4px;
 }
 
@@ -441,6 +441,6 @@
 }
 
 .breakdown-separator {
-  margin: 0 5px;
+  margin: 0 2px;
   color: #64748b;
 }
