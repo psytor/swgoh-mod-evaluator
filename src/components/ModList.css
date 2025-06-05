@@ -444,3 +444,73 @@
 .breakdown-separator {
   color: #8b8b8b;
 }
+
+/* Mobile scrollable header */
+.mobile-header {
+  background-color: #0f172a;
+  border-bottom: 2px solid #334155;
+  padding: 20px;
+  text-align: center;
+}
+
+.mobile-header h1 {
+  font-size: 24px;
+  color: #3b82f6;
+  margin: 0 0 10px 0;
+}
+
+/* Update filter panel styles */
+.filter-panel {
+  position: fixed;
+  top: 0;
+  right: -300px;
+  width: 300px;
+  height: 100vh;
+  background-color: #0f172a;
+  border-left: 2px solid #334155;
+  transition: right 0.3s ease;
+  overflow-y: auto;
+  z-index: 100;
+}
+
+.filter-panel.open {
+  right: 0;
+}
+
+.filter-panel-content {
+  padding: 50px 20px 20px;
+}
+
+.filter-panel-title {
+  font-size: 20px;
+  color: #3b82f6;
+  margin: 0 0 20px 0;
+  text-align: center;
+}
+
+.filter-controls-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.filter-controls-panel .filter-group {
+  flex-direction: column;
+  align-items: stretch;
+  gap: 5px;
+}
+
+.filter-controls-panel .filter-dropdown {
+  width: 100%;
+  padding: 10px 16px;
+}
+
+.filter-controls-panel .toggle-filters {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 10px;
+}
+
+.filter-controls-panel .toggle-button {
+  padding: 10px 16px;
+}
