@@ -7,6 +7,8 @@ function App() {
   const [playerData, setPlayerData] = useState(null)
   const [evaluationMode, setEvaluationMode] = useState('basic') // 'basic' or 'strict'
   const [filterType, setFilterType] = useState('all') // 'all', 'keep', 'sell', 'slice', 'level'
+  const [savedPlayers, setSavedPlayers] = useState(loadSavedPlayers())
+  const [currentPlayer, setCurrentPlayer] = useState(loadLastUsedPlayer())
 
   // Load saved players from localStorage
   const loadSavedPlayers = () => {
@@ -33,9 +35,6 @@ function App() {
   const saveLastUsedPlayer = (allyCode) => {
     localStorage.setItem('swgoh_last_used_player', allyCode)
   }
-
-  const [savedPlayers, setSavedPlayers] = useState(loadSavedPlayers())
-  const [currentPlayer, setCurrentPlayer] = useState(loadLastUsedPlayer())
 
   // Load saved mode from localStorage on mount
   useEffect(() => {
