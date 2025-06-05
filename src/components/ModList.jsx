@@ -121,7 +121,7 @@ function ModList({ playerData, evaluationMode, onModeChange, filterType, onFilte
   // Close panel when clicking outside on mobile
   useEffect(() => {
     const handleClickOutside = (event) => {
-      if (isMobile && filterPanelOpen && !event.target.closest('.filter-panel') && !event.target.closest('.filter-toggle-tab')) {
+      if (filterPanelOpen && !event.target.closest('.filter-panel') && !event.target.closest('.filter-toggle-tab')) {
         setFilterPanelOpen(false)
       }
     }
@@ -315,7 +315,7 @@ function ModList({ playerData, evaluationMode, onModeChange, filterType, onFilte
   return (
     <div className="mod-list-wrapper">
       {/* Mobile Filter Toggle Tab */}
-      {isMobile && (
+      {(
         <div 
           className={`filter-toggle-tab ${filterPanelOpen ? 'open' : ''}`}
           onClick={() => setFilterPanelOpen(!filterPanelOpen)}
@@ -331,7 +331,7 @@ function ModList({ playerData, evaluationMode, onModeChange, filterType, onFilte
       )}
 
       {/* Desktop Filter Bar / Mobile Filter Panel */}
-      <div className={`filter-bar ${isMobile ? 'filter-panel' : ''} ${isMobile && filterPanelOpen ? 'open' : ''}`}>
+      <div className={`filter-bar filter-panel ${filterPanelOpen ? 'open' : ''}`}>
         <div className="filter-bar-content">
           {isMobile && (
             <button 

@@ -13,7 +13,9 @@
 
 /* Filter Toggle Tab (Mobile Only) */
 .filter-toggle-tab {
-  display: none;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
   position: fixed;
   top: 25%;
   right: 0;
@@ -44,14 +46,6 @@
 
 .filter-toggle-tab span {
   display: block;
-}
-
-@media (max-width: 768px) {
-  .filter-toggle-tab {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-  }
 }
 
 /* Filter Bar/Panel */
@@ -93,7 +87,7 @@
     right: 0; /* Slide in */
   }
 
-  /* Overlay for mobile */
+  /* Overlay for both mobile and desktop */
   .filter-bar.filter-panel.open::before {
     content: '';
     position: fixed;
