@@ -439,3 +439,8 @@
     font-size: 10px;
   }
 }
+
+.breakdown-separator {
+  margin: 0 5px;
+  color: #64748b;
+}
