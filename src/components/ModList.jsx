@@ -80,17 +80,39 @@ function CollectionEfficiencyDisplay({ collectionStats }) {
 function ModList({ playerData, evaluationMode, onModeChange, filterType, onFilterChange }) {
   const [mods, setMods] = useState([])
   const [loading, setLoading] = useState(true)
-
   const [selectedCharacter, setSelectedCharacter] = useState('all')
   const [characterList, setCharacterList] = useState([])
-
   const [activeFilters, setActiveFilters] = useState(['all'])
+  const [filterPanelOpen, setFilterPanelOpen] = useState(false)
+  const [isMobile, setIsMobile] = useState(false)
 
   const [tempLockedMods, setTempLockedMods] = useState(() => {
-    // Load temporary locks from localStorage
     const saved = localStorage.getItem('swgoh_temp_locked_mods')
     return saved ? JSON.parse(saved) : []
   })
+
+  // Detect mobile viewport
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth <= 768)
+    }
+    
+    checkMobile()
+    window.addEventListener('resize', checkMobile)
+    return () => window.removeEventListener('resize', checkMobile)
+  }, [])
+
+  // Close panel when clicking outside on mobile
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (isMobile && filterPanelOpen && !event.target.closest('.filter-panel') && !event.target.closest('.filter-toggle-tab')) {
+        setFilterPanelOpen(false)
+      }
+    }
+
+    document.addEventListener('click', handleClickOutside)
+    return () => document.removeEventListener('click', handleClickOutside)
+  }, [isMobile, filterPanelOpen])
 
   const toggleFilter = (filterName) => {
     setActiveFilters(prev => {
@@ -144,8 +166,6 @@ function ModList({ playerData, evaluationMode, onModeChange, filterType, onFilte
     setLoading(false)
   }, [playerData])
 
-
-
   if (loading) {
     return <div className="loading">Processing mods...</div>
   }
@@ -198,10 +218,114 @@ function ModList({ playerData, evaluationMode, onModeChange, filterType, onFilte
     })
   }
 
+  // Filter controls content (reusable for both mobile and desktop)
+  const filterControls = (
+    <>
+      <div className="filter-group">
+        <label>Character:</label>
+        <select 
+          value={selectedCharacter} 
+          onChange={(e) => setSelectedCharacter(e.target.value)}
+          className="filter-dropdown"
+        >
+          <option value="all">All Characters</option>
+          {characterList.map(charId => {
+            const charInfo = getCharacterDisplayName(charId);
+            return (
+              <option key={charId} value={charId}>
+                {charInfo.hasWarning ? `⚠️ ${charInfo.name}` : charInfo.name}
+              </option>
+            );
+          })}
+        </select>
+      </div>
+      
+      <div className="filter-group">
+        <label>Evaluation Mode:</label>
+        <select 
+          value={evaluationMode} 
+          onChange={(e) => onModeChange(e.target.value)}
+          className="filter-dropdown"
+        >
+          <option value="basic">Basic (Keep Any Speed)</option>
+          <option value="strict">Strict (Limited Inventory)</option>
+        </select>
+      </div>
+      
+      <div className="filter-group">
+        <label>Filter:</label>
+        <div className="toggle-filters">
+          <button 
+            className={`toggle-button ${activeFilters.includes('all') ? 'active' : ''}`}
+            onClick={() => toggleFilter('all')}
+          >
+            All
+          </button>
+          <button 
+            className={`toggle-button ${activeFilters.includes('keep') ? 'active' : ''}`}
+            onClick={() => toggleFilter('keep')}
+          >
+            Keep
+          </button>
+          <button 
+            className={`toggle-button ${activeFilters.includes('sell') ? 'active' : ''}`}
+            onClick={() => toggleFilter('sell')}
+          >
+            Sell
+          </button>
+          <button 
+            className={`toggle-button ${activeFilters.includes('slice') ? 'active' : ''}`}
+            onClick={() => toggleFilter('slice')}
+          >
+            Slice
+          </button>
+          <button 
+            className={`toggle-button ${activeFilters.includes('level') ? 'active' : ''}`}
+            onClick={() => toggleFilter('level')}
+          >
+            Level
+          </button>
+          <button 
+            className={`toggle-button ${activeFilters.includes('locked') ? 'active' : ''}`}
+            onClick={() => toggleFilter('locked')}
+          >
+            Locked
+          </button>
+        </div>
+      </div>
+    </>
+  )
+
   return (
     <div className="mod-list-wrapper">
-      <div className="filter-bar">
+      {/* Mobile Filter Toggle Tab */}
+      {isMobile && (
+        <div 
+          className={`filter-toggle-tab ${filterPanelOpen ? 'open' : ''}`}
+          onClick={() => setFilterPanelOpen(!filterPanelOpen)}
+        >
+          <span>F</span>
+          <span>I</span>
+          <span>L</span>
+          <span>T</span>
+          <span>E</span>
+          <span>R</span>
+          <span>S</span>
+        </div>
+      )}
+
+      {/* Desktop Filter Bar / Mobile Filter Panel */}
+      <div className={`filter-bar ${isMobile ? 'filter-panel' : ''} ${isMobile && filterPanelOpen ? 'open' : ''}`}>
         <div className="filter-bar-content">
+          {isMobile && (
+            <button 
+              className="filter-panel-close"
+              onClick={() => setFilterPanelOpen(false)}
+            >
+              ×
+            </button>
+          )}
+          
           <div className="filter-bar-header">
             <h1>Your Mods</h1>
             <div className="mod-stats">
@@ -223,83 +347,13 @@ function ModList({ playerData, evaluationMode, onModeChange, filterType, onFilte
             </div>
           </div>
           
-          <div className="filter-controls">
-            <div className="filter-group">
-              <label>Character:</label>
-              <select 
-                value={selectedCharacter} 
-                onChange={(e) => setSelectedCharacter(e.target.value)}
-                className="filter-dropdown"
-              >
-                <option value="all">All Characters</option>
-                  {characterList.map(charId => {
-                    const charInfo = getCharacterDisplayName(charId);
-                    return (
-                      <option key={charId} value={charId}>
-                        {charInfo.hasWarning ? `⚠️ ${charInfo.name}` : charInfo.name}
-                      </option>
-                    );
-                  })}
-              </select>
-            </div>
-            <div className="filter-group">
-              <label>Evaluation Mode:</label>
-              <select 
-                value={evaluationMode} 
-                onChange={(e) => onModeChange(e.target.value)}
-                className="filter-dropdown"
-              >
-                <option value="basic">Basic (Keep Any Speed)</option>
-                <option value="strict">Strict (Limited Inventory)</option>
-              </select>
-            </div>
-            
-            <div className="filter-group">
-              <label>Filter:</label>
-              <div className="toggle-filters">
-                <button 
-                  className={`toggle-button ${activeFilters.includes('all') ? 'active' : ''}`}
-                  onClick={() => toggleFilter('all')}
-                >
-                  All
-                </button>
-                <button 
-                  className={`toggle-button ${activeFilters.includes('keep') ? 'active' : ''}`}
-                  onClick={() => toggleFilter('keep')}
-                >
-                  Keep
-                </button>
-                <button 
-                  className={`toggle-button ${activeFilters.includes('sell') ? 'active' : ''}`}
-                  onClick={() => toggleFilter('sell')}
-                >
-                  Sell
-                </button>
-                <button 
-                  className={`toggle-button ${activeFilters.includes('slice') ? 'active' : ''}`}
-                  onClick={() => toggleFilter('slice')}
-                >
-                  Slice
-                </button>
-                <button 
-                  className={`toggle-button ${activeFilters.includes('level') ? 'active' : ''}`}
-                  onClick={() => toggleFilter('level')}
-                >
-                  Level
-                </button>
-                <button 
-                  className={`toggle-button ${activeFilters.includes('locked') ? 'active' : ''}`}
-                  onClick={() => toggleFilter('locked')}
-                >
-                  Locked
-                </button>
-              </div>
-            </div>
+          <div className={`filter-controls ${isMobile ? 'mobile' : ''}`}>
+            {filterControls}
           </div>
         </div>
       </div>
       
-      <div className="mod-list-container">
+      <div className={`mod-list-container ${isMobile ? 'mobile' : ''}`}>
         <div className="mod-grid">
           {filteredMods.map((mod, index) => (
             <ModCard 
