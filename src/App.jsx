@@ -115,7 +115,16 @@ function App() {
       />
       
       {!playerData ? (
-        <AllyCodeEntry onDataFetched={setPlayerData} />
+        <AllyCodeEntry onDataFetched={(data) => {
+          // Reload saved players to get the new/updated player
+          const players = loadSavedPlayers()
+          const player = players.find(p => p.data.allyCode === data.allyCode)
+          if (player) {
+            setCurrentPlayer(player)
+            setSavedPlayers(players)
+            setPlayerData(data)
+          }
+        }} />
       ) : (
         <ModList 
           playerData={playerData} 
