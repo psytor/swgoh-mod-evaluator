@@ -363,18 +363,20 @@ function ModList({ playerData, evaluationMode, onModeChange, filterType, onFilte
       )}
 
       {/* Filter Panel (for both mobile and desktop) */}
-      <div className="filter-panel-content">
-        <button 
-          className="filter-panel-close"
-          onClick={() => setFilterPanelOpen(false)}
-        >
-          ×
-        </button>
-        
-        <h2 className="filter-panel-title">Filters</h2>
-        
-        <div className="filter-controls-panel">
-          {filterControls}
+      <div className={`filter-panel ${filterPanelOpen ? 'open' : ''}`}>
+        <div className="filter-panel-content">
+          <button 
+            className="filter-panel-close"
+            onClick={() => setFilterPanelOpen(false)}
+          >
+            ×
+          </button>
+          
+          <h2 className="filter-panel-title">Filters</h2>
+          
+          <div className="filter-controls-panel">
+            {filterControls}
+          </div>
         </div>
       </div>
       
