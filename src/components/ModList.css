@@ -26,8 +26,8 @@
   z-index: 101;
   box-shadow: -2px 0 8px rgba(0, 0, 0, 0.3);
   transition: all 0.3s ease;
-  writing-mode: vertical-rl;
-  text-orientation: upright;
+  writing-mode: vertical-lr;
+  text-orientation: mixed;
   font-weight: 600;
   font-size: 12px;
   letter-spacing: 2px;
@@ -40,10 +40,6 @@
 
 .filter-toggle-tab.open {
   right: 300px; /* Adjust based on panel width */
-}
-
-.filter-toggle-tab span {
-  display: block;
 }
 
 @media (max-width: 768px) {
