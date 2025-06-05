@@ -58,13 +58,33 @@ function AllyCodeEntry({ onDataFetched }) {
       
       const playerData = await response.json()
       
-      // Store in localStorage with timestamp
-      localStorage.setItem('swgoh_player_data', JSON.stringify({
+      // Create player object
+      const playerInfo = {
+        allyCode: cleanAllyCode,
+        name: playerData.name,
         data: playerData,
-        timestamp: Date.now(),
-        allyCode: cleanAllyCode
-      }))
+        lastUpdated: Date.now()
+      }
       
+      // Load existing players
+      const existingPlayers = JSON.parse(localStorage.getItem('swgoh_saved_players') || '[]')
+      
+      // Check if player already exists
+      const existingIndex = existingPlayers.findIndex(p => p.allyCode === cleanAllyCode)
+      
+      if (existingIndex >= 0) {
+        // Update existing player
+        existingPlayers[existingIndex] = playerInfo
+      } else {
+        // Add new player
+        existingPlayers.push(playerInfo)
+      }
+      
+      // Save updated players list
+      localStorage.setItem('swgoh_saved_players', JSON.stringify(existingPlayers))
+      localStorage.setItem('swgoh_last_used_player', cleanAllyCode)
+      
+      // Notify parent
       onDataFetched(playerData)
       
     } catch (err) {
