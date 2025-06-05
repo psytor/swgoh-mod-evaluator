@@ -42,6 +42,10 @@
   right: 300px; /* Adjust based on panel width */
 }
 
+.filter-toggle-tab span {
+  display: block;
+}
+
 @media (max-width: 768px) {
   .filter-toggle-tab {
     display: flex;
@@ -434,9 +438,4 @@
   .breakdown-count {
     font-size: 10px;
   }
-}
-
-.breakdown-separator {
-  margin: 0 5px;
-  color: #64748b;
 }
