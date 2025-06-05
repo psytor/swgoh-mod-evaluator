@@ -402,23 +402,23 @@
 }
 
 .breakdown-keep {
-  background-color: rgba(5, 150, 105, 0.2);
-  color: #10b981;
+  background-color: #059669;
+  color: white;
 }
 
 .breakdown-sell {
-  background-color: rgba(220, 38, 38, 0.2);
-  color: #ef4444;
+  background-color: #dc2626;
+  color: white;
 }
 
 .breakdown-slice {
-  background-color: rgba(124, 58, 237, 0.2);
-  color: #8b5cf6;
+  background-color: #7c3aed;
+  color: white;
 }
 
 .breakdown-level {
-  background-color: rgba(217, 119, 6, 0.2);
-  color: #f59e0b;
+  background-color: #d97706;
+  color: white;
 }
 
 .breakdown-label {
