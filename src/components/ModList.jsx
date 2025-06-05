@@ -217,7 +217,7 @@ function ModList({ playerData, evaluationMode, onModeChange, filterType, onFilte
                     {modStats.slice && <span className="stat-slice">{modStats.slice} to slice</span>}
                     {modStats.level && <span className="stat-level">{modStats.level} to level</span>}
                   </div>
-                  <CollectionEfficiencyDisplay collectionStats={collectionStats} />
+                  <CollectionEfficiencyDisplay collectionStats={collectionStats} modStats={modStats} />
                 </div>
               )}
             </div>
