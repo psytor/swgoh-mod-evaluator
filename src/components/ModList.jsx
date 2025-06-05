@@ -344,17 +344,13 @@ function ModList({ playerData, evaluationMode, onModeChange, filterType, onFilte
           
           <div className="filter-bar-header">
             <h1>Your Mods</h1>
-            <div className="mod-stats">
-              <p className="mod-count">
-                Showing {filteredMods.length} of {mods.length} mods
-                {!activeFilters.includes('all') && ` (${activeFilters.join(', ')})`}
-              </p>
-              {filteredMods.length > 0 && (
-                <div>
-                  <CollectionEfficiencyDisplay collectionStats={collectionStats} modStats={modStats} />
-                </div>
-              )}
-            </div>
+            <p className="mod-count">
+              Showing {filteredMods.length} of {mods.length} mods
+              {!activeFilters.includes('all') && ` (${activeFilters.join(', ')})`}
+            </p>
+            {filteredMods.length > 0 && (
+              <CollectionEfficiencyDisplay collectionStats={collectionStats} modStats={modStats} />
+            )}
           </div>
           
           <div className={`filter-controls ${isMobile ? 'mobile' : ''}`}>
