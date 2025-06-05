@@ -11,6 +11,12 @@ function App() {
   const [savedPlayers, setSavedPlayers] = useState(loadSavedPlayers())
   const [currentPlayer, setCurrentPlayer] = useState(loadLastUsedPlayer())
 
+  useEffect(() => {
+    if (currentPlayer && currentPlayer.data) {
+      setPlayerData(currentPlayer.data)
+    }
+  }, [])
+
   // Load saved players from localStorage
   const loadSavedPlayers = () => {
     const saved = localStorage.getItem('swgoh_saved_players')
