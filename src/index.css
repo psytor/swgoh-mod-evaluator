@@ -11,6 +11,10 @@ body {
   min-height: 100vh;
 }
 
+#root {
+  padding-top: 60px; /* Account for fixed nav bar */
+}
+
 /* Custom scrollbar */
 ::-webkit-scrollbar {
   width: 8px;
