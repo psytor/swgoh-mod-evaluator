@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import AllyCodeEntry from './components/AllyCodeEntry'
 import ModList from './components/ModList'
 import './App.css'
+import NavBar from './components/NavBar'
 
 function App() {
   const [playerData, setPlayerData] = useState(null)
@@ -50,9 +51,69 @@ function App() {
     localStorage.setItem('swgoh_evaluation_mode', mode)
   }
 
+  // Handle player switch
+  const handlePlayerSwitch = (allyCode) => {
+    const player = savedPlayers.find(p => p.allyCode === allyCode)
+    if (player) {
+      setCurrentPlayer(player)
+      setPlayerData(player.data)
+      saveLastUsedPlayer(allyCode)
+    }
+  }
+
+  // Handle refresh
+  const handleRefresh = async () => {
+    if (!currentPlayer) return
+    
+    try {
+      const response = await fetch('http://farmroadmap.dynv6.net/comlink/player', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          payload: { allyCode: currentPlayer.allyCode },
+          enums: false
+        })
+      })
+      
+      if (!response.ok) throw new Error('Failed to fetch player data')
+      
+      const data = await response.json()
+      
+      // Update saved players
+      const updatedPlayers = savedPlayers.map(p => 
+        p.allyCode === currentPlayer.allyCode 
+          ? { ...p, data, lastUpdated: Date.now() }
+          : p
+      )
+      setSavedPlayers(updatedPlayers)
+      savePlayers(updatedPlayers)
+      
+      // Update current data
+      setPlayerData(data)
+      setCurrentPlayer({ ...currentPlayer, data, lastUpdated: Date.now() })
+      
+    } catch (error) {
+      console.error('Error refreshing player data:', error)
+      alert('Failed to refresh player data')
+    }
+  }
+
+  // Handle add new player
+  const handleAddNew = () => {
+    setPlayerData(null)
+    setCurrentPlayer(null)
+  }
+
   return (
     <div className="app">
-
+      <NavBar 
+        currentPlayer={currentPlayer}
+        savedPlayers={savedPlayers}
+        onPlayerSwitch={handlePlayerSwitch}
+        onRefresh={handleRefresh}
+        onAddNew={handleAddNew}
+      />
+      
       {!playerData ? (
         <AllyCodeEntry onDataFetched={setPlayerData} />
       ) : (
