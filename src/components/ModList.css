@@ -26,8 +26,8 @@
   z-index: 101;
   box-shadow: -2px 0 8px rgba(0, 0, 0, 0.3);
   transition: all 0.3s ease;
-  writing-mode: vertical-lr;
-  text-orientation: mixed;
+  writing-mode: vertical;
+  text-orientation: upright;
   font-weight: 600;
   font-size: 12px;
   letter-spacing: 2px;
