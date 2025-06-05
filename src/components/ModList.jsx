@@ -347,6 +347,23 @@ function ModList({ playerData, evaluationMode, onModeChange, filterType, onFilte
           </div>
         </div>
       )}
+
+      {/* Mobile scrollable header */}
+      {isMobile && (
+        <div className="mobile-header">
+          <h1>Your Mods</h1>
+          <p className="mod-count">
+            Showing {filteredMods.length} of {mods.length} mods
+            {!activeFilters.includes('all') && ` (${activeFilters.join(', ')})`}
+          </p>
+          {filteredMods.length > 0 && (
+            <CollectionEfficiencyDisplay collectionStats={collectionStats} modStats={modStats} />
+          )}
+        </div>
+      )}
+
+      {/* Filter Panel (for both mobile and desktop) */}
+      <div className={`filter-panel ${filterPanelOpen ? 'open' : ''}`}></div>
       
       <div className={`mod-list-container ${isMobile ? 'mobile' : ''}`}>
         <div className="mod-grid">
