@@ -330,34 +330,23 @@ function ModList({ playerData, evaluationMode, onModeChange, filterType, onFilte
         </div>
       )}
 
-      {/* Desktop Filter Bar / Mobile Filter Panel */}
-      <div className={`filter-bar filter-panel ${filterPanelOpen ? 'open' : ''}`}>
-        <div className="filter-bar-content">
-          {isMobile && (
-            <button 
-              className="filter-panel-close"
-              onClick={() => setFilterPanelOpen(false)}
-            >
-              ×
-            </button>
-          )}
-          
-          <div className="filter-bar-header">
-            <h1>Your Mods</h1>
-            <p className="mod-count">
-              Showing {filteredMods.length} of {mods.length} mods
-              {!activeFilters.includes('all') && ` (${activeFilters.join(', ')})`}
-            </p>
-            {filteredMods.length > 0 && (
-              <CollectionEfficiencyDisplay collectionStats={collectionStats} modStats={modStats} />
-            )}
-          </div>
-          
-          <div className={`filter-controls ${isMobile ? 'mobile' : ''}`}>
-            {filterControls}
+      {/* Desktop Filter Bar / Mobile Header + Filter Panel */}
+      {!isMobile && (
+        <div className="filter-bar">
+          <div className="filter-bar-content">
+            <div className="filter-bar-header">
+              <h1>Your Mods</h1>
+              <p className="mod-count">
+                Showing {filteredMods.length} of {mods.length} mods
+                {!activeFilters.includes('all') && ` (${activeFilters.join(', ')})`}
+              </p>
+              {filteredMods.length > 0 && (
+                <CollectionEfficiencyDisplay collectionStats={collectionStats} modStats={modStats} />
+              )}
+            </div>
           </div>
         </div>
-      </div>
+      )}
       
       <div className={`mod-list-container ${isMobile ? 'mobile' : ''}`}>
         <div className="mod-grid">
