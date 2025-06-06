@@ -6,7 +6,7 @@ import './ModList.css'
 // Calculate collection efficiency
 function calculateCollectionEfficiency(mods, evaluationMode, tempLockedMods = []) {
   if (!mods || mods.length === 0) return { average: 0, count: 0, breakdown: {} };
-  
+
   let totalEfficiency = 0;
   let modCount = 0;
   const breakdown = {
@@ -15,18 +15,18 @@ function calculateCollectionEfficiency(mods, evaluationMode, tempLockedMods = []
     slice: { total: 0, count: 0 },
     level: { total: 0, count: 0 }
   };
-  
+
   mods.forEach(mod => {
     const dots = parseInt(mod.definitionId[1]);
     const is6Dot = dots === 6;
-    
+
     // Calculate mod efficiency
     const modEfficiency = calculateModEfficiency(mod.secondaryStat, is6Dot);
-    
+
     if (modEfficiency > 0) {
       totalEfficiency += modEfficiency;
       modCount++;
-      
+
       // Get recommendation for breakdown
       const isLocked = mod.locked || tempLockedMods.includes(mod.id);
       const recommendation = getSpeedRecommendation(mod, evaluationMode, isLocked);
@@ -36,7 +36,7 @@ function calculateCollectionEfficiency(mods, evaluationMode, tempLockedMods = []
       }
     }
   });
-  
+
   return {
     average: modCount > 0 ? totalEfficiency / modCount : 0,
     count: modCount,
@@ -58,7 +58,7 @@ function CollectionEfficiencyDisplay({ collectionStats, modStats }) {
         <span className="efficiency-label">Collection Average:</span>
         <span className="efficiency-value">{collectionStats.average.toFixed(1)}%</span>
       </div>
-      
+
       <div className="collection-breakdown">
         {modStats.keep > 0 && (
           <div className="breakdown-item breakdown-keep">
@@ -113,7 +113,7 @@ function ModList({ playerData, evaluationMode, onModeChange, filterType, onFilte
     const checkMobile = () => {
       setIsMobile(window.innerWidth <= 768)
     }
-    
+
     checkMobile()
     window.addEventListener('resize', checkMobile)
     return () => window.removeEventListener('resize', checkMobile)
@@ -136,15 +136,15 @@ function ModList({ playerData, evaluationMode, onModeChange, filterType, onFilte
       if (filterName === 'all') {
         return ['all']
       }
-      
+
       let newFilters = prev.filter(f => f !== 'all')
-      
+
       if (prev.includes(filterName)) {
         newFilters = newFilters.filter(f => f !== filterName)
       } else {
         newFilters = [...newFilters, filterName]
       }
-      
+
       return newFilters.length === 0 ? ['all'] : newFilters
     })
   }
@@ -152,7 +152,7 @@ function ModList({ playerData, evaluationMode, onModeChange, filterType, onFilte
   useEffect(() => {
     // Extract all mods from player data
     const extractedMods = []
-    
+
     if (playerData?.rosterUnit) {
       playerData.rosterUnit.forEach(unit => {
         if (unit.equippedStatMod && unit.equippedStatMod.length > 0) {
@@ -178,7 +178,7 @@ function ModList({ playerData, evaluationMode, onModeChange, filterType, onFilte
         return nameA.localeCompare(nameB)
       })
     setCharacterList(uniqueCharacters)
-    
+
     setMods(extractedMods)
     setLoading(false)
   }, [playerData])
@@ -197,22 +197,22 @@ function ModList({ playerData, evaluationMode, onModeChange, filterType, onFilte
     if (selectedTier !== 'all' && mod.tier !== parseInt(selectedTier)) {
       return false
     }
-    
+
     // Handle locked filter specially
     if (activeFilters.includes('locked') && !activeFilters.includes('all')) {
       const isLocked = mod.locked || tempLockedMods.includes(mod.id)
       if (!isLocked) return false
     }
-    
+
     // Recommendation filter
     if (activeFilters.includes('all')) return true
-    
+
     const isLocked = mod.locked || tempLockedMods.includes(mod.id)
     const recommendation = getSpeedRecommendation(mod, evaluationMode, isLocked)
-    
+
     // If we're filtering by locked, also include it
     if (activeFilters.includes('locked') && isLocked) return true
-    
+
     return activeFilters.includes(recommendation.type)
   })
 
@@ -224,47 +224,47 @@ function ModList({ playerData, evaluationMode, onModeChange, filterType, onFilte
     return acc
   }, {})
 
-  // Calculate collection efficiency 
+  // Calculate collection efficiency
   const collectionStats = calculateCollectionEfficiency(filteredMods, evaluationMode, tempLockedMods);
 
   const toggleTempLock = (modId) => {
     setTempLockedMods(prev => {
-      const newLocks = prev.includes(modId) 
+      const newLocks = prev.includes(modId)
         ? prev.filter(id => id !== modId)
         : [...prev, modId]
-      
+
       // Save to localStorage
       localStorage.setItem('swgoh_temp_locked_mods', JSON.stringify(newLocks))
       return newLocks
     })
   }
 
-// Filter controls content (reusable for both mobile and desktop)
-const filterControls = (
-  <>
-    <div className="filter-group">
-      <label>Character:</label>
-      <select 
-        value={selectedCharacter} 
-        onChange={(e) => setSelectedCharacter(e.target.value)}
-        className="filter-dropdown"
-      >
-        <option value="all">All Characters</option>
-        {characterList.map(charId => {
-          const charInfo = getCharacterDisplayName(charId);
-          return (
-            <option key={charId} value={charId}>
-              {charInfo.hasWarning ? `⚠️ ${charInfo.name}` : charInfo.name}
-            </option>
-          );
-        })}
-      </select>
-    </div>
+  // Filter controls content (reusable for both mobile and desktop)
+  const filterControls = (
+    <>
+      <div className="filter-group">
+        <label>Character:</label>
+        <select
+          value={selectedCharacter}
+          onChange={(e) => setSelectedCharacter(e.target.value)}
+          className="filter-dropdown"
+        >
+          <option value="all">All Characters</option>
+          {characterList.map(charId => {
+            const charInfo = getCharacterDisplayName(charId);
+            return (
+              <option key={charId} value={charId}>
+                {charInfo.hasWarning ? `⚠️ ${charInfo.name}` : charInfo.name}
+              </option>
+            );
+          })}
+        </select>
+      </div>
 
       <div className="filter-group">
         <label>Evaluation Mode:</label>
-        <select 
-          value={evaluationMode} 
+        <select
+          value={evaluationMode}
           onChange={(e) => onModeChange(e.target.value)}
           className="filter-dropdown"
         >
@@ -272,58 +272,84 @@ const filterControls = (
           <option value="strict">Strict (Limited Inventory)</option>
         </select>
       </div>
-    
-    {/* ADD THIS NEW FILTER GROUP */}
-    <div className="filter-group">
-      <label>Mod Tier:</label>
-      <select 
-        value={selectedTier} 
-        onChange={(e) => setSelectedTier(e.target.value)}
-        className="filter-dropdown"
-      >
-        <option value="all">All Tiers</option>
-        <option value="5">Gold (A)</option>
-        <option value="4">Purple (B)</option>
-        <option value="3">Blue (C)</option>
-        <option value="2">Green (D)</option>
-        <option value="1">Grey (E)</option>
-      </select>
-    </div>
-      
+
+      {/* UPDATED MOD TIER FILTER */}
+      <div className="filter-group">
+        <label>Mod Tier:</label>
+        <div className="toggle-filters">
+          <button
+            className={`toggle-button ${selectedTier === 'all' ? 'active' : ''}`}
+            onClick={() => setSelectedTier('all')}
+          >
+            All
+          </button>
+          <button
+            className={`toggle-button ${selectedTier === '5' ? 'active' : ''}`}
+            onClick={() => setSelectedTier('5')}
+          >
+            Gold (A)
+          </button>
+          <button
+            className={`toggle-button ${selectedTier === '4' ? 'active' : ''}`}
+            onClick={() => setSelectedTier('4')}
+          >
+            Purple (B)
+          </button>
+          <button
+            className={`toggle-button ${selectedTier === '3' ? 'active' : ''}`}
+            onClick={() => setSelectedTier('3')}
+          >
+            Blue (C)
+          </button>
+          <button
+            className={`toggle-button ${selectedTier === '2' ? 'active' : ''}`}
+            onClick={() => setSelectedTier('2')}
+          >
+            Green (D)
+          </button>
+          <button
+            className={`toggle-button ${selectedTier === '1' ? 'active' : ''}`}
+            onClick={() => setSelectedTier('1')}
+          >
+            Grey (E)
+          </button>
+        </div>
+      </div>
+
       <div className="filter-group">
         <label>Filter:</label>
         <div className="toggle-filters">
-          <button 
+          <button
             className={`toggle-button ${activeFilters.includes('all') ? 'active' : ''}`}
             onClick={() => toggleFilter('all')}
           >
             All
           </button>
-          <button 
+          <button
             className={`toggle-button ${activeFilters.includes('keep') ? 'active' : ''}`}
             onClick={() => toggleFilter('keep')}
           >
             Keep
           </button>
-          <button 
+          <button
             className={`toggle-button ${activeFilters.includes('sell') ? 'active' : ''}`}
             onClick={() => toggleFilter('sell')}
           >
             Sell
           </button>
-          <button 
+          <button
             className={`toggle-button ${activeFilters.includes('slice') ? 'active' : ''}`}
             onClick={() => toggleFilter('slice')}
           >
             Slice
           </button>
-          <button 
+          <button
             className={`toggle-button ${activeFilters.includes('level') ? 'active' : ''}`}
             onClick={() => toggleFilter('level')}
           >
             Level
           </button>
-          <button 
+          <button
             className={`toggle-button ${activeFilters.includes('locked') ? 'active' : ''}`}
             onClick={() => toggleFilter('locked')}
           >
@@ -338,7 +364,7 @@ const filterControls = (
     <div className="mod-list-wrapper">
       {/* Mobile Filter Toggle Tab */}
       {(
-        <div 
+        <div
           className={`filter-toggle-tab ${filterPanelOpen ? 'open' : ''}`}
           onClick={() => setFilterPanelOpen(!filterPanelOpen)}
         >
@@ -387,27 +413,27 @@ const filterControls = (
       {/* Filter Panel (for both mobile and desktop) */}
       <div className={`filter-panel ${filterPanelOpen ? 'open' : ''}`}>
         <div className="filter-panel-content">
-          <button 
+          <button
             className="filter-panel-close"
             onClick={() => setFilterPanelOpen(false)}
           >
             ×
           </button>
-          
+
           <h2 className="filter-panel-title">Filters</h2>
-          
+
           <div className="filter-controls-panel">
             {filterControls}
           </div>
         </div>
       </div>
-      
+
       <div className={`mod-list-container ${isMobile ? 'mobile' : ''}`}>
         <div className="mod-grid">
           {filteredMods.map((mod, index) => (
-            <ModCard 
-              key={mod.id || index} 
-              mod={mod} 
+            <ModCard
+              key={mod.id || index}
+              mod={mod}
               evaluationMode={evaluationMode}
               isTempLocked={tempLockedMods.includes(mod.id)}
               onToggleTempLock={toggleTempLock}
