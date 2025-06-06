@@ -70,11 +70,11 @@ function App() {
   }
 
 // Handle refresh
-const handleRefresh = async (forceRefresh = false) => {
+const handleRefresh = async (event) => {
   if (!currentPlayer || isRefreshing) return
   
   // Check for dev mode - hold Shift key while clicking refresh
-  const isDevMode = forceRefresh || window.event?.shiftKey
+  const isDevMode = event?.shiftKey === true
   
   // Check rate limit - 1 hour (3600000 ms)
   if (!isDevMode) {
