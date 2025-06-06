@@ -51,7 +51,7 @@
 /* Filter Bar/Panel */
 .filter-bar {
   position: fixed;
-  top: 0;
+  top: 60px;
   left: 0;
   right: 0;
   background-color: #0f172a;
