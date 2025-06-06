@@ -69,18 +69,58 @@ function App() {
     }
   }
 
-  // Handle refresh
+// Handle refresh
 const handleRefresh = async () => {
   if (!currentPlayer || isRefreshing) return
   
+  // Check rate limit - 1 hour (3600000 ms)
+  const ONE_HOUR = 3600000
+  const lastRefresh = currentPlayer.lastUpdated || 0
+  const timeSinceLastRefresh = Date.now() - lastRefresh
+  
+  if (timeSinceLastRefresh < ONE_HOUR) {
+    const minutesRemaining = Math.ceil((ONE_HOUR - timeSinceLastRefresh) / 60000)
+    alert(`Please wait ${minutesRemaining} minutes before refreshing again.`)
+    return
+  }
+  
   setIsRefreshing(true)
+  console.log('Refreshing player data...')
   
   try {
-    // ... existing code ...
+    const response = await fetch('http://farmroadmap.dynv6.net/comlink/player', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        payload: { allyCode: currentPlayer.allyCode },
+        enums: false
+      })
+    })
+    
+    if (!response.ok) throw new Error('Failed to fetch player data')
+    
+    const data = await response.json()
+    
+    // Update saved players
+    const updatedPlayers = savedPlayers.map(p => 
+      p.allyCode === currentPlayer.allyCode 
+        ? { ...p, data, lastUpdated: Date.now() }
+        : p
+    )
+    setSavedPlayers(updatedPlayers)
+    savePlayers(updatedPlayers)
+    
+    // Update current data - Force new object reference
+    setPlayerData({ ...data })
+    setCurrentPlayer({ ...currentPlayer, data, lastUpdated: Date.now() })
+    
+    // Show success message
+    alert('Player data refreshed successfully!')
+    console.log('Player data refreshed successfully!')
     
   } catch (error) {
     console.error('Error refreshing player data:', error)
-    alert('Failed to refresh player data')
+    alert('Failed to refresh player data. Please try again.')
   } finally {
     setIsRefreshing(false)
   }

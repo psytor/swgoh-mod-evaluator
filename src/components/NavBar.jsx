@@ -19,7 +19,14 @@ function NavBar({ currentPlayer, savedPlayers, onPlayerSwitch, onRefresh, onAddN
                 className="player-dropdown-toggle"
                 onClick={() => setDropdownOpen(!dropdownOpen)}
               >
-                {currentPlayer.name}
+                <div>
+                  {currentPlayer.name}
+                  {currentPlayer.lastUpdated && (
+                    <div className="last-updated">
+                      Last updated: {new Date(currentPlayer.lastUpdated).toLocaleTimeString()}
+                    </div>
+                  )}
+                </div>
                 <span className="dropdown-arrow">▼</span>
               </button>
               

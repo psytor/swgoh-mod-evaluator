@@ -205,3 +205,9 @@
   from { transform: rotate(0deg); }
   to { transform: rotate(360deg); }
 }
+
+.last-updated {
+  font-size: 10px;
+  color: #64748b;
+  margin-top: 2px;
+}
