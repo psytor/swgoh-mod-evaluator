@@ -1,6 +1,6 @@
 .mod-list-wrapper {
   width: 100%;
-  padding-top: 280px; /* No change needed - already accounts for fixed elements */
+  padding-top: 1650px; /* No change needed - already accounts for fixed elements */
   position: relative;
 }
 
@@ -131,7 +131,7 @@
 .filter-bar-content {
   max-width: 1400px;
   margin: 0 auto;
-  padding: 20px;
+  padding: 10px;
 }
 
 @media (max-width: 768px) {
