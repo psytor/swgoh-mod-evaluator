@@ -260,6 +260,18 @@ const filterControls = (
         })}
       </select>
     </div>
+
+      <div className="filter-group">
+        <label>Evaluation Mode:</label>
+        <select 
+          value={evaluationMode} 
+          onChange={(e) => onModeChange(e.target.value)}
+          className="filter-dropdown"
+        >
+          <option value="basic">Basic (Keep Any Speed)</option>
+          <option value="strict">Strict (Limited Inventory)</option>
+        </select>
+      </div>
     
     {/* ADD THIS NEW FILTER GROUP */}
     <div className="filter-group">
@@ -277,18 +289,6 @@ const filterControls = (
         <option value="1">Grey (E)</option>
       </select>
     </div>
-      
-      <div className="filter-group">
-        <label>Evaluation Mode:</label>
-        <select 
-          value={evaluationMode} 
-          onChange={(e) => onModeChange(e.target.value)}
-          className="filter-dropdown"
-        >
-          <option value="basic">Basic (Keep Any Speed)</option>
-          <option value="strict">Strict (Limited Inventory)</option>
-        </select>
-      </div>
       
       <div className="filter-group">
         <label>Filter:</label>
