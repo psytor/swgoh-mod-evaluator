@@ -355,7 +355,7 @@ const MOD_SHAPE_SPRITES_5DOT = {
 
 // Sprite data for 6-Dot Mod Shapes (6 Dots frame and Inner layer)
 const MOD_SHAPE_SPRITES_6DOT = {
-  "Square":   { "Main": { "x": 855, "y": 278, "w": 78, "h": 75 }, "Inner": { "x": 647, "y": 31, "w": 80, "h": 80 } },
+  "Square":   { "Main": { "x": 852, "y": 279, "w": 78, "h": 75 }, "Inner": { "x": 647, "y": 31, "w": 80, "h": 80 } },
   "Arrow":    { "Main": { "x": 776, "y": 198, "w": 77, "h": 76 }, "Inner": { "x": 566, "y": 31, "w": 80, "h": 80 } },
   "Diamond":  { "Main": { "x": 777, "y": 434, "w": 77, "h": 78 }, "Inner": { "x": 161, "y": 31, "w": 80, "h": 80 } },
   "Triangle": { "Main": { "x": 887, "y": 66,  "w": 76, "h": 63 }, "Inner": { "x": 851, "y": 130, "w": 81, "h": 67 } },
