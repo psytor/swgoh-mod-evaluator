@@ -97,6 +97,7 @@ function ModList({ playerData, evaluationMode, onModeChange, filterType, onFilte
   const [mods, setMods] = useState([])
   const [loading, setLoading] = useState(true)
   const [selectedCharacter, setSelectedCharacter] = useState('all')
+  const [selectedTier, setSelectedTier] = useState('all')
   const [characterList, setCharacterList] = useState([])
   const [activeFilters, setActiveFilters] = useState(['all'])
   const [filterPanelOpen, setFilterPanelOpen] = useState(false)
@@ -192,6 +193,10 @@ function ModList({ playerData, evaluationMode, onModeChange, filterType, onFilte
     if (selectedCharacter !== 'all' && mod.characterName !== selectedCharacter) {
       return false
     }
+
+    if (selectedTier !== 'all' && mod.tier !== parseInt(selectedTier)) {
+      return false
+    }
     
     // Handle locked filter specially
     if (activeFilters.includes('locked') && !activeFilters.includes('all')) {
@@ -234,27 +239,44 @@ function ModList({ playerData, evaluationMode, onModeChange, filterType, onFilte
     })
   }
 
-  // Filter controls content (reusable for both mobile and desktop)
-  const filterControls = (
-    <>
-      <div className="filter-group">
-        <label>Character:</label>
-        <select 
-          value={selectedCharacter} 
-          onChange={(e) => setSelectedCharacter(e.target.value)}
-          className="filter-dropdown"
-        >
-          <option value="all">All Characters</option>
-          {characterList.map(charId => {
-            const charInfo = getCharacterDisplayName(charId);
-            return (
-              <option key={charId} value={charId}>
-                {charInfo.hasWarning ? `⚠️ ${charInfo.name}` : charInfo.name}
-              </option>
-            );
-          })}
-        </select>
-      </div>
+// Filter controls content (reusable for both mobile and desktop)
+const filterControls = (
+  <>
+    <div className="filter-group">
+      <label>Character:</label>
+      <select 
+        value={selectedCharacter} 
+        onChange={(e) => setSelectedCharacter(e.target.value)}
+        className="filter-dropdown"
+      >
+        <option value="all">All Characters</option>
+        {characterList.map(charId => {
+          const charInfo = getCharacterDisplayName(charId);
+          return (
+            <option key={charId} value={charId}>
+              {charInfo.hasWarning ? `⚠️ ${charInfo.name}` : charInfo.name}
+            </option>
+          );
+        })}
+      </select>
+    </div>
+    
+    {/* ADD THIS NEW FILTER GROUP */}
+    <div className="filter-group">
+      <label>Mod Tier:</label>
+      <select 
+        value={selectedTier} 
+        onChange={(e) => setSelectedTier(e.target.value)}
+        className="filter-dropdown"
+      >
+        <option value="all">All Tiers</option>
+        <option value="5">Gold (A)</option>
+        <option value="4">Purple (B)</option>
+        <option value="3">Blue (C)</option>
+        <option value="2">Green (D)</option>
+        <option value="1">Grey (E)</option>
+      </select>
+    </div>
       
       <div className="filter-group">
         <label>Evaluation Mode:</label>
