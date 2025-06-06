@@ -69,41 +69,47 @@ function App() {
   }
 
   // Handle refresh
-  const handleRefresh = async () => {
-    if (!currentPlayer) return
-    
-    try {
-      const response = await fetch('http://farmroadmap.dynv6.net/comlink/player', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          payload: { allyCode: currentPlayer.allyCode },
-          enums: false
-        })
+  // Handle refresh
+const handleRefresh = async () => {
+  if (!currentPlayer) return
+  
+  // Add loading state if you want to show feedback
+  console.log('Refreshing player data...')
+  
+  try {
+    const response = await fetch('http://farmroadmap.dynv6.net/comlink/player', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        payload: { allyCode: currentPlayer.allyCode },
+        enums: false
       })
-      
-      if (!response.ok) throw new Error('Failed to fetch player data')
-      
-      const data = await response.json()
-      
-      // Update saved players
-      const updatedPlayers = savedPlayers.map(p => 
-        p.allyCode === currentPlayer.allyCode 
-          ? { ...p, data, lastUpdated: Date.now() }
-          : p
-      )
-      setSavedPlayers(updatedPlayers)
-      savePlayers(updatedPlayers)
-      
-      // Update current data
-      setPlayerData(data)
-      setCurrentPlayer({ ...currentPlayer, data, lastUpdated: Date.now() })
-      
-    } catch (error) {
-      console.error('Error refreshing player data:', error)
-      alert('Failed to refresh player data')
-    }
+    })
+    
+    if (!response.ok) throw new Error('Failed to fetch player data')
+    
+    const data = await response.json()
+    
+    // Update saved players
+    const updatedPlayers = savedPlayers.map(p => 
+      p.allyCode === currentPlayer.allyCode 
+        ? { ...p, data, lastUpdated: Date.now() }
+        : p
+    )
+    setSavedPlayers(updatedPlayers)
+    savePlayers(updatedPlayers)
+    
+    // Update current data - Force new object reference
+    setPlayerData({ ...data })
+    setCurrentPlayer({ ...currentPlayer, data, lastUpdated: Date.now() })
+    
+    console.log('Player data refreshed successfully!')
+    
+  } catch (error) {
+    console.error('Error refreshing player data:', error)
+    alert('Failed to refresh player data')
   }
+}
 
   // Handle add new player
   const handleAddNew = () => {
