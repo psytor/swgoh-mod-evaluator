@@ -1,6 +1,6 @@
 .mod-list-wrapper {
   width: 100%;
-  padding-top: 1650px; /* No change needed - already accounts for fixed elements */
+  padding-top: 165px; /* No change needed - already accounts for fixed elements */
   position: relative;
 }
 
