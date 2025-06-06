@@ -70,22 +70,27 @@ function App() {
   }
 
 // Handle refresh
-const handleRefresh = async () => {
+const handleRefresh = async (forceRefresh = false) => {
   if (!currentPlayer || isRefreshing) return
   
-  // Check rate limit - 1 hour (3600000 ms)
-  const ONE_HOUR = 3600000
-  const lastRefresh = currentPlayer.lastUpdated || 0
-  const timeSinceLastRefresh = Date.now() - lastRefresh
+  // Check for dev mode - hold Shift key while clicking refresh
+  const isDevMode = forceRefresh || window.event?.shiftKey
   
-  if (timeSinceLastRefresh < ONE_HOUR) {
-    const minutesRemaining = Math.ceil((ONE_HOUR - timeSinceLastRefresh) / 60000)
-    alert(`Please wait ${minutesRemaining} minutes before refreshing again.`)
-    return
+  // Check rate limit - 1 hour (3600000 ms)
+  if (!isDevMode) {
+    const ONE_HOUR = 3600000
+    const lastRefresh = currentPlayer.lastUpdated || 0
+    const timeSinceLastRefresh = Date.now() - lastRefresh
+    
+    if (timeSinceLastRefresh < ONE_HOUR) {
+      const minutesRemaining = Math.ceil((ONE_HOUR - timeSinceLastRefresh) / 60000)
+      alert(`Please wait ${minutesRemaining} minutes before refreshing again.`)
+      return
+    }
   }
   
   setIsRefreshing(true)
-  console.log('Refreshing player data...')
+  console.log(isDevMode ? 'DEV MODE: Force refreshing...' : 'Refreshing player data...')
   
   try {
     const response = await fetch('http://farmroadmap.dynv6.net/comlink/player', {
