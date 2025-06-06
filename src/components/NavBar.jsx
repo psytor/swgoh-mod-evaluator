@@ -53,7 +53,12 @@ function NavBar({ currentPlayer, savedPlayers, onPlayerSwitch, onRefresh, onAddN
           )}
           
           {currentPlayer && (
-            <button className="refresh-button" onClick={onRefresh} title="Refresh player data">
+            <button 
+              className={`refresh-button ${isRefreshing ? 'refreshing' : ''}`} 
+              onClick={onRefresh} 
+              title="Refresh player data"
+              disabled={isRefreshing}
+            >
               🔄
             </button>
           )}

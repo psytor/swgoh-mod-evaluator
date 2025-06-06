@@ -8,6 +8,7 @@ function App() {
   const [playerData, setPlayerData] = useState(null)
   const [evaluationMode, setEvaluationMode] = useState('basic') // 'basic' or 'strict'
   const [filterType, setFilterType] = useState('all') // 'all', 'keep', 'sell', 'slice', 'level'
+  const [isRefreshing, setIsRefreshing] = useState(false)
 
   useEffect(() => {
     if (currentPlayer && currentPlayer.data) {
@@ -69,45 +70,19 @@ function App() {
   }
 
   // Handle refresh
-  // Handle refresh
 const handleRefresh = async () => {
-  if (!currentPlayer) return
+  if (!currentPlayer || isRefreshing) return
   
-  // Add loading state if you want to show feedback
-  console.log('Refreshing player data...')
+  setIsRefreshing(true)
   
   try {
-    const response = await fetch('http://farmroadmap.dynv6.net/comlink/player', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        payload: { allyCode: currentPlayer.allyCode },
-        enums: false
-      })
-    })
-    
-    if (!response.ok) throw new Error('Failed to fetch player data')
-    
-    const data = await response.json()
-    
-    // Update saved players
-    const updatedPlayers = savedPlayers.map(p => 
-      p.allyCode === currentPlayer.allyCode 
-        ? { ...p, data, lastUpdated: Date.now() }
-        : p
-    )
-    setSavedPlayers(updatedPlayers)
-    savePlayers(updatedPlayers)
-    
-    // Update current data - Force new object reference
-    setPlayerData({ ...data })
-    setCurrentPlayer({ ...currentPlayer, data, lastUpdated: Date.now() })
-    
-    console.log('Player data refreshed successfully!')
+    // ... existing code ...
     
   } catch (error) {
     console.error('Error refreshing player data:', error)
     alert('Failed to refresh player data')
+  } finally {
+    setIsRefreshing(false)
   }
 }
 
@@ -125,6 +100,7 @@ const handleRefresh = async () => {
         onPlayerSwitch={handlePlayerSwitch}
         onRefresh={handleRefresh}
         onAddNew={handleAddNew}
+        isRefreshing={isRefreshing}
       />
       
       {!playerData ? (
