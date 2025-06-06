@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import './NavBar.css'
 
-function NavBar({ currentPlayer, savedPlayers, onPlayerSwitch, onRefresh, onAddNew }) {
+function NavBar({ currentPlayer, savedPlayers, onPlayerSwitch, onRefresh, onAddNew, isRefreshing }) {
   const [dropdownOpen, setDropdownOpen] = useState(false)
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
 
