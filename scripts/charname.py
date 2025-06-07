@@ -1,6 +1,6 @@
 from dotenv import load_dotenv
 import os
-import sys
+import datetime
 import psycopg2
 import json
 
@@ -11,6 +11,14 @@ DB_PORT = os.getenv("DB_PORT")
 DB_NAME = os.getenv("DB_NAME")
 DB_USER = os.getenv("DB_USER")
 DB_PASS = os.getenv("DB_PASS")
+
+def log_print(message):
+    """
+    Prints a message to the console with a time stampe and appends it to a log file
+    """
+    timestamp = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    log_message = f"[{timestamp}] {message}"
+    print(log_message)
 
 def db_connect():
     """
@@ -31,7 +39,7 @@ def db_connect():
         )
         return connection
     except Exception as e:
-        print(f"Connection failed: {e}")
+        log_print(f"Connection failed: {e}")
 
 def execute_query(query):
     """
@@ -60,14 +68,14 @@ def execute_query(query):
             rows_count=len(results)
             return results
         except psycopg2.ProgrammingError:
-            print("Query executed successfully without result")
+            log_print("Query executed successfully without result")
             return None
 
     except Exception as e:
         if conn:
             conn.rollback()
 
-        print(f"Query Failed: {e}")
+        log_print(f"Query Failed: {e}")
         raise
     finally:
         if cursor:
@@ -81,7 +89,7 @@ def get_charname_json():
 
     End Result save a json file for the Mod Evaluator
     """
-
+    log_print("Starting Charater Name Update.")
     json_list = []
 
     try:
@@ -99,8 +107,10 @@ def get_charname_json():
         with open("../src/assets/charname.json", "w") as f:
             json.dump(json_list, f)
 
+        log_print("Completed Successfully.")
+
     except Exception as e:
-        print(f"Could not complete the JSON creation: {e}")
+        log_print(f"Could not complete the JSON creation: {e}")
 
 if __name__ == "__main__":
     get_charname_json()
