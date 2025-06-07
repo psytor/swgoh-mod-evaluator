@@ -544,7 +544,7 @@ function ModShapeVisual({ shapeType, setType, modTierName, is6Dot, shapeAtlasUrl
 
 const CHARACTER_ID_FIXES = {
   'VEERS': 'VEERS_GENERAL',
-  'R2D2_LEGENDARY': 'UNIT_R2D2_NAME'
+  'R2D2_LEGENDARY': 'R2D2'
   // Add more mappings here as you find them
 };
 
