@@ -17,7 +17,7 @@ def log_print(message):
     Prints a message to the console with a time stampe and appends it to a log file
     """
     timestamp = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-    log_message = f"[{timestamp}] {message}"
+    log_message = f"[{timestamp}][DEV] {message}"
     print(log_message)
 
 def db_connect():
