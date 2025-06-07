@@ -104,7 +104,7 @@ def get_charname_json():
             new_unit = (charname, unit[1], unit[2])
             json_list.append(new_unit)
 
-        with open("../assets/charname.json", "w") as f:
+        with open("../src/assets/charname.json", "w") as f:
             json.dump(json_list, f)
 
         log_print("Completed Successfully.")
