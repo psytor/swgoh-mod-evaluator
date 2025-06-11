@@ -20,7 +20,7 @@ async function loadCharacterNames() {
   }
   
   // Start a new load
-  loadingPromise = fetch('/assets/charname.json')
+  loadingPromise = fetch('http://farmroadmap.dynv6.net/mod-evaluator/assets/charname.json')
     .then(response => {
       if (!response.ok) {
         throw new Error(`Failed to load character names: ${response.status}`);
