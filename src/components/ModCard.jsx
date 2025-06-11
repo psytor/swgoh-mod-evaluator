@@ -788,6 +788,6 @@ function ModCard({ mod, evaluationMode = 'basic', isTempLocked = false, onToggle
   );
 }
 
-export { getSpeedRecommendation, getCharacterDisplayName, calculateModEfficiency };
+export { getSpeedRecommendation, getCharacterDisplayName, calculateModEfficiency, useCharacterNames };
 
 export default ModCard;
