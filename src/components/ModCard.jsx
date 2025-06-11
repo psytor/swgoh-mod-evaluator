@@ -1,7 +1,69 @@
 import './ModCard.css';
 import charactermodsAtlas from '../assets/charactermods_datacard_atlas.png';
 import miscAtlas from '../assets/misc_atlas.png';
-import characterNames from '../assets/charname.json';
+import { useState, useEffect } from 'react';
+
+// Character names cache and loading state
+let characterNamesCache = null;
+let loadingPromise = null;
+
+// Function to load character names from external server
+async function loadCharacterNames() {
+  // If we already have the data cached, return it
+  if (characterNamesCache) {
+    return characterNamesCache;
+  }
+  
+  // If a load is already in progress, wait for it
+  if (loadingPromise) {
+    return loadingPromise;
+  }
+  
+  // Start a new load
+  loadingPromise = fetch('/assets/charname.json')
+    .then(response => {
+      if (!response.ok) {
+        throw new Error(`Failed to load character names: ${response.status}`);
+      }
+      return response.json();
+    })
+    .then(data => {
+      characterNamesCache = data;
+      loadingPromise = null;
+      return data;
+    })
+    .catch(error => {
+      console.error('Error loading character names:', error);
+      loadingPromise = null;
+      // Return empty array as fallback
+      return [];
+    });
+  
+  return loadingPromise;
+}
+
+// Hook to use character names in components
+function useCharacterNames() {
+  const [characterNames, setCharacterNames] = useState(characterNamesCache || []);
+  const [loading, setLoading] = useState(!characterNamesCache);
+  const [error, setError] = useState(null);
+  
+  useEffect(() => {
+    if (!characterNamesCache) {
+      loadCharacterNames()
+        .then(names => {
+          setCharacterNames(names);
+          setLoading(false);
+        })
+        .catch(err => {
+          setError(err);
+          setLoading(false);
+        });
+    }
+  }, []);
+  
+  return { characterNames, loading, error };
+}
 
 // Mappings from the API documentation
 const MOD_SETS = {
@@ -548,8 +610,16 @@ const CHARACTER_ID_FIXES = {
   // Add more mappings here as you find them
 };
 
-function getCharacterDisplayName(characterId) {
+function getCharacterDisplayName(characterId, characterNames) {
   if (!characterId) return { name: 'Unknown', hasWarning: true };
+  
+  // If characterNames is not loaded yet, return the ID
+  if (!characterNames || !Array.isArray(characterNames)) {
+    return { 
+      name: characterId.split(':')[0], 
+      hasWarning: false 
+    };
+  }
   
   // Extract the base ID (before the colon)
   let baseId = characterId.split(':')[0];
