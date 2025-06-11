@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import ModCard from './ModCard'
-import { getSpeedRecommendation, getCharacterDisplayName, calculateModEfficiency } from './ModCard'
+import { getSpeedRecommendation, getCharacterDisplayName, calculateModEfficiency, useCharacterNames } from './ModCard'
 import './ModList.css'
 
 // Calculate collection efficiency
@@ -94,6 +94,7 @@ function CollectionEfficiencyDisplay({ collectionStats, modStats }) {
 }
 
 function ModList({ playerData, evaluationMode, onModeChange, filterType, onFilterChange }) {
+  const { characterNames } = useCharacterNames();
   const [mods, setMods] = useState([])
   const [loading, setLoading] = useState(true)
   const [selectedCharacter, setSelectedCharacter] = useState('all')
@@ -173,8 +174,8 @@ function ModList({ playerData, evaluationMode, onModeChange, filterType, onFilte
     // Build unique character list
     const uniqueCharacters = [...new Set(extractedMods.map(mod => mod.characterName))]
       .sort((a, b) => {
-        const nameA = getCharacterDisplayName(a).name
-        const nameB = getCharacterDisplayName(b).name
+        const nameA = getCharacterDisplayName(a, characterNames).name
+        const nameB = getCharacterDisplayName(b, characterNames).name
         return nameA.localeCompare(nameB)
       })
     setCharacterList(uniqueCharacters)
@@ -251,7 +252,7 @@ function ModList({ playerData, evaluationMode, onModeChange, filterType, onFilte
         >
           <option value="all">All Characters</option>
           {characterList.map(charId => {
-            const charInfo = getCharacterDisplayName(charId);
+            const charInfo = getCharacterDisplayName(charId, characterNames);
             return (
               <option key={charId} value={charId}>
                 {charInfo.hasWarning ? `⚠️ ${charInfo.name}` : charInfo.name}
