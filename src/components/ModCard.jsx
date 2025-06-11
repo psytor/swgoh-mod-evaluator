@@ -647,6 +647,8 @@ function getCharacterDisplayName(characterId, characterNames) {
 
 function ModCard({ mod, evaluationMode = 'basic', isTempLocked = false, onToggleTempLock }) {
 
+  const { characterNames } = useCharacterNames();
+
   const setTypeKey = mod.definitionId[0];
   const setType = MOD_SETS[setTypeKey] || "UnknownSet";
 
@@ -763,7 +765,7 @@ function ModCard({ mod, evaluationMode = 'basic', isTempLocked = false, onToggle
       
       <div className="mod-character">
         {(() => {
-          const charInfo = getCharacterDisplayName(mod.characterName);
+          const charInfo = getCharacterDisplayName(mod.characterName, characterNames);
           return (
             <>
               {charInfo.hasWarning && <span className="character-warning">⚠️ </span>}
