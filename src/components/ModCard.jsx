@@ -87,45 +87,6 @@ const STAT_NAMES = {
   55: "Health %", 56: "Protection %"
 };
 
-// Divisor values for decoding API bounds
-const STAT_BOUND_DIVISORS = {
-  1: 100000,   // Health (flat)
-  5: 100000,   // Speed (flat)
-  16: 1000,    // Critical Damage % (percentage)
-  17: 1000,    // Potency % (percentage)
-  18: 1000,    // Tenacity % (percentage)
-  28: 100000,  // Protection (flat)
-  41: 100000,  // Offense (flat)
-  42: 100000,  // Defense (flat)
-  48: 1000,    // Offense % (percentage)
-  49: 1000,    // Defense % (percentage)
-  52: 1000,    // Accuracy %
-  53: 1000,    // Critical Chance % (percentage)
-  54: 1000,    // Critical Avoidance % (percentage)
-  55: 1000,    // Health % (percentage)
-  56: 1000     // Protection % (percentage)
-};
-
-// Fallback values if API data is missing (these match your documentation)
-const STAT_ROLL_RANGES = {
-  1: { min: 270, max: 540 },      // Health
-  5: { min: 3, max: 6 },          // Speed
-  16: { min: 1.175, max: 2.35 },  // Critical Damage %
-  17: { min: 1.5, max: 3 },       // Potency %
-  18: { min: 1.5, max: 3 },       // Tenacity %
-  28: { min: 460, max: 920 },     // Protection
-  41: { min: 25, max: 50 },       // Offense
-  42: { min: 8, max: 16 },        // Defense
-  48: { min: 0.85, max: 1.7 },    // Offense %
-  49: { min: 2, max: 4 },         // Defense %
-  53: { min: 1.175, max: 2.35 },  // Critical Chance %
-  55: { min: 1, max: 2 },         // Health %
-  56: { min: 1.5, max: 3 }        // Protection %
-};
-
-// 6-dot mods use same values according to your documentation
-const STAT_ROLL_RANGES_6DOT = STAT_ROLL_RANGES;
-
 function getCalibrationInfo(mod) {
   const dots = parseInt(mod.definitionId[1]);
   if (dots !== 6) return null;
@@ -349,41 +310,26 @@ function getSliceThreshold(tier, mode) {
 
 // Calculate efficiency for a single secondary stat using position-based approach
 function calculateStatEfficiency(stat, is6Dot = false) {
-  const statId = stat.stat.unitStatId;
-  const statValue = parseInt(stat.stat.statValueDecimal) / 10000;
-  const rolls = stat.statRolls || 1;
+  const minBound = parseInt(stat.statRollerBoundsMin);
+  const maxBound = parseInt(stat.statRollerBoundsMax);
   
-  // Extract bounds from the stat data if available
-  let min, max;
-  if (stat.statRollerBoundsMin && stat.statRollerBoundsMax) {
-    const divisor = STAT_BOUND_DIVISORS[statId] || 100000;
-    min = parseInt(stat.statRollerBoundsMin) / divisor;
-    max = parseInt(stat.statRollerBoundsMax) / divisor;
-  } else {
-    // Fallback to hardcoded values if API data is missing
-    const ranges = is6Dot ? STAT_ROLL_RANGES_6DOT : STAT_ROLL_RANGES;
-    const range = ranges[statId];
-    if (!range) return 0;
-    min = range.min;
-    max = range.max;
+  // For multi-roll stats, calculate average efficiency of all rolls
+  if (stat.unscaledRollValue && stat.unscaledRollValue.length > 0) {
+    let totalEfficiency = 0;
+    
+    stat.unscaledRollValue.forEach(rollValue => {
+      const value = parseInt(rollValue);
+      const range = maxBound - minBound;
+      const stepsFromMin = value - minBound;
+      const efficiency = ((stepsFromMin + 1) / (range + 1)) * 100;
+      totalEfficiency += efficiency;
+    });
+    
+    return totalEfficiency / stat.unscaledRollValue.length;
   }
   
-  if (rolls === 0) return 0;
-  
-  // For percentage stats, ensure we're working with the right scale
-  let actualValue = statValue;
-  if ([16, 17, 18, 48, 49, 52, 53, 54, 55, 56].includes(statId)) {
-    actualValue = statValue * 100;
-  }
-  
-  // Calculate the average roll value
-  const avgRollValue = actualValue / rolls;
-  
-  // Use continuous positioning for ALL stats (including Speed)
-  const positions = 10; // Reasonable granularity for continuous stats
-  const rawEfficiency = (avgRollValue - min) / (max - min);
-  const adjustedPosition = 1 + rawEfficiency * (positions - 1);
-  return (adjustedPosition / positions) * 100;
+  // Fallback to 0 if no roll data
+  return 0;
 }
 
 // Calculate overall mod efficiency (average of all secondaries)
@@ -395,13 +341,12 @@ function calculateModEfficiency(secondaryStats, is6Dot = false) {
   
   secondaryStats.forEach(stat => {
     const efficiency = calculateStatEfficiency(stat, is6Dot);
-    if (efficiency >= 0) { // Include 0% efficiency in the average
+    if (efficiency >= 0) {
       totalEfficiency += efficiency;
       statCount++;
     }
   });
   
-  // Return average efficiency
   return statCount > 0 ? totalEfficiency / statCount : 0;
 }
 
