@@ -23,38 +23,32 @@ function StatColumn({ stat, is6Dot = false }) {
   
   return (
     <div className="stat-column">
-    <div className="stat-header">
+      <div className="stat-header">
         <div className="stat-name">{statName}</div>
         <div className="stat-value">{formatValue()}</div>
         <div className="stat-rolls">({rolls} roll{rolls > 1 ? 's' : ''})</div>
-    </div>
-
+      </div>
+      
     <div className="stat-bars">
         {[...Array(5)].map((_, index) => {
-        const efficiency = rollEfficiencies[index] || 0;
-        const isActive = index < rolls;
-
-        return (
-            <div
-            key={index}
-            className={`efficiency-bar ${isActive ? 'active' : 'inactive'}`}
+          const efficiency = rollEfficiencies[index] || 0;
+          const isActive = index < rolls;
+          
+          return (
+            <div 
+              key={index} 
+              className={`efficiency-bar ${isActive ? 'active' : 'inactive'}`}
             >
-            {/* This is the bar that fills */}
-            <div
-                className="bar-fill"
+              <div 
+                className="bar-fill" 
                 style={{ width: isActive ? `${efficiency}%` : '0%' }}
-            ></div>
-
-            {/* This is the text overlay, always visible and centered */}
-            {isActive && (
-                <div className="efficiency-text">
-                {`${Math.round(efficiency)}%`}
-                </div>
-            )}
+              >
+                {isActive ? `${Math.round(efficiency)}%` : ''}
+              </div>
             </div>
-        );
+          );
         })}
-    </div>
+      </div>
     </div>
   );
 }
