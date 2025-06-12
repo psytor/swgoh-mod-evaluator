@@ -1,5 +1,6 @@
 import { useEffect } from 'react'
 import './ModDetailModal.css'
+import { MOD_SETS, MOD_SLOTS, MOD_TIERS, STAT_NAMES } from './ModCard'
 
 function ModDetailModal({ mod, isOpen, onClose }) {
   // Handle ESC key press
@@ -43,9 +44,42 @@ function ModDetailModal({ mod, isOpen, onClose }) {
         </div>
         
         <div className="modal-body">
-          {/* Placeholder content for now */}
-          <p>Mod details will go here</p>
-          <p>Mod ID: {mod.id}</p>
+          {/* Basic mod info section */}
+          <div className="modal-mod-info">
+            <div className="mod-info-item">
+              <span className="info-label">Set:</span>
+              <span className="info-value">{MOD_SETS[mod.definitionId[0]] || 'Unknown'}</span>
+            </div>
+            <div className="mod-info-item">
+              <span className="info-label">Slot:</span>
+              <span className="info-value">{MOD_SLOTS[mod.definitionId[2]] || 'Unknown'}</span>
+            </div>
+            <div className="mod-info-item">
+              <span className="info-label">Tier:</span>
+              <span className="info-value">{MOD_TIERS[mod.tier] || 'Unknown'}</span>
+            </div>
+            <div className="mod-info-item">
+              <span className="info-label">Level:</span>
+              <span className="info-value">{mod.level}/15</span>
+            </div>
+          </div>
+          
+          {/* Secondary stats section */}
+          <div className="modal-stats-section">
+            <h3>Secondary Stats</h3>
+            <div className="stats-grid">
+              {/* Stats will go here */}
+              <p>Stats visualization coming next...</p>
+            </div>
+          </div>
+          
+          {/* Evaluation section */}
+          <div className="modal-evaluation-section">
+            <h3>Evaluation</h3>
+            <div className="evaluation-content">
+              <p>Evaluation details coming next...</p>
+            </div>
+          </div>
         </div>
       </div>
     </div>

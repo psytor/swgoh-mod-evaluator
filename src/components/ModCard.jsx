@@ -66,21 +66,21 @@ function useCharacterNames() {
 }
 
 // Mappings from the API documentation
-const MOD_SETS = {
+export const MOD_SETS = {
   1: "Health", 2: "Offense", 3: "Defense", 4: "Speed",
   5: "Critical Chance", 6: "Critical Damage", 7: "Potency", 8: "Tenacity"
 };
 
-const MOD_SLOTS = {
+export const MOD_SLOTS = {
   1: "Square", 2: "Arrow", 3: "Diamond",
   4: "Triangle", 5: "Circle", 6: "Cross"
 };
 
-const MOD_TIERS = {
+export const MOD_TIERS = {
   1: "Grey", 2: "Green", 3: "Blue", 4: "Purple", 5: "Gold"
 };
 
-const STAT_NAMES = {
+export const STAT_NAMES = {
   1: "Health", 5: "Speed", 16: "Critical Damage %", 17: "Potency %",
   18: "Tenacity %", 28: "Protection", 41: "Offense", 42: "Defense",
   48: "Offense %", 49: "Defense %", 52: "Accuracy %", 53: "Critical Chance %", 54: "Critical Avoidance %",

@@ -132,3 +132,77 @@
     height: 36px;
   }
 }
+
+/* Modal Layout Sections */
+.modal-mod-info {
+  display: flex;
+  gap: 20px;
+  flex-wrap: wrap;
+  padding: 16px;
+  background-color: #0f172a;
+  border-radius: 8px;
+  margin-bottom: 24px;
+}
+
+.mod-info-item {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.info-label {
+  color: #94a3b8;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.info-value {
+  color: #e2e8f0;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.modal-stats-section {
+  margin-bottom: 24px;
+}
+
+.modal-stats-section h3,
+.modal-evaluation-section h3 {
+  color: #3b82f6;
+  font-size: 18px;
+  margin: 0 0 16px 0;
+  padding-bottom: 8px;
+  border-bottom: 1px solid #334155;
+}
+
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 20px;
+  padding: 16px;
+  background-color: #0f172a;
+  border-radius: 8px;
+}
+
+.modal-evaluation-section {
+  margin-bottom: 0;
+}
+
+.evaluation-content {
+  padding: 16px;
+  background-color: #0f172a;
+  border-radius: 8px;
+}
+
+/* Mobile responsive for modal sections */
+@media (max-width: 768px) {
+  .modal-mod-info {
+    flex-direction: column;
+    gap: 12px;
+  }
+  
+  .stats-grid {
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+}
