@@ -53,16 +53,27 @@
 }
 
 .bar-fill {
+  position: absolute;
+  top: 0;
+  left: 0;
   height: 100%;
   background-color: #3b82f6;
   transition: width 0.3s ease;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  z-index: 1;
+}
+
+.efficiency-text {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 2;
   font-size: 11px;
   color: white;
   font-weight: 600;
-  min-width: 20px;
+  white-space: nowrap;
+
+  text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.4);
 }
 
 .bar-fill:empty {
