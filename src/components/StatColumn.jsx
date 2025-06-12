@@ -38,12 +38,11 @@ function StatColumn({ stat, is6Dot = false }) {
             <div 
               key={index} 
               className={`efficiency-bar ${isActive ? 'active' : 'inactive'}`}
-            >
+            >{isActive ? `${Math.round(efficiency)}%` : ''}
               <div 
                 className="bar-fill" 
                 style={{ width: isActive ? `${efficiency}%` : '0%' }}
               >
-                {isActive ? `${Math.round(efficiency)}%` : ''}
               </div>
             </div>
           );
