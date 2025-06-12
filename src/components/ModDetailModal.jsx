@@ -1,6 +1,7 @@
 import { useEffect } from 'react'
 import './ModDetailModal.css'
 import { MOD_SETS, MOD_SLOTS, MOD_TIERS, STAT_NAMES } from './ModCard'
+import StatColumn from './StatColumn'
 
 function ModDetailModal({ mod, isOpen, onClose }) {
   // Handle ESC key press
@@ -68,8 +69,15 @@ function ModDetailModal({ mod, isOpen, onClose }) {
           <div className="modal-stats-section">
             <h3>Secondary Stats</h3>
             <div className="stats-grid">
-              {/* Stats will go here */}
-              <p>Stats visualization coming next...</p>
+              {mod.secondaryStat && mod.secondaryStat.length > 0 ? (
+                mod.secondaryStat.map((stat, index) => {
+                  const dots = parseInt(mod.definitionId[1]);
+                  const is6Dot = dots === 6;
+                  return <StatColumn key={index} stat={stat} is6Dot={is6Dot} />
+                })
+              ) : (
+                <p className="no-stats">No secondary stats</p>
+              )}
             </div>
           </div>
           

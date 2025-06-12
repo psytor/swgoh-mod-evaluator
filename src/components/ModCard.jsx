@@ -332,6 +332,25 @@ function calculateStatEfficiency(stat, is6Dot = false) {
   return 0;
 }
 
+// Calculate individual roll efficiencies and return array
+export function calculateIndividualRollEfficiencies(stat, is6Dot = false) {
+  const minBound = parseInt(stat.statRollerBoundsMin);
+  const maxBound = parseInt(stat.statRollerBoundsMax);
+  
+  if (stat.unscaledRollValue && stat.unscaledRollValue.length > 0) {
+    return stat.unscaledRollValue.map(rollValue => {
+      const value = parseInt(rollValue);
+      const range = maxBound - minBound;
+      const stepsFromMin = value - minBound;
+      const efficiency = ((stepsFromMin + 1) / (range + 1)) * 100;
+      return efficiency;
+    });
+  }
+  
+  // If no roll data, return empty array
+  return [];
+}
+
 // Calculate overall mod efficiency (average of all secondaries)
 function calculateModEfficiency(secondaryStats, is6Dot = false) {
   if (!secondaryStats || secondaryStats.length === 0) return 0;
