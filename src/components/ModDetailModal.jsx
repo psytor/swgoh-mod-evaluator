@@ -3,7 +3,7 @@ import './ModDetailModal.css'
 import { MOD_SETS, MOD_SLOTS, MOD_TIERS, STAT_NAMES, getSpeedRecommendation } from './ModCard'
 import StatColumn from './StatColumn'
 
-function ModDetailModal({ mod, isOpen, onClose }) {
+function ModDetailModal({ mod, isOpen, onClose, evaluationMode = 'basic' }) {
   // Handle ESC key press
   useEffect(() => {
     const handleEsc = (e) => {
@@ -26,10 +26,10 @@ function ModDetailModal({ mod, isOpen, onClose }) {
 
   if (!isOpen || !mod) return null
 
-  // Get evaluation recommendation
+// Get evaluation recommendation
   const dots = parseInt(mod.definitionId[1]);
   const is6Dot = dots === 6;
-  const recommendation = getSpeedRecommendation(mod, 'basic', false); // Using basic mode for now
+  const recommendation = getSpeedRecommendation(mod, evaluationMode, false);
 
   // Handle click outside
   const handleOverlayClick = (e) => {
@@ -95,8 +95,12 @@ function ModDetailModal({ mod, isOpen, onClose }) {
                 <span className="verdict-value">{recommendation.text}</span>
               </div>
               <div className="evaluation-explanation">
-                <p>Current evaluation: Speed-based only</p>
-                {/* More detailed explanation will come with the new system */}
+                <div className="explanation-title">Evaluation Steps:</div>
+                <ul className="explanation-steps">
+                  {recommendation.explanation && recommendation.explanation.map((step, index) => (
+                    <li key={index}>{step}</li>
+                  ))}
+                </ul>
               </div>
             </div>
           </div>

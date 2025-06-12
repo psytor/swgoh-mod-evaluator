@@ -111,7 +111,6 @@ function getCalibrationInfo(mod) {
 
 // Speed-Only Evaluation Logic
 function getSpeedRecommendation(mod, evaluationMode, isLocked = false) {
-
   const tier = mod.tier;
   const level = mod.level;
   const dots = parseInt(mod.definitionId[1]);
@@ -120,35 +119,48 @@ function getSpeedRecommendation(mod, evaluationMode, isLocked = false) {
   const primaryStatId = mod.primaryStat?.stat?.unitStatId;
   const slotTypeKey = mod.definitionId[2];
 
+  // Store evaluation steps for explanation
+  const evaluationSteps = [];
+
   if (isLocked) {
+    evaluationSteps.push("Mod is locked - automatic keep");
     return {
       type: 'keep',
       text: 'Locked',
-      className: 'keep'
+      className: 'keep',
+      explanation: evaluationSteps
     }
   }
   
   if (slotTypeKey === '2' && primaryStatId === 5) { // Arrow slot with Speed primary
+    evaluationSteps.push("Speed Arrow detected - highly valuable");
+    
     // 6-dot Gold mods are already maxed
     if (dots === 6 && tier === 5) {
+      evaluationSteps.push("6-dot Gold Speed Arrow - already at maximum potential");
       return {
         type: 'keep',
         text: 'Keep',
-        className: 'keep'
+        className: 'keep',
+        explanation: evaluationSteps
       };
     }
     
     if (level === 15) {
+      evaluationSteps.push("Level 15 Speed Arrow - ready to slice for improvement");
       return {
         type: 'slice',
         text: 'Slice',
-        className: 'slice'
+        className: 'slice',
+        explanation: evaluationSteps
       };
     } else {
+      evaluationSteps.push(`Level ${level} Speed Arrow - level to 15 for slicing`);
       return {
         type: 'keep',
         text: 'Keep',
-        className: 'keep'
+        className: 'keep',
+        explanation: evaluationSteps
       };
     }
   }
@@ -162,6 +174,9 @@ function getSpeedRecommendation(mod, evaluationMode, isLocked = false) {
     if (speedStat) {
       hasSpeed = true;
       speedValue = Math.floor(parseInt(speedStat.stat.statValueDecimal) / 10000);
+      evaluationSteps.push(`Speed secondary found: ${speedValue}`);
+    } else {
+      evaluationSteps.push("No speed secondary found");
     }
   }
   
@@ -170,20 +185,28 @@ function getSpeedRecommendation(mod, evaluationMode, isLocked = false) {
   
   // If we can't fully evaluate yet, tell them to level up
   if (!canFullyEvaluate) {
+    const nextLevel = getNextLevelTarget(tier, level);
+    evaluationSteps.push(`Cannot fully evaluate at level ${level} - need to see all secondaries`);
+    evaluationSteps.push(`Level to ${nextLevel} to reveal more stats`);
     return {
       type: 'level',
-      text: `Level to ${getNextLevelTarget(tier, level)}`,
-      className: 'level'
+      text: `Level to ${nextLevel}`,
+      className: 'level',
+      explanation: evaluationSteps
     };
   }
   
   // At this point, we can fully evaluate (level 12+)
+  evaluationSteps.push(`Full evaluation at level ${level} - all secondaries visible`);
+  
   // If no speed at all, it's a sell
   if (!hasSpeed) {
+    evaluationSteps.push("No speed secondary = sell in speed-based evaluation");
     return {
       type: 'sell',
       text: 'Sell',
-      className: 'sell'
+      className: 'sell',
+      explanation: evaluationSteps
     };
   }
   
@@ -191,30 +214,40 @@ function getSpeedRecommendation(mod, evaluationMode, isLocked = false) {
   const keepThreshold = getKeepThreshold(tier, evaluationMode);
   const sliceThreshold = getSliceThreshold(tier, evaluationMode);
   
+  evaluationSteps.push(`${evaluationMode === 'basic' ? 'Basic' : 'Strict'} mode thresholds:`);
+  evaluationSteps.push(`- Keep threshold: ${keepThreshold} speed`);
+  evaluationSteps.push(`- Slice threshold: ${sliceThreshold} speed`);
+  
   // If the mod doesn't meet keep threshold, sell it
   if (speedValue < keepThreshold) {
+    evaluationSteps.push(`Speed ${speedValue} < ${keepThreshold} threshold = sell`);
     return {
       type: 'sell',
       text: 'Sell',
-      className: 'sell'
+      className: 'sell',
+      explanation: evaluationSteps
     };
   }
   
   // If mod is level 15 and meets slice threshold, recommend slicing
   // UNLESS it's a 6-dot Gold mod (already maxed)
   if (level === 15 && speedValue >= sliceThreshold && !(dots === 6 && tier === 5)) {
+    evaluationSteps.push(`Level 15 with speed ${speedValue} >= ${sliceThreshold} = slice candidate`);
     return {
       type: 'slice',
       text: 'Slice',
-      className: 'slice'
+      className: 'slice',
+      explanation: evaluationSteps
     };
   }
   
   // Otherwise, it's a keeper
+  evaluationSteps.push(`Speed ${speedValue} meets keep threshold`);
   return {
     type: 'keep',
     text: 'Keep',
-    className: 'keep'
+    className: 'keep',
+    explanation: evaluationSteps
   };
 }
 

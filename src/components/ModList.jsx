@@ -464,6 +464,7 @@ function ModList({ playerData, evaluationMode, onModeChange, filterType, onFilte
         mod={selectedMod}
         isOpen={isModalOpen}
         onClose={handleModalClose}
+        evaluationMode={evaluationMode}
       />
     </div>
   )
