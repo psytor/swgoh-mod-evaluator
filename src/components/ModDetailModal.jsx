@@ -1,6 +1,6 @@
 import { useEffect } from 'react'
 import './ModDetailModal.css'
-import { MOD_SETS, MOD_SLOTS, MOD_TIERS, STAT_NAMES } from './ModCard'
+import { MOD_SETS, MOD_SLOTS, MOD_TIERS, STAT_NAMES, getSpeedRecommendation } from './ModCard'
 import StatColumn from './StatColumn'
 
 function ModDetailModal({ mod, isOpen, onClose }) {
@@ -25,6 +25,11 @@ function ModDetailModal({ mod, isOpen, onClose }) {
   }, [isOpen, onClose])
 
   if (!isOpen || !mod) return null
+
+  // Get evaluation recommendation
+  const dots = parseInt(mod.definitionId[1]);
+  const is6Dot = dots === 6;
+  const recommendation = getSpeedRecommendation(mod, 'basic', false); // Using basic mode for now
 
   // Handle click outside
   const handleOverlayClick = (e) => {
@@ -85,7 +90,14 @@ function ModDetailModal({ mod, isOpen, onClose }) {
           <div className="modal-evaluation-section">
             <h3>Evaluation</h3>
             <div className="evaluation-content">
-              <p>Evaluation details coming next...</p>
+              <div className={`evaluation-verdict ${recommendation.className}`}>
+                <span className="verdict-label">Verdict:</span>
+                <span className="verdict-value">{recommendation.text}</span>
+              </div>
+              <div className="evaluation-explanation">
+                <p>Current evaluation: Speed-based only</p>
+                {/* More detailed explanation will come with the new system */}
+              </div>
             </div>
           </div>
         </div>
