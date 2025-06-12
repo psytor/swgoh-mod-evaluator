@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import ModCard from './ModCard'
+import ModDetailModal from './ModDetailModal'
 import { getSpeedRecommendation, getCharacterDisplayName, calculateModEfficiency, useCharacterNames } from './ModCard'
 import './ModList.css'
 
@@ -108,6 +109,21 @@ function ModList({ playerData, evaluationMode, onModeChange, filterType, onFilte
     const saved = localStorage.getItem('swgoh_temp_locked_mods')
     return saved ? JSON.parse(saved) : []
   })
+
+  // Modal state
+  const [selectedMod, setSelectedMod] = useState(null)
+  const [isModalOpen, setIsModalOpen] = useState(false)
+
+  const handleModClick = (mod) => {
+    setSelectedMod(mod)
+    setIsModalOpen(true)
+  }
+
+  const handleModalClose = () => {
+    setIsModalOpen(false)
+    // Don't clear selectedMod immediately to prevent flicker
+    setTimeout(() => setSelectedMod(null), 300)
+  }
 
   // Detect mobile viewport
   useEffect(() => {
@@ -438,10 +454,17 @@ function ModList({ playerData, evaluationMode, onModeChange, filterType, onFilte
               evaluationMode={evaluationMode}
               isTempLocked={tempLockedMods.includes(mod.id)}
               onToggleTempLock={toggleTempLock}
+              onClick={handleModClick}
             />
           ))}
         </div>
       </div>
+      
+      <ModDetailModal 
+        mod={selectedMod}
+        isOpen={isModalOpen}
+        onClose={handleModalClose}
+      />
     </div>
   )
 }

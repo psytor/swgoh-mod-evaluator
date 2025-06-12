@@ -7,6 +7,7 @@
   transition: transform 0.2s, box-shadow 0.2s;
   min-height: 280px; /* Increased from 250px to accommodate the extra padding */
   position: relative;
+  cursor: pointer;
 }
 
 .mod-card:hover {

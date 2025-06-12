@@ -590,9 +590,19 @@ function getCharacterDisplayName(characterId, characterNames) {
   };
 }
 
-function ModCard({ mod, evaluationMode = 'basic', isTempLocked = false, onToggleTempLock }) {
+function ModCard({ mod, evaluationMode = 'basic', isTempLocked = false, onToggleTempLock, onClick }) {
 
   const { characterNames } = useCharacterNames();
+
+  const handleClick = (e) => {
+    // Don't trigger if clicking on the lock button
+    if (e.target.closest('.mod-lock-button')) {
+      return;
+    }
+    if (onClick) {
+      onClick(mod);
+    }
+  };
 
   const setTypeKey = mod.definitionId[0];
   const setType = MOD_SETS[setTypeKey] || "UnknownSet";
@@ -623,8 +633,8 @@ function ModCard({ mod, evaluationMode = 'basic', isTempLocked = false, onToggle
     return Math.floor(primaryStatValue).toString();
   };
 
-  return (
-    <div className={`mod-card mod-${modColorName.toLowerCase()} ${is6Dot ? 'mod-6dot' : ''}`}>
+   return (
+    <div className={`mod-card mod-${modColorName.toLowerCase()} ${is6Dot ? 'mod-6dot' : ''}`} onClick={handleClick}>
       {/* Recommendation Badge */}
       <div className={`mod-recommendation ${recommendation.className}`}>
         {recommendation.text}
