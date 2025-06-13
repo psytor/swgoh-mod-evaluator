@@ -69,15 +69,8 @@ async def get_character_names():
             with open(char_file, 'r') as f:
                 character_data = json.load(f)
             
-            # Transform to lookup format
-            formatted_names = {}
-            for char in character_data:
-                if len(char) >= 3:
-                    char_id = char[0]
-                    char_name = char[2]
-                    formatted_names[char_id] = char_name
-            
-            return formatted_names
+            # Return the raw array format to preserve all data including language code
+            return character_data
         else:
             logger.warning("Character names file not found")
             return {}
