@@ -93,7 +93,7 @@ const handleRefresh = async (event) => {
   console.log(isDevMode ? 'DEV MODE: Force refreshing...' : 'Refreshing player data...')
   
   try {
-    const response = await fetch('http://farmroadmap.dynv6.net/comlink/player', {
+    const response = await fetch('https://farmroadmap.dynv6.net/comlink/player', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
