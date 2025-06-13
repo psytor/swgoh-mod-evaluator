@@ -55,10 +55,15 @@ function AllyCodeEntry({ onDataFetched }) {
       // Create player object
       const playerInfo = {
         allyCode: cleanAllyCode,
-        name: playerData.name,
-        data: playerData,
-        lastUpdated: Date.now()
-      }
+        name: apiResponse.playerName,
+        data: {
+            name: apiResponse.playerName,
+            allyCode: apiResponse.allyCode,
+            rosterUnit: []
+          },
+          lastUpdated: Date.now(),
+          apiResponse: apiResponse
+        }
       
       // Load existing players
       const existingPlayers = JSON.parse(localStorage.getItem('swgoh_saved_players') || '[]')
@@ -78,8 +83,11 @@ function AllyCodeEntry({ onDataFetched }) {
       localStorage.setItem('swgoh_saved_players', JSON.stringify(existingPlayers))
       localStorage.setItem('swgoh_last_used_player', cleanAllyCode)
       
-      // Notify parent
-      onDataFetched(playerData)
+      // Notify parent - pass the API response structure
+      onDataFetched({
+        ...apiResponse,  // This includes playerName, mods, etc.
+        apiResponse: apiResponse  // Also keep the full response for ModList
+      })
       
     } catch (err) {
       console.error('Error:', err)

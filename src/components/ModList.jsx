@@ -168,9 +168,34 @@ function ModList({ playerData, evaluationMode, onModeChange, filterType, onFilte
 
   useEffect(() => {
     // Extract all mods from player data
-    const extractedMods = []
+    let extractedMods = []
 
-    if (playerData?.rosterUnit) {
+    // Check if we have the new API response structure
+  if (playerData?.apiResponse?.mods) {
+    // New API structure - mods are already processed
+    extractedMods = playerData.apiResponse.mods.map(mod => ({
+      ...mod,
+      // Map fields to match what the frontend expects
+      characterName: mod.characterId.split(':')[0],
+      // The new API already filters to 5+ dot mods and includes evaluations
+      secondaryStat: mod.secondaryStats.map(stat => ({
+        stat: {
+          unitStatId: stat.unitStatId,
+          statValueDecimal: (stat.value * 10000).toString()
+        },
+        statRolls: stat.rolls,
+        unscaledRollValue: stat.unscaledRollValue,
+        statRollerBoundsMin: stat.statRollerBoundsMin,
+        statRollerBoundsMax: stat.statRollerBoundsMax
+      })),
+      primaryStat: {
+        stat: {
+          unitStatId: mod.primaryStat.unitStatId,
+          statValueDecimal: (mod.primaryStat.value * 10000).toString()
+        }
+      }
+    }))
+  } else if (playerData?.rosterUnit) {
       playerData.rosterUnit.forEach(unit => {
         if (unit.equippedStatMod && unit.equippedStatMod.length > 0) {
           unit.equippedStatMod.forEach(mod => {
