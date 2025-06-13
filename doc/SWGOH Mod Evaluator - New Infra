@@ -1,0 +1,1293 @@
+# FastAPI SWGOH Mod Evaluation Backend: Technical Documentation
+
+## Technical Architecture Overview
+
+The FastAPI SWGOH mod evaluation backend implements a sophisticated 3-tier architecture designed for high-performance gaming data processing. **The application processes Star Wars: Galaxy of Heroes player data, evaluates mods using speed-based algorithms, calculates roll efficiencies, and provides cached responses with 1-hour TTL by default**.
+
+### Application Structure and Organization
+
+The backend follows FastAPI best practices with a modular, scalable directory structure:
+
+```
+swgoh_mod_evaluator/
+├── app/
+│   ├── main.py                    # FastAPI application entry point
+│   ├── config.py                  # Configuration management
+│   ├── api/v1/endpoints/          # Route handlers (mods, evaluation, cache)
+│   ├── services/                  # Service layer (mod_service, evaluation_service, swgoh_client, cache_service)
+│   ├── models/                    # Data models (mod, character, evaluation)
+│   ├── schemas/                   # Pydantic schemas for request/response
+│   ├── core/                      # Core utilities (cache, security, exceptions)
+│   └── utils/                     # Utility functions
+```
+
+### Service Layer Components 
+
+The architecture implements a comprehensive service layer with clear separation of concerns:
+
+**SWGOH API Client Service**: Handles external API interactions with built-in retry logic and rate limiting (20 requests/second). Features async context management, connection pooling, and automatic cache integration for player mod data.
+
+**Mod Processing Service**: Transforms raw SWGOH API data into structured ModData objects. Processes primary/secondary stats, calculates mod efficiency scores, and validates data integrity using Pydantic models with comprehensive validation rules.
+
+**Evaluation Engine Service**: Provides sophisticated mod analysis with character-specific optimization targets. Supports multiple evaluation modes (basic and strict) with detailed penalty systems, statistical analysis, and recommendation generation.
+
+**Cache Manager Service**: Implements thread-safe in-memory caching with TTL management, LRU eviction policies, and background cleanup tasks. Features cache statistics, manual invalidation, and decorator patterns for easy integration.
+
+### In-Memory Caching Implementation
+
+The caching system uses a sophisticated TTL-based approach with multiple optimization layers:
+
+```python
+class TTLCacheManager:
+    def __init__(self, max_size: int = 10000, default_ttl: int = 3600):
+        self.default_ttl = default_ttl  # 1 hour default
+        self._cache: Dict[str, CacheEntry] = {}
+        self._cleanup_task = asyncio.create_task(self._cleanup_expired_entries())
+```
+
+**Key features include**: automatic expiration management, LRU eviction when approaching capacity limits, access statistics tracking, and background cleanup processes running every 5 minutes.
+
+## Configuration Management
+
+### Cache TTL Settings Modification
+
+The application provides flexible cache TTL management through environment-based configuration:
+
+```python
+class CacheSettings(BaseSettings):
+    cache_ttl_default: int = 3600    # 1 hour default
+    cache_ttl_short: int = 300       # 5 minutes for volatile data
+    cache_ttl_long: int = 86400      # 24 hours for stable data
+    cache_prefix: str = "swgoh-cache"
+    
+    model_config = SettingsConfigDict(env_file=".env")
+```
+
+**TTL configuration strategies**:
+- **Dynamic TTL**: Configure different TTL values based on data volatility
+- **Environment-specific**: Separate settings for development (short TTL) vs production (longer TTL)
+- **Decorator-based**: Apply TTL at the endpoint level using `@cache(expire=ttl)` decorators
+
+### CORS Configuration for Different Domains
+
+CORS configuration adapts to different deployment environments:
+
+```python
+class CORSSettings(BaseSettings):
+    backend_cors_origins: List[Union[str, AnyHttpUrl]] = []
+    
+    @property
+    def origins_list(self) -> List[str]:
+        return [str(origin) for origin in self.backend_cors_origins]
+```
+
+**Environment-specific CORS setup**:
+- **Development**: `["http://localhost:3000", "http://127.0.0.1:3000"]`
+- **Staging**: `["https://staging-frontend.myapp.com"]`
+- **Production**: `["https://myapp.com", "https://www.myapp.com"]`
+
+### Configuration Management Details
+
+#### How to Change Cache TTL (Time To Live)
+
+**Current TTL**: 1 hour (3600 seconds)
+
+**To modify TTL**, edit `backend/config.py`:
+
+```python
+class Settings:
+    # Change this value (in seconds)
+    CACHE_TTL_SECONDS: int = 1800  # 30 minutes instead of 1 hour
+```
+
+**TTL Options**:
+- `300` = 5 minutes (for testing)
+- `1800` = 30 minutes (moderate caching)
+- `3600` = 1 hour (current default)
+- `7200` = 2 hours (longer caching)
+
+**To change TTL without restarting**:
+Use the cache management endpoints:
+```bash
+# Clear current cache to apply new TTL
+curl -X DELETE http://localhost:8000/api/cache
+```
+
+#### CORS Configuration for Different Domains
+
+**Edit `backend/config.py`** to add your domains:
+
+```python
+class Settings:
+    ALLOWED_ORIGINS: list = [
+        "http://localhost:3000",          # Vite dev server
+        "http://localhost:5173",          # Alternative Vite port
+        "http://your-domain.dynv6.net",   # Your production domain
+        "https://your-domain.dynv6.net"   # HTTPS version
+    ]
+```
+
+**Add new domains** by editing the list and restarting the server.
+
+#### API Endpoint Configuration
+
+**Current API structure**:
+- `GET /api/player/{ally_code}` - Get player mod data
+- `GET /api/cache/stats` - Cache statistics
+- `DELETE /api/cache/{ally_code}` - Clear specific player cache
+- `DELETE /api/cache` - Clear all cache
+- `GET /health` - Health check
+
+**To change the API base path**, edit `backend/main.py`:
+
+```python
+# Current: All endpoints start with /api/
+# To change to /mod-api/:
+app.mount("/mod-api", APIRouter())
+```
+
+## JSON Response Structure and Data Transformations
+
+### Data Filtering from SWGOH API Response
+
+The application implements strategic data filtering to optimize response sizes and performance:
+
+**Filtered fields include**:
+- Removes unnecessary metadata and debug information
+- Filters out inactive or invalid mods
+- Extracts only relevant character data for evaluation
+- Transforms stat values into normalized formats
+
+**Data transformation pipeline**:
+1. **Input validation**: Sanitize raw SWGOH API responses
+2. **Business logic processing**: Apply game rules and calculations
+3. **Response formatting**: Structure data according to JSON:API standards
+4. **Compression**: Apply gzip compression for large responses
+
+### Pre-Calculated Fields and Purposes
+
+The system generates multiple pre-calculated fields to improve performance:
+
+```json
+{
+  "mod_evaluation": {
+    "efficiency_score": 87.5,
+    "speed_roll_efficiency": 0.92,
+    "tier_rating": "S",
+    "upgrade_potential": 2.3,
+    "character_fit_score": 94.2
+  },
+  "pre_calculated_stats": {
+    "total_speed": 187,
+    "effective_health": 45230,
+    "damage_output": 8750,
+    "survivability_index": 0.78
+  }
+}
+```
+
+**Pre-calculation benefits**: Reduces real-time computation overhead, enables faster API responses, supports complex statistical analysis, and allows for comparative evaluations across player collections.
+
+### Collection Statistics Generation
+
+Collection-level statistics provide comprehensive insights into player mod inventory:
+
+```json
+{
+  "collection_stats": {
+    "total_mods": 312,
+    "six_dot_mods": 45,
+    "speed_mods_count": 78,
+    "efficiency_distribution": {
+      "excellent": 23,
+      "good": 89,
+      "average": 156,
+      "poor": 44
+    },
+    "set_distribution": {
+      "speed": 78,
+      "health": 65,
+      "offense": 54,
+      "defense": 43
+    }
+  }
+}
+```
+
+### Evaluation Results Structure
+
+Both **Basic** and **Strict** modes use the same evaluation logic - they only differ in thresholds:
+
+- **Basic Mode**: More lenient thresholds for players with limited resources
+- **Strict Mode**: Higher thresholds for players who want to keep only the best mods
+
+**Current Implementation Response**:
+```json
+{
+  "evaluations": {
+    "basic": {
+      "verdict": "keep",
+      "text": "Keep", 
+      "reason": "Good speed 12",
+      "className": "keep"
+    },
+    "strict": {
+      "verdict": "sell",
+      "text": "Sell",
+      "reason": "Speed 12 below threshold 15",
+      "className": "sell"
+    }
+  },
+  "rollEfficiency": 67.5,
+  "rollEfficiencyDetails": {
+    "stat_0": {
+      "efficiency": 75.0,
+      "rollEfficiencies": [80.0, 70.0],
+      "unitStatId": 5
+    }
+  }
+}
+```
+
+**Threshold Differences**:
+- **Basic**: Grey/Green = Any speed, Blue/Purple = 6+ speed, Gold = 8+ speed
+- **Strict**: Grey = Any speed, Green = 5+ speed, Blue = 8+ speed, Purple/Gold = 10+ speed
+
+## Production Deployment Strategies
+
+## Complete Integration Setup
+
+### Optimal Directory Structure and File Organization
+
+**Best practice location for all services**:
+
+```
+/opt/swgoh-services/
+├── docker-compose.yml          # Main compose file for all services
+├── .env                        # Environment variables
+├── shared-data/
+│   ├── charname.json          # Updated by your daily script
+│   └── cache/                 # Shared cache directory
+├── mod-evaluator/
+│   ├── backend/
+│   │   ├── Dockerfile
+│   │   ├── main.py
+│   │   ├── requirements.txt
+│   │   └── services/
+│   └── logs/
+├── scripts/
+│   └── charname.py            # Your existing script (moved here)
+└── postgres-data/             # PostgreSQL data volume
+```
+
+### Complete Docker Compose Setup
+
+**Main docker-compose.yml** (`/opt/swgoh-services/docker-compose.yml`):
+
+```yaml
+version: '3.8'
+
+services:
+  # PostgreSQL Database
+  postgres:
+    container_name: swgoh_postgres
+    image: postgres:17.4
+    restart: always
+    environment:
+      POSTGRES_PASSWORD: frmdev1234
+      POSTGRES_DB: swgoh
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - swgoh-network
+
+  # SWGOH Comlink API
+  swgoh_comlink:
+    container_name: swgoh_comlink
+    image: ghcr.io/swgoh-utils/swgoh-comlink:latest
+    restart: always
+    environment:
+      APP_NAME: FarmingRoadmap_Production
+      PORT: 2500
+    ports:
+      - "2500:2500"
+    networks:
+      - swgoh-network
+
+  # Mod Evaluator Backend
+  mod-evaluator:
+    build: ./mod-evaluator/backend
+    container_name: swgoh_mod_evaluator
+    restart: unless-stopped
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./shared-data:/app/shared-data:ro
+      - ./mod-evaluator/logs:/app/logs
+    environment:
+      - PYTHONPATH=/app
+      - LOG_LEVEL=INFO
+      - SWGOH_API_URL=http://swgoh_comlink:2500/player
+      - POSTGRES_HOST=postgres
+      - POSTGRES_DB=swgoh
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=frmdev1234
+    depends_on:
+      - postgres
+      - swgoh_comlink
+    networks:
+      - swgoh-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+volumes:
+  postgres_data:
+
+networks:
+  swgoh-network:
+    driver: bridge
+```
+
+### Updated Character Names Script
+
+**Move and update your script** (`/opt/swgoh-services/scripts/charname.py`):
+
+```python
+#!/usr/bin/env python3
+import json
+import psycopg2
+import os
+from datetime import datetime
+
+def update_character_names():
+    """Update character names from PostgreSQL to shared JSON file"""
+    try:
+        # Connect to PostgreSQL
+        conn = psycopg2.connect(
+            host="localhost",  # or "swgoh_postgres" if running in Docker
+            database="swgoh",
+            user="postgres",
+            password="frmdev1234"
+        )
+        
+        cursor = conn.cursor()
+        
+        # Your existing query here
+        cursor.execute("SELECT character_id, display_name FROM characters")
+        
+        # Format for the JSON file
+        character_data = []
+        for row in cursor.fetchall():
+            character_data.append([row[0], "", row[1]])  # [id, "", display_name]
+        
+        # Write to shared location
+        output_file = "/opt/swgoh-services/shared-data/charname.json"
+        with open(output_file, 'w') as f:
+            json.dump(character_data, f, indent=2)
+        
+        print(f"Updated character names: {len(character_data)} characters")
+        
+        cursor.close()
+        conn.close()
+        
+    except Exception as e:
+        print(f"Error updating character names: {e}")
+
+if __name__ == "__main__":
+    update_character_names()
+```
+
+**Update your cron job**:
+```bash
+# Edit crontab
+crontab -e
+
+# Replace your current line with:
+0 6 * * * cd /opt/swgoh-services/scripts && /usr/bin/python3 charname.py >> /opt/swgoh-services/shared-data/charname.log 2>&1
+```
+
+### Backend Integration with Character Names
+
+**Update `backend/main.py`** to read from shared location:
+
+```python
+import json
+import os
+from pathlib import Path
+
+# Add this endpoint for character names
+@app.get("/api/character-names")
+async def get_character_names():
+    """Serve character names from shared data"""
+    try:
+        char_file = Path("/app/shared-data/charname.json")
+        if char_file.exists():
+            with open(char_file, 'r') as f:
+                character_data = json.load(f)
+            
+            # Transform to lookup format
+            formatted_names = {}
+            for char in character_data:
+                if len(char) >= 3:
+                    char_id = char[0]
+                    char_name = char[2]
+                    formatted_names[char_id] = char_name
+            
+            return formatted_names
+        else:
+            logger.warning("Character names file not found")
+            return {}
+    except Exception as e:
+        logger.error(f"Error loading character names: {e}")
+        return {}
+
+# Update the main player endpoint to include character names
+@app.get("/api/player/{ally_code}")
+async def get_player(ally_code: str):
+    # ... existing code ...
+    
+    # Load character names
+    character_names = await get_character_names()
+    
+    for mod in processed_data.mods:
+        mod_dict = mod.dict()
+        
+        # Add evaluations
+        basic_eval = evaluation_engine.evaluate_mod(mod, "basic")
+        strict_eval = evaluation_engine.evaluate_mod(mod, "strict")
+        
+        mod_dict["evaluations"] = {
+            "basic": basic_eval,
+            "strict": strict_eval
+        }
+        
+        # Add character display name
+        char_id = mod.characterId.split(':')[0]
+        mod_dict["characterDisplayName"] = character_names.get(char_id, char_id)
+        
+        # Add efficiency data
+        efficiency_data = evaluation_engine.calculate_roll_efficiency(mod)
+        mod_dict["rollEfficiency"] = efficiency_data["overall"]
+        mod_dict["rollEfficiencyDetails"] = efficiency_data["individual"]
+        
+        evaluated_mods.append(mod_dict)
+    
+    # ... rest of function ...
+```
+
+## Production Deployment Strategies
+
+### Free SSL Certificate with Let's Encrypt
+
+**Yes, you can get free SSL certificates** even for home hosting through dynv6.net using Let's Encrypt:
+
+**Step 1: Install Certbot**
+```bash
+# Ubuntu/Debian
+sudo apt update
+sudo apt install certbot python3-certbot-nginx
+
+# CentOS/RHEL
+sudo yum install certbot python3-certbot-nginx
+```
+
+**Step 2: Get Certificate for Your Domain**
+```bash
+# Replace your-domain.dynv6.net with your actual domain
+sudo certbot --nginx -d your-domain.dynv6.net
+```
+
+**Step 3: Automatic Renewal Setup**
+```bash
+# Test renewal
+sudo certbot renew --dry-run
+
+# Add to crontab for automatic renewal
+sudo crontab -e
+# Add this line:
+0 12 * * * /usr/bin/certbot renew --quiet
+```
+
+### Integration with Your Existing Nginx Setup
+
+**Your current nginx configuration updated for HTTPS + Backend API**:
+
+```nginx
+server {
+    listen 80 default_server;
+    server_name farmroadmap.dynv6.net www.farmroadmap.dynv6.net _;
+    return 301 https://$server_name$request_uri;
+}
+
+server {
+    listen 443 ssl http2 default_server;
+    server_name farmroadmap.dynv6.net www.farmroadmap.dynv6.net _;
+    
+    # SSL Certificate (Let's Encrypt will add these)
+    ssl_certificate /etc/letsencrypt/live/farmroadmap.dynv6.net/fullchain.pem;
+    ssl_certificate_key /etc/letsencrypt/live/farmroadmap.dynv6.net/privkey.pem;
+    include /etc/letsencrypt/options-ssl-nginx.conf;
+    ssl_dhparam /etc/letsencrypt/ssl-dhparams.pem;
+
+    location / {
+        root /var/www/html;
+        index index.html index.htm;
+        try_files $uri $uri/ =404;
+    }
+
+    # Character names JSON - served with proper character names from backend
+    location /mod-evaluator/assets/charname.json {
+        proxy_pass http://localhost:8000/api/character-names;
+        proxy_set_header Host $host;
+        add_header Content-Type application/json;
+        expires 1d;
+    }
+
+    # Development mod evaluator (Vite dev server)
+    location /mod-eval-dev/ {
+        proxy_pass http://localhost:5173;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+
+        # WebSocket support for Vite HMR
+        proxy_http_version 1.1;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection "Upgrade";
+    }
+
+    # Production mod evaluator (static files)
+    location /mod-evaluator {
+        alias /var/www/farmroadmap.dynv6.net/mod-evaluator;
+        index index.html;
+        try_files $uri $uri/ /index.html;
+    }
+
+    # NEW: FastAPI Backend for mod evaluation
+    location /api/ {
+        proxy_pass http://localhost:8000;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        
+        # Timeout settings for mod processing
+        proxy_connect_timeout 60s;
+        proxy_send_timeout 60s;
+        proxy_read_timeout 60s;
+    }
+
+    # Existing comlink service
+    location /comlink/ {
+        proxy_pass http://localhost:2500/;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+    }
+}
+```
+
+**Steps to update your nginx**:
+```bash
+# 1. Get SSL certificate first
+sudo certbot --nginx -d farmroadmap.dynv6.net -d www.farmroadmap.dynv6.net
+
+# 2. Edit your nginx config
+sudo nano /etc/nginx/sites-available/default
+
+# 3. Test and reload
+sudo nginx -t
+sudo systemctl reload nginx
+```
+
+### Frontend Integration Updates
+
+**Update your frontend to use the new backend API**. 
+
+**Edit `src/components/AllyCodeEntry.jsx`** - change the API endpoint:
+
+```javascript
+const response = await fetch('/api/player/' + cleanAllyCode, {
+  method: 'GET',  // Changed from POST to GET
+  headers: {
+    'Content-Type': 'application/json'
+  }
+})
+
+if (!response.ok) throw new Error('Failed to fetch player data')
+
+const playerData = await response.json()
+
+// The response now has the structure:
+// {
+//   "success": true,
+//   "playerName": "Player Name",
+//   "allyCode": "123456789",
+//   "mods": [...],
+//   "collectionStats": {...}
+// }
+```
+
+**Edit `src/App.jsx`** - update the refresh function:
+
+```javascript
+const handleRefresh = async (event) => {
+  // ... existing validation code ...
+  
+  try {
+    // Change to new backend API
+    const response = await fetch(`/api/player/${currentPlayer.allyCode}`, {
+      method: 'GET',
+      headers: { 'Content-Type': 'application/json' }
+    })
+    
+    if (!response.ok) throw new Error('Failed to fetch player data')
+    
+    const apiResponse = await response.json()
+    
+    // Extract the actual player data from the API response
+    const data = {
+      name: apiResponse.playerName,
+      allyCode: apiResponse.allyCode,
+      // ... map other fields as needed for compatibility
+      rosterUnit: [] // You'll need to adapt this based on your new structure
+    }
+    
+    // ... rest of existing code ...
+  } catch (error) {
+    // ... existing error handling ...
+  }
+}
+```
+
+**Update `vite.config.js`** for HTTPS development:
+
+```javascript
+import { defineConfig } from 'vite'
+import react from '@vitejs/plugin-react'
+
+export default defineConfig(({ command }) => ({
+  plugins: [react()],
+  base: command === 'serve' ? '/mod-eval-dev/' : '/mod-evaluator/',
+  server: {
+    host: '0.0.0.0',
+    port: 5173,
+    hmr: {
+      clientPort: 443,  // Changed from 80 to 443 for HTTPS
+      host: 'farmroadmap.dynv6.net',
+      protocol: 'wss'   // Changed from 'ws' to 'wss' for secure WebSocket
+    },
+    allowedHosts: ['farmroadmap.dynv6.net', 'localhost']
+  }
+}))
+```
+
+### Complete Nginx Configuration with HTTPS
+
+**Update your nginx configuration** (`/etc/nginx/sites-available/default`):
+
+```nginx
+server {
+    listen 80 default_server;
+    server_name farmroadmap.dynv6.net www.farmroadmap.dynv6.net _;
+    return 301 https://$server_name$request_uri;
+}
+
+server {
+    listen 443 ssl http2 default_server;
+    server_name farmroadmap.dynv6.net www.farmroadmap.dynv6.net _;
+    
+    # SSL Certificate (Let's Encrypt will add these)
+    ssl_certificate /etc/letsencrypt/live/farmroadmap.dynv6.net/fullchain.pem;
+    ssl_certificate_key /etc/letsencrypt/live/farmroadmap.dynv6.net/privkey.pem;
+    include /etc/letsencrypt/options-ssl-nginx.conf;
+    ssl_dhparam /etc/letsencrypt/ssl-dhparams.pem;
+
+    # Main website
+    location / {
+        root /var/www/html;
+        index index.html index.htm;
+        try_files $uri $uri/ =404;
+    }
+
+    # Development mod evaluator (Vite dev server) - HTTPS
+    location /mod-eval-dev/ {
+        proxy_pass http://localhost:5173;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+
+        # WebSocket support for Vite HMR with HTTPS
+        proxy_http_version 1.1;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection "Upgrade";
+    }
+
+    # Production mod evaluator (static files)
+    location /mod-evaluator {
+        alias /var/www/farmroadmap.dynv6.net/mod-evaluator;
+        index index.html;
+        try_files $uri $uri/ /index.html;
+    }
+
+    # NEW: FastAPI Backend for mod evaluation
+    location /api/ {
+        proxy_pass http://localhost:8000;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        
+        # Timeout settings for mod processing
+        proxy_connect_timeout 60s;
+        proxy_send_timeout 60s;
+        proxy_read_timeout 60s;
+    }
+
+    # Existing comlink service
+    location /comlink/ {
+        proxy_pass http://localhost:2500/;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+    }
+}
+```
+
+### Performance Considerations and Scaling
+
+**Horizontal scaling strategies**:
+- **Load balancing**: Distribute requests across multiple application instances
+- **Container orchestration**: Use Docker Compose or Kubernetes for automated scaling
+- **Database optimization**: Implement connection pooling and read replicas
+- **Caching layers**: Multi-tier caching (CDN, application cache, database cache)
+
+**Performance optimization techniques**:
+- Async/await patterns for I/O operations
+- Connection pooling for external APIs
+- Batch processing for multiple mod evaluations
+- Response compression and efficient JSON serialization
+
+## Monitoring and Maintenance
+
+### Cache Management Endpoints
+
+**Your current cache endpoints**:
+
+```bash
+# View cache statistics
+curl http://localhost:8000/api/cache/stats
+
+# Clear cache for specific player
+curl -X DELETE http://localhost:8000/api/cache/123456789
+
+# Clear entire cache
+curl -X DELETE http://localhost:8000/api/cache
+```
+
+**Example cache stats response**:
+```json
+{
+  "total_items": 5,
+  "valid_items": 3,
+  "expired_items": 2,
+  "ttl_hours": 1.0
+}
+```
+
+### Health Check Implementation
+
+**Your current health check endpoint**:
+
+```bash
+# Basic health check
+curl http://localhost:8000/health
+```
+
+**Response**:
+```json
+{
+  "status": "healthy",
+  "timestamp": "2024-06-13T10:30:00.123456"
+}
+```
+
+**Use this for monitoring** - check every 30 seconds to ensure your API is running.
+
+### Error Handling and Debugging
+
+**Check server logs**:
+
+```bash
+# If running directly with Python
+python main.py
+# Logs appear in terminal
+
+# If using systemd service
+sudo journalctl -u swgoh-mod-evaluator -f
+
+# If using screen/tmux
+screen -r swgoh-backend
+# Check terminal output
+```
+
+**Common error scenarios**:
+- **API timeout**: SWGOH API is slow, increase timeout in `api_client.py`
+- **Invalid ally code**: Returns 400 error with clear message
+- **Cache full**: Automatically manages itself, but you can clear with `/api/cache`
+- **Memory issues**: Restart the service
+
+## Step-by-Step Migration Guide
+
+### 1. Set Up Directory Structure and Move Services
+
+```bash
+# Create the main directory
+sudo mkdir -p /opt/swgoh-services/{shared-data,scripts,mod-evaluator/{backend,logs}}
+sudo chown -R $USER:$USER /opt/swgoh-services/
+
+# Move your existing files
+cd /opt/swgoh-services/
+
+# Copy your backend code
+cp -r ~/swgoh-mod-evaluator/backend/* ./mod-evaluator/backend/
+
+# Move your character names script
+cp /home/psytor/frm-dev/swgoh-mod-evaluator/scripts/charname.py ./scripts/
+
+# Create shared data directory
+mkdir -p shared-data/cache
+
+# Move your existing docker-compose for other services
+# (We'll merge this with the new one)
+```
+
+### 2. Create the Complete Docker Setup
+
+```bash
+# Create the main docker-compose.yml
+cd /opt/swgoh-services/
+# Copy the docker-compose.yml content from above
+
+# Create the backend Dockerfile
+cd mod-evaluator/backend/
+cat > Dockerfile << 'EOF'
+FROM python:3.11-slim
+
+ENV PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONUNBUFFERED=1 \
+    PYTHONPATH=/app
+
+# Install system dependencies including curl for health checks
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    curl \
+    && rm -rf /var/lib/apt/lists/*
+
+WORKDIR /app
+
+# Copy requirements and install dependencies
+COPY requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt
+
+# Copy application code
+COPY . .
+
+# Create non-root user
+RUN useradd --create-home --shell /bin/bash app \
+    && chown -R app:app /app
+USER app
+
+EXPOSE 8000
+
+HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
+    CMD curl -f http://localhost:8000/health || exit 1
+
+CMD ["python", "main.py"]
+EOF
+```
+
+### 3. Update Character Names Script and Cron
+
+```bash
+# Update the character names script
+cd /opt/swgoh-services/scripts/
+# Edit charname.py to use the new shared location (see code above)
+
+# Update cron job
+crontab -e
+# Replace the existing line with:
+# 0 6 * * * cd /opt/swgoh-services/scripts && /usr/bin/python3 charname.py >> /opt/swgoh-services/shared-data/charname.log 2>&1
+
+# Run it once manually to create the initial file
+cd /opt/swgoh-services/scripts/
+python3 charname.py
+```
+
+### 4. Deploy the Services
+
+```bash
+# Navigate to main directory
+cd /opt/swgoh-services/
+
+# Build and start all services
+docker compose up -d --build
+
+# Check all services are running
+docker compose ps
+
+# View logs
+docker compose logs -f mod-evaluator
+```
+
+### 5. Update Nginx Configuration
+
+```bash
+# Get SSL certificate first
+sudo certbot --nginx -d farmroadmap.dynv6.net -d www.farmroadmap.dynv6.net
+
+# Update nginx configuration
+sudo nano /etc/nginx/sites-available/default
+# Copy the complete nginx configuration from above
+
+# Test and reload
+sudo nginx -t
+sudo systemctl reload nginx
+```
+
+### 6. Update Frontend Code
+
+```bash
+# Navigate to your frontend development directory
+cd ~/your-frontend-project/
+
+# Update AllyCodeEntry.jsx (change API endpoint)
+# Update App.jsx (change refresh function)
+# Update vite.config.js (HTTPS settings)
+
+# Test in development
+npm run dev
+# Should now work with HTTPS at https://farmroadmap.dynv6.net/mod-eval-dev/
+```
+
+### 7. Test the Complete Integration
+
+```bash
+# Test individual services
+curl https://farmroadmap.dynv6.net/api/health
+curl https://farmroadmap.dynv6.net/api/character-names
+curl https://farmroadmap.dynv6.net/api/player/123456789
+
+# Test frontend
+# Visit https://farmroadmap.dynv6.net/mod-eval-dev/
+# Try entering an ally code and see if it works with the new backend
+
+# Check logs
+docker-compose -f /opt/swgoh-services/docker-compose.yml logs -f
+```
+
+### 8. Set Up Auto-Start
+
+```bash
+# Create systemd service for all SWGOH services
+sudo tee /etc/systemd/system/swgoh-services.service << 'EOF'
+[Unit]
+Description=SWGOH Services (PostgreSQL, Comlink, Mod Evaluator)
+Requires=docker.service
+After=docker.service
+
+[Service]
+Type=oneshot
+RemainAfterExit=yes
+WorkingDirectory=/opt/swgoh-services
+ExecStart=/usr/bin/docker compose up -d
+ExecStop=/usr/bin/docker compose down
+TimeoutStartSec=0
+
+[Install]
+WantedBy=multi-user.target
+EOF
+
+# Enable and start
+sudo systemctl daemon-reload
+sudo systemctl enable swgoh-services
+sudo systemctl start swgoh-services
+```
+
+## Final Testing Checklist
+
+- [ ] All Docker services start: `docker compose ps`
+- [ ] PostgreSQL accessible: `docker compose exec postgres psql -U postgres -d swgoh`
+- [ ] Comlink API working: `curl http://localhost:2500/`
+- [ ] Mod Evaluator API working: `curl http://localhost:8000/health`
+- [ ] Character names updating: Check `/opt/swgoh-services/shared-data/charname.json`
+- [ ] Nginx proxy working: `curl https://farmroadmap.dynv6.net/api/health`
+- [ ] Development frontend: `https://farmroadmap.dynv6.net/mod-eval-dev/`
+- [ ] SSL certificates working: No browser warnings
+- [ ] WebSocket HMR working in dev mode
+
+This setup gives you:
+- All services in Docker with shared networking
+- Proper SSL for both dev and production
+- Shared character names file updated daily
+- Clean separation of services
+- Easy backup and maintenance
+- Auto-start on server reboot
+## Troubleshooting Common Issues
+
+### Docker Services Won't Start
+
+```bash
+# Check service status
+docker compose -f /opt/swgoh-services/docker-compose.yml ps
+
+# Check logs for specific service
+docker compose -f /opt/swgoh-services/docker-compose.yml logs mod-evaluator
+docker compose -f /opt/swgoh-services/docker-compose.yml logs postgres
+docker compose -f /opt/swgoh-services/docker-compose.yml logs swgoh_comlink
+
+# Common fixes:
+# 1. Check if ports are already in use
+sudo netstat -tulpn | grep :8000
+sudo netstat -tulpn | grep :5432
+sudo netstat -tulpn | grep :2500
+
+# 2. Check file permissions
+sudo chown -R $USER:$USER /opt/swgoh-services/
+
+# 3. Rebuild containers
+cd /opt/swgoh-services/
+docker compose down
+docker compose up -d --build
+```
+
+### API Returns 503 Errors
+
+```bash
+# Check if backend is accessible
+curl http://localhost:8000/health
+
+# Check if comlink is working
+curl http://localhost:2500/
+
+# Clear cache and restart
+curl -X DELETE http://localhost:8000/api/cache
+docker compose restart mod-evaluator
+```
+
+### Character Names Not Loading
+
+```bash
+# Check if the file exists
+ls -la /opt/swgoh-services/shared-data/charname.json
+
+# Check the file content
+head /opt/swgoh-services/shared-data/charname.json
+
+# Run the character names script manually
+cd /opt/swgoh-services/scripts/
+python3 charname.py
+
+# Check if the backend can read it
+curl http://localhost:8000/api/character-names
+```
+
+### Frontend Not Connecting to Backend
+
+```bash
+# Check if the frontend can reach the API through nginx
+curl https://farmroadmap.dynv6.net/api/health
+
+# Check nginx is running and configured correctly
+sudo nginx -t
+sudo systemctl status nginx
+
+# Check nginx logs
+sudo tail -f /var/log/nginx/error.log
+sudo tail -f /var/log/nginx/access.log
+```
+
+### High Memory Usage
+
+```bash
+# Check container memory usage
+docker stats
+
+# Clear mod evaluator cache
+curl -X DELETE http://localhost:8000/api/cache
+
+# Restart services if needed
+docker compose restart mod-evaluator
+```
+
+### SSL/HTTPS Issues
+
+```bash
+# Check SSL certificate status
+sudo certbot certificates
+
+# Renew certificates if needed
+sudo certbot renew
+
+# Test HTTPS is working
+curl -I https://farmroadmap.dynv6.net/
+
+# Check nginx SSL configuration
+sudo nginx -T | grep ssl
+```
+
+## Maintenance Tasks
+
+### Daily Monitoring
+
+**Create monitoring script** (`/opt/swgoh-services/scripts/monitor.sh`):
+
+```bash
+#!/bin/bash
+echo "=== SWGOH Services Health Check ==="
+echo "Date: $(date)"
+echo
+
+echo "=== Docker Services Status ==="
+cd /opt/swgoh-services/
+docker compose ps
+
+echo -e "\n=== API Health Check ==="
+curl -s http://localhost:8000/health | python3 -m json.tool
+
+echo -e "\n=== Cache Statistics ==="
+curl -s http://localhost:8000/api/cache/stats | python3 -m json.tool
+
+echo -e "\n=== Character Names File ==="
+if [ -f "shared-data/charname.json" ]; then
+    echo "File exists, size: $(du -h shared-data/charname.json | cut -f1)"
+    echo "Last modified: $(stat -c %y shared-data/charname.json)"
+else
+    echo "Character names file not found!"
+fi
+
+echo -e "\n=== Memory Usage ==="
+free -h
+
+echo -e "\n=== Disk Usage ==="
+df -h /opt/swgoh-services/
+
+echo -e "\n=== Container Resource Usage ==="
+docker stats --no-stream --format "table {{.Container}}\t{{.CPUPerc}}\t{{.MemUsage}}\t{{.MemPerc}}"
+```
+
+**Make it executable and run daily**:
+```bash
+chmod +x /opt/swgoh-services/scripts/monitor.sh
+
+# Add to cron for daily monitoring
+crontab -e
+# Add this line:
+0 8 * * * /opt/swgoh-services/scripts/monitor.sh >> /opt/swgoh-services/logs/daily-monitor.log 2>&1
+```
+
+### Weekly Maintenance
+
+```bash
+# Update all containers
+cd /opt/swgoh-services/
+docker compose pull
+docker compose up -d
+
+# Clean up unused Docker images
+docker image prune -f
+
+# Backup the entire setup
+sudo tar -czf /backup/swgoh-services-$(date +%Y%m%d).tar.gz /opt/swgoh-services/
+
+# Check log file sizes and rotate if needed
+find /opt/swgoh-services/logs/ -name "*.log" -size +100M -exec truncate -s 0 {} \;
+```
+
+### Emergency Procedures
+
+**If everything breaks**:
+```bash
+# Stop all services
+cd /opt/swgoh-services/
+docker compose down
+
+# Check what's running on the ports
+sudo netstat -tulpn | grep -E ':(8000|5432|2500|5173)'
+
+# Kill any processes using the ports
+sudo lsof -ti:8000 | xargs sudo kill -9
+sudo lsof -ti:5432 | xargs sudo kill -9
+sudo lsof -ti:2500 | xargs sudo kill -9
+
+# Restart from scratch
+docker compose up -d --build
+
+# If Docker is completely broken
+sudo systemctl restart docker
+```
+
+**If SSL certificates expire**:
+```bash
+# Renew certificates
+sudo certbot renew --force-renewal
+
+# Restart nginx
+sudo systemctl restart nginx
+```
+
+## Performance Optimization
+
+### Backend Optimization
+
+**Monitor these metrics**:
+```bash
+# Check API response times
+curl -w "@curl-format.txt" -o /dev/null -s http://localhost:8000/api/player/123456789
+
+# Create curl-format.txt:
+cat > curl-format.txt << 'EOF'
+     time_namelookup:  %{time_namelookup}\n
+        time_connect:  %{time_connect}\n
+     time_appconnect:  %{time_appconnect}\n
+    time_pretransfer:  %{time_pretransfer}\n
+       time_redirect:  %{time_redirect}\n
+  time_starttransfer:  %{time_starttransfer}\n
+                     ----------\n
+          time_total:  %{time_total}\n
+EOF
+```
+
+### Database Optimization
+
+```bash
+# Connect to PostgreSQL and check performance
+docker compose exec postgres psql -U postgres -d swgoh
+
+# In PostgreSQL, run:
+# \l+                          -- List databases with sizes
+# SELECT * FROM pg_stat_activity;  -- See active connections
+# VACUUM ANALYZE;              -- Clean up database
+```
+
+### Cache Optimization
+
+```bash
+# Monitor cache hit rates
+curl -s http://localhost:8000/api/cache/stats
+
+# If hit rate is low (<80%), consider:
+# 1. Increasing cache TTL
+# 2. Pre-warming cache with popular ally codes
+# 3. Adding more memory to the server
+```
+
+This completes the comprehensive technical documentation with all the integration details, troubleshooting procedures, and maintenance tasks you'll need for a production-ready SWGOH mod evaluation system.
