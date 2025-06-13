@@ -4,6 +4,7 @@ from pydantic import BaseModel
 from datetime import datetime
 from config import settings
 from services.api_client import SWGOHAPIClient
+from services.mod_processor import ModProcessor
 import logging
 
 # Configure logging
@@ -12,6 +13,7 @@ logger = logging.getLogger(__name__)
 
 # Initialize API client
 api_client = SWGOHAPIClient(settings.SWGOH_API_URL)
+mod_processor = ModProcessor()
 
 # Initialize FastAPI app
 app = FastAPI(
@@ -44,20 +46,25 @@ async def get_player(ally_code: str):
     
     try:
         # Fetch raw player data from SWGOH API
-        player_data = await api_client.fetch_player_data(ally_code)
+        raw_player_data = await api_client.fetch_player_data(ally_code)
         
-        if player_data is None:
+        if raw_player_data is None:
             raise HTTPException(
                 status_code=503,
                 detail="Failed to fetch player data from SWGOH API"
             )
         
-        # Return the raw API response for now
+        # Process the raw data to extract mods
+        processed_data = mod_processor.process_player_data(raw_player_data, ally_code)
+        
         return {
             "success": True,
-            "allyCode": ally_code,
-            "timestamp": datetime.now().isoformat(),
-            "data": player_data
+            "playerName": processed_data.playerName,
+            "allyCode": processed_data.allyCode,
+            "lastUpdated": processed_data.lastUpdated,
+            "totalMods": processed_data.totalMods,
+            "processedMods": processed_data.processedMods,
+            "mods": [mod.dict() for mod in processed_data.mods]
         }
         
     except Exception as e:
