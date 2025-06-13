@@ -11,12 +11,12 @@ class Settings:
     ALLOWED_ORIGINS: list = [
         "http://localhost:3000",  # Vite dev server
         "http://localhost:5173",  # Alternative Vite port
-        "http://farmroadmap.dynv6.net",  # Production frontend
+        "https://farmroadmap.dynv6.net",  # Production frontend
         "https://farmroadmap.dynv6.net"  # HTTPS production
     ]
     
     # External API
-    SWGOH_API_URL: str = "http://farmroadmap.dynv6.net/comlink/player"
+    SWGOH_API_URL: str = "https://farmroadmap.dynv6.net/comlink/player"
     
     # Cache settings
     CACHE_TTL_SECONDS: int = 3600  # 1 hour

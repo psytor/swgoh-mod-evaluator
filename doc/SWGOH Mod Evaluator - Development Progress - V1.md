@@ -20,7 +20,7 @@ Building a web-based tool to evaluate Star Wars Galaxy of Heroes (SWGOH) mods us
 - Input validation (ensures 9 digits)
 - Loading state with spinner animation
 - Error handling with clear messages
-- Fetches data from API: `http://farmroadmap.dynv6.net/comlink/player`
+- Fetches data from API: `https://farmroadmap.dynv6.net/comlink/player`
 - Stores player data in localStorage
 
 #### 3. **Mod Display Cards** ✅

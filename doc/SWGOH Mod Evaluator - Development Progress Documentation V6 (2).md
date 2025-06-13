@@ -22,7 +22,7 @@ The roll quality calculation system has been corrected and now properly:
 Character name mapping improved for maintainability:
 
 - **External JSON File**: `charname.json` moved outside build directory
-- **Server-Side Hosting**: Located at `http://farmroadmap.dynv6.net/mod-evaluator/assets/charname.json`
+- **Server-Side Hosting**: Located at `https://farmroadmap.dynv6.net/mod-evaluator/assets/charname.json`
 - **Manual Updates**: Can be updated without rebuilding the application
 - **Cached Loading**: Names are fetched once and cached for performance
 - **Fallback Handling**: Shows character ID with warning if name not found
@@ -61,7 +61,7 @@ function calculateStatEfficiency(stat, is6Dot = false) {
 async function loadCharacterNames() {
   if (characterNamesCache) return characterNamesCache;
   
-  const response = await fetch('http://farmroadmap.dynv6.net/mod-evaluator/assets/charname.json');
+  const response = await fetch('https://farmroadmap.dynv6.net/mod-evaluator/assets/charname.json');
   const data = await response.json();
   characterNamesCache = data;
   return data;

@@ -8,7 +8,7 @@ This document provides the technical specifications for integrating with the SWG
 
 ### Endpoint
 ```
-URL: http://farmroadmap.dynv6.net/comlink/player
+URL: https://farmroadmap.dynv6.net/comlink/player
 Method: POST
 Content-Type: application/json
 ```

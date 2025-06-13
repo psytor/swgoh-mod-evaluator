@@ -104,7 +104,7 @@ Purple/Gold: ≥10 speed
 ### API Integration
 ```javascript
 // Fetch player data
-POST http://farmroadmap.dynv6.net/comlink/player
+POST https://farmroadmap.dynv6.net/comlink/player
 {
   "payload": { "allyCode": "123456789" },
   "enums": false
