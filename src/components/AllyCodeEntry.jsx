@@ -39,17 +39,11 @@ function AllyCodeEntry({ onDataFetched }) {
     setError('')
     
     try {
-      const response = await fetch('https://farmroadmap.dynv6.net/comlink/player', {
-        method: 'POST',
+      const response = await fetch(`http://localhost:8000/api/player/${cleanAllyCode}`, {
+        method: 'GET',
         headers: {
           'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          payload: {
-            allyCode: cleanAllyCode
-          },
-          enums: false
-        })
+        }
       })
       
       if (!response.ok) {
