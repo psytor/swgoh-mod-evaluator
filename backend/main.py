@@ -6,6 +6,7 @@ from config import settings
 from services.api_client import SWGOHAPIClient
 from services.mod_processor import ModProcessor
 from services.evaluation_engine import EvaluationEngine
+from services.cache_manager import CacheManager
 import logging
 
 # Configure logging
@@ -16,6 +17,7 @@ logger = logging.getLogger(__name__)
 api_client = SWGOHAPIClient(settings.SWGOH_API_URL)
 mod_processor = ModProcessor()
 evaluation_engine = EvaluationEngine()
+cache_manager = CacheManager(ttl_hours=1)
 
 # Initialize FastAPI app
 app = FastAPI(
@@ -33,6 +35,24 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+@app.get("/api/cache/stats")
+async def get_cache_stats():
+    """Get cache statistics"""
+    return cache_manager.get_cache_stats()
+
+@app.delete("/api/cache/{ally_code}")
+async def clear_player_cache(ally_code: str):
+    """Clear cache for specific player"""
+    cache_key = f"player_{ally_code}"
+    cache_manager.clear(cache_key)
+    return {"message": f"Cache cleared for ally code {ally_code}"}
+
+@app.delete("/api/cache")
+async def clear_all_cache():
+    """Clear entire cache"""
+    cache_manager.clear()
+    return {"message": "All cache cleared"}
+
 @app.get("/")
 async def root():
     return {"message": "SWGOH Mod Evaluator API is running"}
@@ -47,6 +67,17 @@ async def get_player(ally_code: str):
         )
     
     try:
+        # Check cache first
+        cache_key = f"player_{ally_code}"
+        cached_response = cache_manager.get(cache_key)
+        
+        if cached_response:
+            logger.info(f"Returning cached data for ally code: {ally_code}")
+            # Mark as cached before returning
+            cached_response["cached"] = True
+            cached_response["dataSource"] = "cache"
+            return cached_response
+        
         # Fetch raw player data from SWGOH API
         raw_player_data = await api_client.fetch_player_data(ally_code)
         
@@ -61,13 +92,26 @@ async def get_player(ally_code: str):
         
         # Evaluate all mods with both Basic and Strict modes
         evaluated_mods = []
+        collection_stats = {
+            "totalMods": len(processed_data.mods),
+            "byDots": {"1": 0, "2": 0, "3": 0, "4": 0, "5": 0, "6": 0},
+            "byTier": {"1": 0, "2": 0, "3": 0, "4": 0, "5": 0},
+            "byRecommendation": {
+                "basic": {"keep": 0, "sell": 0, "slice": 0, "level": 0},
+                "strict": {"keep": 0, "sell": 0, "slice": 0, "level": 0}
+            }
+        }
+        
         for mod in processed_data.mods:
             mod_dict = mod.dict()
             
             # Add evaluations for both modes
+            basic_eval = evaluation_engine.evaluate_mod(mod, "basic")
+            strict_eval = evaluation_engine.evaluate_mod(mod, "strict")
+            
             mod_dict["evaluations"] = {
-                "basic": evaluation_engine.evaluate_mod(mod, "basic"),
-                "strict": evaluation_engine.evaluate_mod(mod, "strict")
+                "basic": basic_eval,
+                "strict": strict_eval
             }
             
             # Add roll efficiency data
@@ -76,16 +120,29 @@ async def get_player(ally_code: str):
             mod_dict["rollEfficiencyDetails"] = efficiency_data["individual"]
             
             evaluated_mods.append(mod_dict)
+            
+            # Update collection stats
+            collection_stats["byDots"][str(mod.dots)] += 1
+            collection_stats["byTier"][str(mod.tier)] += 1
+            collection_stats["byRecommendation"]["basic"][basic_eval["verdict"]] += 1
+            collection_stats["byRecommendation"]["strict"][strict_eval["verdict"]] += 1
         
-        return {
+        # Build complete response
+        response_data = {
             "success": True,
             "playerName": processed_data.playerName,
             "allyCode": processed_data.allyCode,
             "lastUpdated": processed_data.lastUpdated,
-            "totalMods": processed_data.totalMods,
-            "processedMods": processed_data.processedMods,
-            "mods": evaluated_mods
+            "dataSource": "api",
+            "cached": False,
+            "mods": evaluated_mods,
+            "collectionStats": collection_stats
         }
+        
+        # Cache the response
+        cache_manager.set(cache_key, response_data)
+        
+        return response_data
         
     except Exception as e:
         logger.error(f"Unexpected error for ally code {ally_code}: {str(e)}")
