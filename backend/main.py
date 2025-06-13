@@ -64,7 +64,7 @@ async def root():
 async def get_character_names():
     """Serve character names from shared data"""
     try:
-        char_file = Path("app/shared-data/charname.json")
+        char_file = Path("/app/shared-data/charname.json")
         if char_file.exists():
             with open(char_file, 'r') as f:
                 character_data = json.load(f)
