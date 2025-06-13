@@ -5,6 +5,7 @@ from datetime import datetime
 from config import settings
 from services.api_client import SWGOHAPIClient
 from services.mod_processor import ModProcessor
+from services.evaluation_engine import EvaluationEngine
 import logging
 
 # Configure logging
@@ -14,6 +15,7 @@ logger = logging.getLogger(__name__)
 # Initialize API client
 api_client = SWGOHAPIClient(settings.SWGOH_API_URL)
 mod_processor = ModProcessor()
+evaluation_engine = EvaluationEngine()
 
 # Initialize FastAPI app
 app = FastAPI(
@@ -57,6 +59,24 @@ async def get_player(ally_code: str):
         # Process the raw data to extract mods
         processed_data = mod_processor.process_player_data(raw_player_data, ally_code)
         
+        # Evaluate all mods with both Basic and Strict modes
+        evaluated_mods = []
+        for mod in processed_data.mods:
+            mod_dict = mod.dict()
+            
+            # Add evaluations for both modes
+            mod_dict["evaluations"] = {
+                "basic": evaluation_engine.evaluate_mod(mod, "basic"),
+                "strict": evaluation_engine.evaluate_mod(mod, "strict")
+            }
+            
+            # Add roll efficiency data
+            efficiency_data = evaluation_engine.calculate_roll_efficiency(mod)
+            mod_dict["rollEfficiency"] = efficiency_data["overall"]
+            mod_dict["rollEfficiencyDetails"] = efficiency_data["individual"]
+            
+            evaluated_mods.append(mod_dict)
+        
         return {
             "success": True,
             "playerName": processed_data.playerName,
@@ -64,7 +84,7 @@ async def get_player(ally_code: str):
             "lastUpdated": processed_data.lastUpdated,
             "totalMods": processed_data.totalMods,
             "processedMods": processed_data.processedMods,
-            "mods": [mod.dict() for mod in processed_data.mods]
+            "mods": evaluated_mods
         }
         
     except Exception as e:
