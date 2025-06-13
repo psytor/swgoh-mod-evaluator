@@ -3,12 +3,15 @@ from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from datetime import datetime
 from config import settings
+from services.api_client import SWGOHAPIClient
+import logging
 
-# Pydantic models for response validation
-class PlayerResponse(BaseModel):
-    message: str
-    allyCode: str
-    timestamp: str
+# Configure logging
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
+
+# Initialize API client
+api_client = SWGOHAPIClient(settings.SWGOH_API_URL)
 
 # Initialize FastAPI app
 app = FastAPI(
@@ -30,7 +33,7 @@ app.add_middleware(
 async def root():
     return {"message": "SWGOH Mod Evaluator API is running"}
 
-@app.get("/api/player/{ally_code}", response_model=PlayerResponse)
+@app.get("/api/player/{ally_code}")
 async def get_player(ally_code: str):
     # Validate ally code format (9 digits)
     if not ally_code.isdigit() or len(ally_code) != 9:
@@ -39,12 +42,30 @@ async def get_player(ally_code: str):
             detail="Ally code must be exactly 9 digits"
         )
     
-    # Return hello world response
-    return PlayerResponse(
-        message="Hello World",
-        allyCode=ally_code,
-        timestamp=datetime.now().isoformat()
-    )
+    try:
+        # Fetch raw player data from SWGOH API
+        player_data = await api_client.fetch_player_data(ally_code)
+        
+        if player_data is None:
+            raise HTTPException(
+                status_code=503,
+                detail="Failed to fetch player data from SWGOH API"
+            )
+        
+        # Return the raw API response for now
+        return {
+            "success": True,
+            "allyCode": ally_code,
+            "timestamp": datetime.now().isoformat(),
+            "data": player_data
+        }
+        
+    except Exception as e:
+        logger.error(f"Unexpected error for ally code {ally_code}: {str(e)}")
+        raise HTTPException(
+            status_code=500,
+            detail="Internal server error"
+        )
 
 # Health check endpoint
 @app.get("/health")
