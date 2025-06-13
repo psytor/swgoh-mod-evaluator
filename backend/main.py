@@ -1,8 +1,11 @@
+from pathlib import Path
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from datetime import datetime
 from config import settings
+import json
+import os
 from services.api_client import SWGOHAPIClient
 from services.mod_processor import ModProcessor
 from services.evaluation_engine import EvaluationEngine
@@ -57,6 +60,31 @@ async def clear_all_cache():
 async def root():
     return {"message": "SWGOH Mod Evaluator API is running"}
 
+@app.get("/api/character-names")
+async def get_character_names():
+    """Serve character names from shared data"""
+    try:
+        char_file = Path("/app/shared-data/charname.json")
+        if char_file.exists():
+            with open(char_file, 'r') as f:
+                character_data = json.load(f)
+            
+            # Transform to lookup format
+            formatted_names = {}
+            for char in character_data:
+                if len(char) >= 3:
+                    char_id = char[0]
+                    char_name = char[2]
+                    formatted_names[char_id] = char_name
+            
+            return formatted_names
+        else:
+            logger.warning("Character names file not found")
+            return {}
+    except Exception as e:
+        logger.error(f"Error loading character names: {e}")
+        return {}
+
 @app.get("/api/player/{ally_code}")
 async def get_player(ally_code: str):
     # Validate ally code format (9 digits)
@@ -101,6 +129,8 @@ async def get_player(ally_code: str):
                 "strict": {"keep": 0, "sell": 0, "slice": 0, "level": 0}
             }
         }
+
+        character_names = await get_character_names()
         
         for mod in processed_data.mods:
             mod_dict = mod.dict()
@@ -113,6 +143,10 @@ async def get_player(ally_code: str):
                 "basic": basic_eval,
                 "strict": strict_eval
             }
+
+            # Add character display name
+            char_id = mod.characterId.split(':')[0]
+            mod_dict["characterDisplayName"] = character_names.get(char_id, char_id)            
             
             # Add roll efficiency data
             efficiency_data = evaluation_engine.calculate_roll_efficiency(mod)
