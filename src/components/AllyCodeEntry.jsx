@@ -39,7 +39,7 @@ function AllyCodeEntry({ onDataFetched }) {
     setError('')
     
     try {
-      const response = await fetch(`http://localhost:8000/api/player/${cleanAllyCode}`, {
+      const response = await fetch(`https://farmroadmap.dynv6.net/api/player/${cleanAllyCode}`, {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json'
