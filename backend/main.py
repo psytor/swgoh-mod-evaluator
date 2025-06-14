@@ -164,6 +164,7 @@ async def get_player(ally_code: str):
                     "v": round(stat.value, 4),
                     "r": stat.rolls,
                     "e": round(stat_efficiency_data.get("efficiency", 0), 1),  # For card display
+                    "re": [round(e, 1) for e in stat_efficiency_data.get("rollEfficiencies", [])]  # For modal
                 })
             
             evaluated_mods.append(minimal_mod)
