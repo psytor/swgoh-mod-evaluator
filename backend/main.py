@@ -118,8 +118,8 @@ async def get_player(ally_code: str):
             "byDots": {"1": 0, "2": 0, "3": 0, "4": 0, "5": 0, "6": 0},
             "byTier": {"1": 0, "2": 0, "3": 0, "4": 0, "5": 0},
             "byRecommendation": {
-                "basic": {"keep": 0, "sell": 0, "slice": 0, "level": 0},
-                "strict": {"keep": 0, "sell": 0, "slice": 0, "level": 0}
+                "basic": {"K": 0, "S": 0, "SL": 0, "LV": 0},
+                "strict": {"K": 0, "S": 0, "SL": 0, "LV": 0}
             }
         }
 
@@ -156,8 +156,8 @@ async def get_player(ally_code: str):
             # Update collection stats
             collection_stats["byDots"][str(mod.dots)] += 1
             collection_stats["byTier"][str(mod.tier)] += 1
-            collection_stats["byRecommendation"]["basic"][basic_eval["verdict"]] += 1
-            collection_stats["byRecommendation"]["strict"][strict_eval["verdict"]] += 1
+            collection_stats["byRecommendation"]["basic"][basic_eval["v"]] += 1
+            collection_stats["byRecommendation"]["strict"][strict_eval["v"]] += 1
         
         # Build complete response
         response_data = {
