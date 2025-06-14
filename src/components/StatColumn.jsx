@@ -9,7 +9,7 @@ function StatColumn({ stat, is6Dot = false }) {
   const statValue = parseInt(stat.stat.statValueDecimal) / 10000;
   const rolls = stat.statRolls || 1;
   // Get individual roll efficiencies
-  const rollEfficiencies = calculateIndividualRollEfficiencies(stat, is6Dot);
+  const rollEfficiencies = stat.rollEfficiencies || stat.re || [];
   
   // Format the value based on stat type
   const formatValue = () => {

@@ -738,7 +738,7 @@ function ModCard({ mod, evaluationMode = 'basic', isTempLocked = false, onToggle
               const rolls = stat.statRolls || 1;
               
               // Calculate individual stat efficiency
-              const statEfficiency = calculateStatEfficiency(stat, is6Dot);
+              const statEfficiency = stat.efficiency || 0;
               
               const formatValue = () => {
                 if ([16, 17, 18, 48, 49, 52, 53, 54, 55, 56].includes(statId)) {
