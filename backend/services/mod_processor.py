@@ -42,18 +42,15 @@ class ModProcessor:
             # Extract mods from roster
             all_mods = self.extract_mods_from_roster(raw_data)
             
-            # Filter to 5+ dot mods only
-            filtered_mods = all_mods
-            
             logger.info(f"Processed {len(filtered_mods)} mods from {len(all_mods)} total mods for player {player_name}")
             
             return PlayerData(
                 playerName=player_name,
                 allyCode=ally_code,
                 lastUpdated=datetime.now().isoformat(),
-                mods=filtered_mods,
+                mods=all_mods,  # Use all_mods directly
                 totalMods=len(all_mods),
-                processedMods=len(filtered_mods)
+                processedMods=len(all_mods)  # Same count since we're not filtering
             )
             
         except Exception as e:
@@ -81,12 +78,15 @@ class ModProcessor:
                 except Exception as e:
                     logger.warning(f"Failed to process mod {mod_data.get('id', 'unknown')}: {str(e)}")
                     continue
+
+        logger.info(f"Extracted {len(mods)} total mods before filtering")
         
         return mods
     
     def process_single_mod(self, mod_data: Dict[str, Any], character_id: str) -> Optional[ProcessedMod]:
         """Process a single mod from raw API data"""
         try:
+            logger.info(f"Processing mod with dots: {definition_id[1] if definition_id else 'unknown'}")
             # Extract basic mod info
             mod_id = mod_data.get('id', '')
             definition_id = mod_data.get('definitionId', '')
