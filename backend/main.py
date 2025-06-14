@@ -131,38 +131,41 @@ async def get_player(ally_code: str):
                 character_names[char[0]] = char[2]
         
         for mod in processed_data.mods:
-            # Calculate efficiency once
+            # Calculate efficiency data
             efficiency_data = evaluation_engine.calculate_roll_efficiency(mod)
             
-            # Build compact mod structure
+            # Build compact mod structure WITH all efficiency data
             minimal_mod = {
                 "id": mod.id,
-                "d": mod.definitionId,  # definition
-                "l": mod.level,         # level
-                "t": mod.tier,          # tier
-                "k": mod.locked,        # locked
-                "c": mod.characterId.split(':')[0],  # character (without star rating)
-                "p": {  # primary stat
+                "d": mod.definitionId,
+                "l": mod.level,
+                "t": mod.tier,
+                "k": mod.locked,
+                "c": mod.characterId.split(':')[0],
+                "p": {
                     "i": mod.primaryStat.unitStatId,
                     "v": round(mod.primaryStat.value, 4)
                 },
-                "s": [  # secondary stats with efficiency
-                    {
-                        "i": stat.unitStatId,
-                        "v": round(stat.value, 4),
-                        "r": stat.rolls,
-                        "e": round(evaluation_engine._calculate_stat_efficiency(
-                            mod.secondaryStats[i], mod.dots == 6
-                        ), 1)  # Individual stat efficiency
-                    }
-                    for i, stat in enumerate(mod.secondaryStats)
-                ],
-                "ev": {  # evaluations (new compact format)
+                "s": [],  # Will build this with efficiency
+                "ev": {
                     "b": evaluation_engine.evaluate_mod(mod, "basic"),
                     "s": evaluation_engine.evaluate_mod(mod, "strict")
                 },
-                "e": round(efficiency_data["overall"], 1)  # overall efficiency
+                "e": round(efficiency_data["overall"], 1)
             }
+            
+            # Build secondary stats with individual efficiencies
+            for i, stat in enumerate(mod.secondaryStats):
+                stat_key = f"stat_{i}"
+                stat_efficiency_data = efficiency_data["individual"].get(stat_key, {})
+                
+                minimal_mod["s"].append({
+                    "i": stat.unitStatId,
+                    "v": round(stat.value, 4),
+                    "r": stat.rolls,
+                    "e": round(stat_efficiency_data.get("efficiency", 0), 1),  # For card display
+                    "re": [round(e, 1) for e in stat_efficiency_data.get("rollEfficiencies", [])]  # For modal
+                })
             
             evaluated_mods.append(minimal_mod)
 

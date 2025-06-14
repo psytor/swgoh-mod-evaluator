@@ -79,10 +79,11 @@ export function decodeModData(compactMod) {
         unitStatId: stat.i,
         statValueDecimal: (stat.v * 10000).toString()
       },
-      statRolls: stat.r
+      statRolls: stat.r,
+      efficiency: stat.e,  // Individual stat efficiency
+      rollEfficiencies: stat.re  // Array of per-roll efficiencies
     })),
-    efficiency: compactMod.e,
-    // Decode evaluations
+    efficiency: compactMod.e,  // Overall mod efficiency
     basicEvaluation: decodeEvaluation(compactMod.ev.b),
     strictEvaluation: decodeEvaluation(compactMod.ev.s)
   };
