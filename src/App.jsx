@@ -42,6 +42,36 @@ function App() {
     localStorage.setItem('swgoh_last_used_player', allyCode)
   }
 
+  const handleDeletePlayer = async (allyCodeToDelete) => {
+    // Remove from saved players
+    const updatedPlayers = savedPlayers.filter(p => p.allyCode !== allyCodeToDelete)
+    setSavedPlayers(updatedPlayers)
+    savePlayers(updatedPlayers)
+    
+    // If we're deleting the current player, switch to another or clear
+    if (currentPlayer && currentPlayer.allyCode === allyCodeToDelete) {
+      if (updatedPlayers.length > 0) {
+        // Switch to the first available player
+        handlePlayerSwitch(updatedPlayers[0].allyCode)
+      } else {
+        // No players left, clear everything
+        setCurrentPlayer(null)
+        setPlayerData(null)
+        localStorage.removeItem('swgoh_last_used_player')
+      }
+    }
+    
+    // Optional: Clear server-side cache
+    try {
+      await fetch(`https://farmroadmap.dynv6.net/api/cache/${allyCodeToDelete}`, {
+        method: 'DELETE'
+      })
+    } catch (error) {
+      // Ignore errors - cache will expire anyway
+      console.log('Could not clear server cache:', error)
+    }
+  }
+
   // Load saved mode from localStorage on mount
   useEffect(() => {
     const savedMode = localStorage.getItem('swgoh_evaluation_mode')
@@ -151,6 +181,7 @@ const handleRefresh = async (event) => {
         onRefresh={handleRefresh}
         onAddNew={handleAddNew}
         isRefreshing={isRefreshing}
+        onDeletePlayer={handleDeletePlayer}
       />
       
       {!playerData ? (

@@ -108,6 +108,32 @@
   margin: 4px 0;
 }
 
+.dropdown-player-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.dropdown-player-row .dropdown-item {
+  flex: 1;
+  text-align: left;
+}
+
+.player-delete-btn {
+  background: none;
+  border: none;
+  color: #ef4444;
+  padding: 8px;
+  cursor: pointer;
+  font-size: 14px;
+  transition: all 0.2s;
+}
+
+.player-delete-btn:hover {
+  background-color: rgba(239, 68, 68, 0.1);
+  color: #dc2626;
+}
+
 /* Refresh Button */
 .refresh-button {
   background-color: #1e293b;

@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import './NavBar.css'
 
-function NavBar({ currentPlayer, savedPlayers, onPlayerSwitch, onRefresh, onAddNew, isRefreshing }) {
+function NavBar({ currentPlayer, savedPlayers, onPlayerSwitch, onRefresh, onAddNew, isRefreshing, onDeletePlayer }) {
   const [dropdownOpen, setDropdownOpen] = useState(false)
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
 
@@ -33,16 +33,29 @@ function NavBar({ currentPlayer, savedPlayers, onPlayerSwitch, onRefresh, onAddN
               {dropdownOpen && (
                 <div className="player-dropdown-menu">
                   {savedPlayers.map(player => (
-                    <button
-                      key={player.allyCode}
-                      className={`dropdown-item ${player.allyCode === currentPlayer.allyCode ? 'active' : ''}`}
-                      onClick={() => {
-                        onPlayerSwitch(player.allyCode)
-                        setDropdownOpen(false)
-                      }}
-                    >
-                      {player.name}
-                    </button>
+                    <div key={player.allyCode} className="dropdown-player-row">
+                      <button
+                        className={`dropdown-item ${player.allyCode === currentPlayer.allyCode ? 'active' : ''}`}
+                        onClick={() => {
+                          onPlayerSwitch(player.allyCode)
+                          setDropdownOpen(false)
+                        }}
+                      >
+                        {player.name}
+                      </button>
+                      <button
+                        className="player-delete-btn"
+                        onClick={(e) => {
+                          e.stopPropagation()
+                          if (confirm(`Delete ${player.name}?`)) {
+                            onDeletePlayer(player.allyCode)
+                          }
+                        }}
+                        title="Delete player"
+                      >
+                        🗑️
+                      </button>
+                    </div>
                   ))}
                   <div className="dropdown-divider"></div>
                   <button
