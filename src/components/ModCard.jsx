@@ -668,11 +668,13 @@ function ModCard({ mod, evaluationMode = 'basic', isTempLocked = false, onToggle
   const modColorName = MOD_TIERS[mod.tier] || "Grey";
   
   // Calculate mod efficiency
-  const modEfficiency = calculateModEfficiency(mod.secondaryStat, is6Dot);
+  const modEfficiency = mod.efficiency || 0;
   
   // Get speed recommendation
   const isLocked = mod.locked || isTempLocked
-  const recommendation = getSpeedRecommendation(mod, evaluationMode, isLocked)
+  const recommendation = evaluationMode === 'basic' 
+    ? mod.basicEvaluation 
+    : mod.strictEvaluation;
   
   const primaryStatId = mod.primaryStat?.stat?.unitStatId;
   const primaryStatName = STAT_NAMES[primaryStatId] || `Stat ${primaryStatId}`;
