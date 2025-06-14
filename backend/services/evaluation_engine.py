@@ -7,41 +7,57 @@ logger = logging.getLogger(__name__)
 class EvaluationEngine:
     
     def __init__(self):
-        pass
+    # Evaluation reason codes mapping
+        self.REASON_CODES = {
+            # SELL reasons
+            "LD": "Low quality (1-4 dots)",
+            "NS": "No speed secondary stat", 
+            "BT": "Speed {0} below threshold {1}",
+            
+            # KEEP reasons  
+            "LK": "Mod is locked in game",
+            "SA_M": "Speed arrow (maxed)",
+            "SA_L": "Speed arrow (level up first)",
+            "GS": "Good speed {0}",
+            
+            # SLICE reasons
+            "SL_SA": "Speed arrow (can be upgraded)",
+            "SL_HS": "High speed {0}, worth upgrading",
+            
+            # LEVEL reasons
+            "NL": "Need to reach level {0} to see all stats"
+        }
     
     def evaluate_mod(self, mod: ProcessedMod, evaluation_mode: str = "basic") -> Dict[str, Any]:
         """
         Evaluate a single mod using current speed-based logic
-        
-        Args:
-            mod: ProcessedMod object to evaluate
-            evaluation_mode: "basic" or "strict"
-            
-        Returns:
-            Dictionary with evaluation results
+        Now returns compact format with verdict, reason code, and parameters
         """
         try:
             # Auto-sell 1-4 dot mods
             if mod.dots <= 4:
                 return {
-                    "verdict": "sell",
-                    "text": "Sell",
-                    "reason": "Low quality (1-4 dots)",
-                    "className": "sell"
+                    "v": "S",      # verdict
+                    "r": "LD",     # reason code
+                    "p": []        # no parameters needed
                 }
             
             # Handle locked mods
             if mod.locked:
                 return {
-                    "verdict": "keep",
-                    "text": "Locked", 
-                    "reason": "Mod is locked in game",
-                    "className": "keep"
+                    "v": "K",
+                    "r": "LK",
+                    "p": []
                 }
             
             # Check if this is a Speed Arrow (special case)
             if mod.slot_type == "Arrow" and mod.primaryStat.unitStatId == 5:
-                return self._evaluate_speed_arrow(mod)
+                if mod.dots == 6 and mod.tier == 5:
+                    return {"v": "K", "r": "SA_M", "p": []}
+                elif mod.level == 15:
+                    return {"v": "SL", "r": "SL_SA", "p": []}
+                else:
+                    return {"v": "K", "r": "SA_L", "p": []}
             
             # Find speed in secondary stats
             speed_value, has_speed = self._get_speed_from_secondaries(mod)
@@ -50,20 +66,14 @@ class EvaluationEngine:
             if not self._can_fully_evaluate(mod):
                 next_level = self._get_next_level_target(mod)
                 return {
-                    "verdict": "level",
-                    "text": f"Level to {next_level}",
-                    "reason": f"Need to reach level {next_level} to see all stats",
-                    "className": "level"
+                    "v": "LV",
+                    "r": "NL",
+                    "p": [next_level]
                 }
             
             # If no speed at all, it's a sell
             if not has_speed:
-                return {
-                    "verdict": "sell",
-                    "text": "Sell",
-                    "reason": "No speed secondary stat",
-                    "className": "sell"
-                }
+                return {"v": "S", "r": "NS", "p": []}
             
             # Check thresholds based on tier and mode
             keep_threshold = self._get_keep_threshold(mod.tier, evaluation_mode)
@@ -72,10 +82,9 @@ class EvaluationEngine:
             # If the mod doesn't meet keep threshold, sell it
             if speed_value < keep_threshold:
                 return {
-                    "verdict": "sell",
-                    "text": "Sell",
-                    "reason": f"Speed {speed_value} below threshold {keep_threshold}",
-                    "className": "sell"
+                    "v": "S",
+                    "r": "BT",
+                    "p": [speed_value, keep_threshold]
                 }
             
             # If mod is level 15 and meets slice threshold, recommend slicing
@@ -83,28 +92,21 @@ class EvaluationEngine:
             if (mod.level == 15 and speed_value >= slice_threshold and 
                 not (mod.dots == 6 and mod.tier == 5)):
                 return {
-                    "verdict": "slice",
-                    "text": "Slice",
-                    "reason": f"High speed {speed_value}, worth upgrading",
-                    "className": "slice"
+                    "v": "SL",
+                    "r": "SL_HS",
+                    "p": [speed_value]
                 }
             
             # Otherwise, it's a keeper
             return {
-                "verdict": "keep",
-                "text": "Keep",
-                "reason": f"Good speed {speed_value}",
-                "className": "keep"
+                "v": "K",
+                "r": "GS",
+                "p": [speed_value]
             }
             
         except Exception as e:
             logger.error(f"Error evaluating mod {mod.id}: {str(e)}")
-            return {
-                "verdict": "sell",
-                "text": "Error",
-                "reason": "Evaluation error",
-                "className": "sell"
-            }
+            return {"v": "S", "r": "ER", "p": []}  # Error case
     
     def _evaluate_speed_arrow(self, mod: ProcessedMod) -> Dict[str, Any]:
         """Evaluate speed arrows (always keep)"""
