@@ -160,7 +160,7 @@ async def get_player(ally_code: str):
                 },
                 "e": round(efficiency_data["overall"], 1)  # efficiency percentage
             }
-
+            
             evaluated_mods.append(minimal_mod)
 
         # Build complete response
