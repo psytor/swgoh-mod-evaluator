@@ -131,33 +131,35 @@ async def get_player(ally_code: str):
                 character_names[char[0]] = char[2]
         
         for mod in processed_data.mods:
-            mod_dict = mod.dict()
-            
-            # Add evaluations for both modes
-            basic_eval = evaluation_engine.evaluate_mod(mod, "basic")
-            strict_eval = evaluation_engine.evaluate_mod(mod, "strict")
-            
-            mod_dict["evaluations"] = {
-                "basic": basic_eval,
-                "strict": strict_eval
-            }
-
-            # Add character display name
-            char_id = mod.characterId.split(':')[0]
-            mod_dict["characterDisplayName"] = character_names.get(char_id, char_id)       
-            
-            # Add roll efficiency data
+            # Calculate efficiency once
             efficiency_data = evaluation_engine.calculate_roll_efficiency(mod)
-            mod_dict["rollEfficiency"] = efficiency_data["overall"]
-            mod_dict["rollEfficiencyDetails"] = efficiency_data["individual"]
             
-            evaluated_mods.append(mod_dict)
-            
-            # Update collection stats
-            collection_stats["byDots"][str(mod.dots)] += 1
-            collection_stats["byTier"][str(mod.tier)] += 1
-            collection_stats["byRecommendation"]["basic"][basic_eval["v"]] += 1
-            collection_stats["byRecommendation"]["strict"][strict_eval["v"]] += 1
+            # Build compact mod structure
+            minimal_mod = {
+                "id": mod.id,
+                "d": mod.definitionId,  # definition
+                "l": mod.level,         # level
+                "t": mod.tier,          # tier
+                "k": mod.locked,        # locked
+                "c": mod.characterId.split(':')[0],  # character (without star rating)
+                "p": {  # primary stat
+                    "i": mod.primaryStat.unitStatId,
+                    "v": round(mod.primaryStat.value, 4)
+                },
+                "s": [  # secondary stats (minimal)
+                    {
+                        "i": stat.unitStatId,
+                        "v": round(stat.value, 4),
+                        "r": stat.rolls
+                    }
+                    for stat in mod.secondaryStats
+                ],
+                "ev": {  # evaluations (new compact format)
+                    "b": evaluation_engine.evaluate_mod(mod, "basic"),
+                    "s": evaluation_engine.evaluate_mod(mod, "strict")
+                },
+                "e": round(efficiency_data["overall"], 1)  # efficiency percentage
+            }
         
         # Build complete response
         response_data = {
