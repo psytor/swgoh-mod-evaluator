@@ -24,7 +24,7 @@ function StatColumn({ stat, is6Dot = false }) {
   return (
     <div className="stat-column">
         <div className="stat-header">
-            <div className="stat-name">{statName}</div>
+            <div className="stat-name-column">{statName}</div>
             <div className="stat-value-column">{formatValue()}</div>
             <div className="stat-rolls">({rolls} roll{rolls > 1 ? 's' : ''})</div>
         </div>
