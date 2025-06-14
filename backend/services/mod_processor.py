@@ -42,7 +42,7 @@ class ModProcessor:
             # Extract mods from roster
             all_mods = self.extract_mods_from_roster(raw_data)
             
-            logger.info(f"Processed {len(filtered_mods)} mods from {len(all_mods)} total mods for player {player_name}")
+            logger.info(f"Processed {len(all_mods)} total mods for player {player_name}")
             
             return PlayerData(
                 playerName=player_name,
@@ -86,7 +86,6 @@ class ModProcessor:
     def process_single_mod(self, mod_data: Dict[str, Any], character_id: str) -> Optional[ProcessedMod]:
         """Process a single mod from raw API data"""
         try:
-            logger.info(f"Processing mod with dots: {definition_id[1] if definition_id else 'unknown'}")
             # Extract basic mod info
             mod_id = mod_data.get('id', '')
             definition_id = mod_data.get('definitionId', '')
@@ -98,6 +97,8 @@ class ModProcessor:
                 logger.warning(f"Invalid definition ID for mod {mod_id}: {definition_id}")
                 return None
             
+            logger.info(f"Processing mod with dots: {definition_id[1] if definition_id else 'unknown'}")
+
             # Parse definition ID
             set_key = definition_id[0]
             dots = int(definition_id[1])
