@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import ModCard from './ModCard'
 import ModDetailModal from './ModDetailModal'
 import { getSpeedRecommendation, getCharacterDisplayName, calculateModEfficiency, useCharacterNames } from './ModCard'
+import { decodeModData } from '../utils/modDecoder'
 import './ModList.css'
 
 // Calculate collection efficiency
@@ -167,39 +168,29 @@ function ModList({ playerData, evaluationMode, onModeChange, filterType, onFilte
   }
 
   useEffect(() => {
-    // Extract all mods from player data
     let extractedMods = []
 
     // Check if we have the new API response structure
-  if (playerData?.apiResponse?.mods) {
-    // New API structure - mods are already processed
-    extractedMods = playerData.apiResponse.mods.map(mod => ({
-      ...mod,
-      // Map fields to match what the frontend expects
-      characterName: mod.characterId.split(':')[0],
-      // The new API already filters to 5+ dot mods and includes evaluations
-      secondaryStat: mod.secondaryStats.map(stat => ({
-        stat: {
-          unitStatId: stat.unitStatId,
-          statValueDecimal: (stat.value * 10000).toString()
-        },
-        statRolls: stat.rolls,
-        unscaledRollValue: stat.unscaledRollValue,
-        statRollerBoundsMin: stat.statRollerBoundsMin,
-        statRollerBoundsMax: stat.statRollerBoundsMax
-      })),
-      primaryStat: {
-        stat: {
-          unitStatId: mod.primaryStat.unitStatId,
-          statValueDecimal: (mod.primaryStat.value * 10000).toString()
+    if (playerData?.apiResponse?.mods) {
+      extractedMods = playerData.apiResponse.mods.map(mod => {
+        // Check if it's the new compact format (has 'd' instead of 'definitionId')
+        if (mod.d !== undefined) {
+          return decodeModData(mod);
         }
-      }
-    }))
-  } else if (playerData?.rosterUnit) {
+        // Old format - use as-is
+        return {
+          ...mod,
+          characterName: mod.characterId.split(':')[0],
+          // Map old evaluation format to new structure
+          basicEvaluation: mod.evaluations?.basic || {},
+          strictEvaluation: mod.evaluations?.strict || {}
+        };
+      });
+    } else if (playerData?.rosterUnit) {
+      // Original roster unit processing remains the same
       playerData.rosterUnit.forEach(unit => {
         if (unit.equippedStatMod && unit.equippedStatMod.length > 0) {
           unit.equippedStatMod.forEach(mod => {
-            // Only include 5-dot and 6-dot mods
             const dots = parseInt(mod.definitionId[1])
             if (dots >= 5) {
               extractedMods.push({
@@ -212,7 +203,7 @@ function ModList({ playerData, evaluationMode, onModeChange, filterType, onFilte
       })
     }
 
-    // Build unique character list
+    // Rest of the function remains the same...
     const uniqueCharacters = [...new Set(extractedMods.map(mod => mod.characterName))]
       .sort((a, b) => {
         const nameA = getCharacterDisplayName(a, characterNames).name
@@ -223,7 +214,7 @@ function ModList({ playerData, evaluationMode, onModeChange, filterType, onFilte
 
     setMods(extractedMods)
     setLoading(false)
-  }, [playerData])
+  }, [playerData, characterNames])
 
   if (loading) {
     return <div className="loading">Processing mods...</div>
