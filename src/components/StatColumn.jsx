@@ -49,7 +49,7 @@ function StatColumn({ stat, is6Dot = false }) {
                 {/* Only show for active bars */}
                 {isActive && (
                     <div className="efficiency-text">
-                    {`${Math.round(efficiency)}%`}
+                    {`${efficiency.toFixed(1)}%`}
                     </div>
                 )}
                 </div>

@@ -5,7 +5,7 @@ import { getSpeedRecommendation, getCharacterDisplayName, calculateModEfficiency
 import { decodeModData } from '../utils/modDecoder'
 import './ModList.css'
 
-// Calculate collection efficiency
+// Calculate collection efficiency using pre-calculated values
 function calculateCollectionEfficiency(mods, evaluationMode, tempLockedMods = []) {
   if (!mods || mods.length === 0) return { average: 0, count: 0, breakdown: {} };
 
@@ -19,22 +19,25 @@ function calculateCollectionEfficiency(mods, evaluationMode, tempLockedMods = []
   };
 
   mods.forEach(mod => {
-    const dots = parseInt(mod.definitionId[1]);
-    const is6Dot = dots === 6;
-
-    // Calculate mod efficiency
-    const modEfficiency = calculateModEfficiency(mod.secondaryStat, is6Dot);
+    // Use pre-calculated efficiency
+    const modEfficiency = mod.efficiency || 0;
 
     if (modEfficiency > 0) {
       totalEfficiency += modEfficiency;
       modCount++;
 
-      // Get recommendation for breakdown
+      // Use pre-calculated evaluation
+      const evaluation = evaluationMode === 'basic' 
+        ? mod.basicEvaluation 
+        : mod.strictEvaluation;
+      
+      // Handle locked mods
       const isLocked = mod.locked || tempLockedMods.includes(mod.id);
-      const recommendation = getSpeedRecommendation(mod, evaluationMode, isLocked);
-      if (breakdown[recommendation.type]) {
-        breakdown[recommendation.type].total += modEfficiency;
-        breakdown[recommendation.type].count++;
+      const verdict = isLocked ? 'keep' : evaluation.verdict;
+      
+      if (breakdown[verdict]) {
+        breakdown[verdict].total += modEfficiency;
+        breakdown[verdict].count++;
       }
     }
   });
@@ -241,7 +244,10 @@ function ModList({ playerData, evaluationMode, onModeChange, filterType, onFilte
     if (activeFilters.includes('all')) return true
 
     const isLocked = mod.locked || tempLockedMods.includes(mod.id)
-    const recommendation = getSpeedRecommendation(mod, evaluationMode, isLocked)
+    const evaluation = evaluationMode === 'basic' 
+      ? mod.basicEvaluation 
+      : mod.strictEvaluation;
+    const recommendation = isLocked ? { type: 'keep' } : evaluation;
 
     // If we're filtering by locked, also include it
     if (activeFilters.includes('locked') && isLocked) return true
@@ -251,11 +257,17 @@ function ModList({ playerData, evaluationMode, onModeChange, filterType, onFilte
 
   // Calculate summary statistics
   const modStats = filteredMods.reduce((acc, mod) => {
-    const isLocked = mod.locked || tempLockedMods.includes(mod.id)
-    const recommendation = getSpeedRecommendation(mod, evaluationMode, isLocked)
-    acc[recommendation.type] = (acc[recommendation.type] || 0) + 1
-    return acc
-  }, {})
+    const isLocked = mod.locked || tempLockedMods.includes(mod.id);
+    
+    // Use pre-calculated evaluation
+    const evaluation = evaluationMode === 'basic' 
+      ? mod.basicEvaluation 
+      : mod.strictEvaluation;
+    
+    const verdict = isLocked ? 'keep' : evaluation.verdict;
+    acc[verdict] = (acc[verdict] || 0) + 1;
+    return acc;
+  }, {});
 
   // Calculate collection efficiency
   const collectionStats = calculateCollectionEfficiency(filteredMods, evaluationMode, tempLockedMods);
