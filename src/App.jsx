@@ -93,23 +93,28 @@ const handleRefresh = async (event) => {
   console.log(isDevMode ? 'DEV MODE: Force refreshing...' : 'Refreshing player data...')
   
   try {
-    const response = await fetch('https://farmroadmap.dynv6.net/comlink/player', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        payload: { allyCode: currentPlayer.allyCode },
-        enums: false
-      })
+    const response = await fetch(`https://farmroadmap.dynv6.net/api/player/${currentPlayer.allyCode}`, {
+      method: 'GET',
+      headers: { 'Content-Type': 'application/json' }
     })
     
-    if (!response.ok) throw new Error('Failed to fetch player data')
+    if (!apiResponse.success) {
+      throw new Error('API returned an error')
+    }
     
-    const data = await response.json()
+    const apiResponse = await response.json()
     
     // Update saved players
     const updatedPlayers = savedPlayers.map(p => 
       p.allyCode === currentPlayer.allyCode 
-        ? { ...p, data, lastUpdated: Date.now() }
+        ? { 
+            ...p, 
+            data: {
+              ...apiResponse,
+              apiResponse: apiResponse
+            }, 
+            lastUpdated: Date.now() 
+          }
         : p
     )
     setSavedPlayers(updatedPlayers)
