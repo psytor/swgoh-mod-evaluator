@@ -146,19 +146,22 @@ async def get_player(ally_code: str):
                     "i": mod.primaryStat.unitStatId,
                     "v": round(mod.primaryStat.value, 4)
                 },
-                "s": [  # secondary stats (minimal)
+                "s": [  # secondary stats with efficiency
                     {
                         "i": stat.unitStatId,
                         "v": round(stat.value, 4),
-                        "r": stat.rolls
+                        "r": stat.rolls,
+                        "e": round(evaluation_engine._calculate_stat_efficiency(
+                            mod.secondaryStats[i], mod.dots == 6
+                        ), 1)  # Individual stat efficiency
                     }
-                    for stat in mod.secondaryStats
+                    for i, stat in enumerate(mod.secondaryStats)
                 ],
                 "ev": {  # evaluations (new compact format)
                     "b": evaluation_engine.evaluate_mod(mod, "basic"),
                     "s": evaluation_engine.evaluate_mod(mod, "strict")
                 },
-                "e": round(efficiency_data["overall"], 1)  # efficiency percentage
+                "e": round(efficiency_data["overall"], 1)  # overall efficiency
             }
             
             evaluated_mods.append(minimal_mod)
