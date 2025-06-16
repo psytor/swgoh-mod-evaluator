@@ -131,27 +131,24 @@ async def get_player(ally_code: str):
                 character_names[char[0]] = char[2]
         
         for mod in processed_data.mods:
-            # Calculate efficiency data
+            # Calculate efficiency data (still needed for display)
             efficiency_data = evaluation_engine.calculate_roll_efficiency(mod)
             
-            # Build compact mod structure WITH all efficiency data
+            # Build compact mod structure WITHOUT evaluations
             minimal_mod = {
                 "id": mod.id,
-                "d": mod.definitionId,
-                "l": mod.level,
-                "t": mod.tier,
-                "k": mod.locked,
-                "c": mod.characterId.split(':')[0],
-                "p": {
+                "d": mod.definitionId,          # definitionId
+                "l": mod.level,                 # level
+                "t": mod.tier,                  # tier
+                "k": mod.locked,                # locked
+                "c": mod.characterId.split(':')[0],  # character
+                "p": {                          # primary stat
                     "i": mod.primaryStat.unitStatId,
                     "v": round(mod.primaryStat.value, 4)
                 },
-                "s": [],  # Will build this with efficiency
-                "ev": {
-                    "b": evaluation_engine.evaluate_mod(mod, "basic"),
-                    "s": evaluation_engine.evaluate_mod(mod, "strict")
-                },
-                "e": round(efficiency_data["overall"], 1)
+                "s": [],                        # secondary stats
+                # REMOVED: "ev" evaluation results
+                "e": round(efficiency_data["overall"], 1)  # overall efficiency
             }
             
             # Build secondary stats with individual efficiencies
@@ -163,8 +160,8 @@ async def get_player(ally_code: str):
                     "i": stat.unitStatId,
                     "v": round(stat.value, 4),
                     "r": stat.rolls,
-                    "e": round(stat_efficiency_data.get("efficiency", 0), 1),  # For card display
-                    "re": [round(e, 1) for e in stat_efficiency_data.get("rollEfficiencies", [])]  # For modal
+                    "e": round(stat_efficiency_data.get("efficiency", 0), 1),
+                    "re": [round(e, 1) for e in stat_efficiency_data.get("rollEfficiencies", [])]
                 })
             
             evaluated_mods.append(minimal_mod)
@@ -177,7 +174,7 @@ async def get_player(ally_code: str):
             "lastUpdated": processed_data.lastUpdated,
             "dataSource": "api",
             "cached": False,
-            "mods": evaluated_mods,
+            "mods": evaluated_mods,  # No evaluation data included
             "collectionStats": collection_stats
         }
         
