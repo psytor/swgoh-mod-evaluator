@@ -137,21 +137,21 @@ async def get_player(ally_code: str):
             # Build compact mod structure WITHOUT evaluations
             minimal_mod = {
                 "id": mod.id,
-                "d": mod.definitionId,          # definitionId
-                "l": mod.level,                 # level
-                "t": mod.tier,                  # tier
-                "k": mod.locked,                # locked
-                "c": mod.characterId.split(':')[0],  # character
-                "p": {                          # primary stat
+                "d": mod.definitionId,
+                "l": mod.level,
+                "t": mod.tier,
+                "k": mod.locked,
+                "c": mod.characterId.split(':')[0],
+                "p": {
                     "i": mod.primaryStat.unitStatId,
                     "v": round(mod.primaryStat.value, 4)
                 },
-                "s": [],                        # secondary stats
-                # REMOVED: "ev" evaluation results
-                "e": round(efficiency_data["overall"], 1)  # overall efficiency
+                "s": [],
+                # REMOVE THIS LINE: "ev": { "b": ..., "s": ... },
+                "e": round(efficiency_data["overall"], 1)
             }
             
-            # Build secondary stats with individual efficiencies
+            # Build secondary stats (this part stays the same)
             for i, stat in enumerate(mod.secondaryStats):
                 stat_key = f"stat_{i}"
                 stat_efficiency_data = efficiency_data["individual"].get(stat_key, {})
