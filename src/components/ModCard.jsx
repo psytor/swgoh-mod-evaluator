@@ -2,6 +2,7 @@ import './ModCard.css';
 import charactermodsAtlas from '../assets/charactermods_datacard_atlas.png';
 import miscAtlas from '../assets/misc_atlas.png';
 import { useState, useEffect } from 'react';
+import { evaluateModWithWorkflow } from '../utils/workflowEvaluator';
 
 // Character names cache and loading state
 let characterNamesCache = null;
@@ -109,236 +110,24 @@ function getCalibrationInfo(mod) {
   return { remaining, total };
 }
 
-// Speed-Only Evaluation Logic
-function getSpeedRecommendation(mod, evaluationMode, isLocked = false) {
-  const tier = mod.tier;
-  const level = mod.level;
-  const dots = parseInt(mod.definitionId[1]);
-  
-  // Check if this is an Arrow with Speed Primary
-  const primaryStatId = mod.primaryStat?.stat?.unitStatId;
-  const slotTypeKey = mod.definitionId[2];
-
-  // Store evaluation steps for explanation
-  const evaluationSteps = [];
-
+export function getSpeedRecommendation(mod, evaluationMode, isLocked = false) {
   if (isLocked) {
-    evaluationSteps.push("Mod is locked - automatic keep");
     return {
       type: 'keep',
       text: 'Locked',
       className: 'keep',
-      explanation: evaluationSteps
-    }
-  }
-  
-  if (slotTypeKey === '2' && primaryStatId === 5) { // Arrow slot with Speed primary
-    evaluationSteps.push("Speed Arrow detected - highly valuable");
-    
-    // 6-dot Gold mods are already maxed
-    if (dots === 6 && tier === 5) {
-      evaluationSteps.push("6-dot Gold Speed Arrow - already at maximum potential");
-      return {
-        type: 'keep',
-        text: 'Keep',
-        className: 'keep',
-        explanation: evaluationSteps
-      };
-    }
-    
-    if (level === 15) {
-      evaluationSteps.push("Level 15 Speed Arrow - ready to slice for improvement");
-      return {
-        type: 'slice',
-        text: 'Slice',
-        className: 'slice',
-        explanation: evaluationSteps
-      };
-    } else {
-      evaluationSteps.push(`Level ${level} Speed Arrow - level to 15 for slicing`);
-      return {
-        type: 'keep',
-        text: 'Keep',
-        className: 'keep',
-        explanation: evaluationSteps
-      };
-    }
+      explanation: ['Mod is locked']
+    };
   }
 
-  // Find speed in secondary stats
-  let speedValue = 0;
-  let hasSpeed = false;
+  const result = evaluateModWithWorkflow(mod, evaluationMode);
   
-  if (mod.secondaryStat) {
-    const speedStat = mod.secondaryStat.find(stat => stat.stat.unitStatId === 5);
-    if (speedStat) {
-      hasSpeed = true;
-      speedValue = Math.floor(parseInt(speedStat.stat.statValueDecimal) / 10000);
-      evaluationSteps.push(`Speed secondary found: ${speedValue}`);
-    } else {
-      evaluationSteps.push("No speed secondary found");
-    }
-  }
-  
-  // Determine if we can fully evaluate the mod
-  const canFullyEvaluate = canModBeFullyEvaluated(tier, level);
-  
-  // If we can't fully evaluate yet, tell them to level up
-  if (!canFullyEvaluate) {
-    const nextLevel = getNextLevelTarget(tier, level);
-    evaluationSteps.push(`Cannot fully evaluate at level ${level} - need to see all secondaries`);
-    evaluationSteps.push(`Level to ${nextLevel} to reveal more stats`);
-    return {
-      type: 'level',
-      text: `Level to ${nextLevel}`,
-      className: 'level',
-      explanation: evaluationSteps
-    };
-  }
-  
-  // At this point, we can fully evaluate (level 12+)
-  evaluationSteps.push(`Full evaluation at level ${level} - all secondaries visible`);
-  
-  // If no speed at all, it's a sell
-  if (!hasSpeed) {
-    evaluationSteps.push("No speed secondary = sell in speed-based evaluation");
-    return {
-      type: 'sell',
-      text: 'Sell',
-      className: 'sell',
-      explanation: evaluationSteps
-    };
-  }
-  
-  // Check thresholds based on tier and mode
-  const keepThreshold = getKeepThreshold(tier, evaluationMode);
-  const sliceThreshold = getSliceThreshold(tier, evaluationMode);
-  
-  evaluationSteps.push(`${evaluationMode === 'basic' ? 'Basic' : 'Strict'} mode thresholds:`);
-  evaluationSteps.push(`- Keep threshold: ${keepThreshold} speed`);
-  evaluationSteps.push(`- Slice threshold: ${sliceThreshold} speed`);
-  
-  // If the mod doesn't meet keep threshold, sell it
-  if (speedValue < keepThreshold) {
-    evaluationSteps.push(`Speed ${speedValue} < ${keepThreshold} threshold = sell`);
-    return {
-      type: 'sell',
-      text: 'Sell',
-      className: 'sell',
-      explanation: evaluationSteps
-    };
-  }
-  
-  // If mod is level 15 and meets slice threshold, recommend slicing
-  // UNLESS it's a 6-dot Gold mod (already maxed)
-  if (level === 15 && speedValue >= sliceThreshold && !(dots === 6 && tier === 5)) {
-    evaluationSteps.push(`Level 15 with speed ${speedValue} >= ${sliceThreshold} = slice candidate`);
-    return {
-      type: 'slice',
-      text: 'Slice',
-      className: 'slice',
-      explanation: evaluationSteps
-    };
-  }
-  
-  // Otherwise, it's a keeper
-  evaluationSteps.push(`Speed ${speedValue} meets keep threshold`);
   return {
-    type: 'keep',
-    text: 'Keep',
-    className: 'keep',
-    explanation: evaluationSteps
+    type: result.verdict,
+    text: result.text,
+    className: result.className,
+    explanation: [result.reason]
   };
-}
-
-function canModBeFullyEvaluated(tier, level) {
-  // We need level 12 to see all rolls
-  return level >= 12;
-}
-
-function getNextLevelTarget(tier, level) {
-  // Grey: straight to 12
-  if (tier === 1) return 12;
-  
-  // For others, we need to see all secondaries first
-  const neededReveals = 4 - (tier - 1); // How many reveals we need
-  
-  if (neededReveals > 0) {
-    // Need to reveal secondaries
-    if (level < 3 && neededReveals >= 4) return 3;
-    if (level < 6 && neededReveals >= 3) return 6;
-    if (level < 9 && neededReveals >= 2) return 9;
-    if (level < 12 && neededReveals >= 1) return 12;
-  }
-  
-  // If all secondaries visible but not level 12, go to 12
-  return 12;
-}
-
-function getKeepThreshold(tier, mode) {
-  if (mode === 'basic') {
-    // Basic mode thresholds
-    switch(tier) {
-      case 1: // Grey
-      case 2: // Green
-        return 0; // Any speed
-      case 3: // Blue
-      case 4: // Purple
-        return 6;
-      case 5: // Gold
-        return 8;
-      default:
-        return 0;
-    }
-  } else {
-    // Strict mode thresholds
-    switch(tier) {
-      case 1: // Grey
-        return 0; // Any speed
-      case 2: // Green
-        return 5;
-      case 3: // Blue
-        return 8;
-      case 4: // Purple
-        return 10;
-      case 5: // Gold
-        return 10;
-      default:
-        return 0;
-    }
-  }
-}
-
-function getSliceThreshold(tier, mode) {
-  if (mode === 'basic') {
-    // Basic slicing thresholds
-    switch(tier) {
-      case 1: // Grey
-        return 0; // Any speed
-      case 2: // Green
-        return 5;
-      case 3: // Blue
-        return 8;
-      case 4: // Purple
-        return 10;
-      default:
-        return 0;
-    }
-  } else {
-    // Strict slicing thresholds
-    switch(tier) {
-      case 1: // Grey
-        return 0; // Any speed
-      case 2: // Green
-        return 8;
-      case 3: // Blue
-        return 12;
-      case 4: // Purple
-        return 15;
-      default:
-        return 0;
-    }
-  }
 }
 
 // Calculate efficiency for a single secondary stat using position-based approach
@@ -672,9 +461,8 @@ function ModCard({ mod, evaluationMode = 'basic', isTempLocked = false, onToggle
   
   // Get speed recommendation
   const isLocked = mod.locked || isTempLocked
-  const recommendation = evaluationMode === 'basic' 
-    ? mod.basicEvaluation 
-    : mod.strictEvaluation;
+  const recommendation = getSpeedRecommendation(mod, evaluationMode, isLocked);
+
   
   const primaryStatId = mod.primaryStat?.stat?.unitStatId;
   const primaryStatName = STAT_NAMES[primaryStatId] || `Stat ${primaryStatId}`;

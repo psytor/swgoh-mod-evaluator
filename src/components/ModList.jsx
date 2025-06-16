@@ -4,6 +4,7 @@ import ModDetailModal from './ModDetailModal'
 import { getSpeedRecommendation, getCharacterDisplayName, calculateModEfficiency, useCharacterNames } from './ModCard'
 import { decodeModData } from '../utils/modDecoder'
 import './ModList.css'
+import { evaluateModWithWorkflow } from '../utils/workflowEvaluator';
 
 // Calculate collection efficiency using pre-calculated values
 function calculateCollectionEfficiency(mods, evaluationMode, tempLockedMods = []) {
@@ -26,14 +27,12 @@ function calculateCollectionEfficiency(mods, evaluationMode, tempLockedMods = []
       totalEfficiency += modEfficiency;
       modCount++;
 
-      // Use pre-calculated evaluation
-      const evaluation = evaluationMode === 'basic' 
-        ? mod.basicEvaluation 
-        : mod.strictEvaluation;
-      
-      // Handle locked mods
       const isLocked = mod.locked || tempLockedMods.includes(mod.id);
-      const verdict = isLocked ? 'keep' : evaluation.verdict;
+      const evaluation = isLocked 
+        ? { verdict: 'keep' } 
+        : evaluateModWithWorkflow(mod, evaluationMode);
+      
+      const verdict = evaluation.verdict;
       
       if (breakdown[verdict]) {
         breakdown[verdict].total += modEfficiency;
@@ -244,10 +243,10 @@ function ModList({ playerData, evaluationMode, onModeChange, filterType, onFilte
     if (activeFilters.includes('all')) return true
 
     const isLocked = mod.locked || tempLockedMods.includes(mod.id)
-    const evaluation = evaluationMode === 'basic' 
-      ? mod.basicEvaluation 
-      : mod.strictEvaluation;
-    const recommendation = isLocked ? { type: 'keep' } : evaluation;
+
+    const evaluation = isLocked 
+      ? { verdict: 'keep' } 
+      : evaluateModWithWorkflow(mod, evaluationMode);
 
     // If we're filtering by locked, also include it
     if (activeFilters.includes('locked') && isLocked) return true
@@ -260,11 +259,11 @@ function ModList({ playerData, evaluationMode, onModeChange, filterType, onFilte
     const isLocked = mod.locked || tempLockedMods.includes(mod.id);
     
     // Use pre-calculated evaluation
-    const evaluation = evaluationMode === 'basic' 
-      ? mod.basicEvaluation 
-      : mod.strictEvaluation;
+    const evaluation = isLocked 
+      ? { verdict: 'keep' } 
+      : evaluateModWithWorkflow(mod, evaluationMode);
     
-    const verdict = isLocked ? 'keep' : evaluation.verdict;
+    const verdict = evaluation.verdict;
     acc[verdict] = (acc[verdict] || 0) + 1;
     return acc;
   }, {});
