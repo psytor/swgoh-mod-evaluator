@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import ModCard from './ModCard'
 import ModDetailModal from './ModDetailModal'
-import { getSpeedRecommendation, getCharacterDisplayName, calculateModEfficiency, useCharacterNames } from './ModCard'
+import { getCharacterDisplayName, useCharacterNames } from './ModCard'
 import { decodeModData } from '../utils/modDecoder'
 import './ModList.css'
 import { evaluateModWithWorkflow } from '../utils/workflowEvaluator';
