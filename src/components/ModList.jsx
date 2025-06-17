@@ -252,7 +252,7 @@ function ModList({ playerData, evaluationMode, onModeChange, filterType, onFilte
     // If we're filtering by locked, also include it
     if (activeFilters.includes('locked') && isLocked) return true
 
-    return activeFilters.includes(recommendation.type)
+    return activeFilters.includes(evaluation.verdict)
   })
 
   // Calculate summary statistics
