@@ -212,7 +212,7 @@ function checkOffenseThreshold(mod, check) {
 }
 
 /**
- * Check combined speed + offense score
+ * Check combined speed + offense threshold
  */
 function checkCombinedSpeedOffense(mod, check) {
   const speedStat = mod.secondaryStat?.find(stat => stat.stat.unitStatId === 5);
@@ -223,11 +223,22 @@ function checkCombinedSpeedOffense(mod, check) {
   const speedValue = Math.floor(parseInt(speedStat.stat.statValueDecimal) / 10000);
   const offenseValue = Math.floor(parseInt(offenseStat.stat.statValueDecimal) / 10000);
   
-  // Use the multiplier from check params
   const combinedScore = speedValue + (offenseValue * check.params.offenseMultiplier);
   
   if (combinedScore >= check.params.threshold) {
-    return check.result;
+    // Return result with details
+    return {
+      result: check.result,
+      details: {
+        type: 'combined',
+        speed: speedValue,
+        offense: offenseValue,
+        multiplier: check.params.offenseMultiplier,
+        combinedScore: combinedScore.toFixed(1),
+        threshold: check.params.threshold,
+        formula: `${speedValue} + (${offenseValue} × ${check.params.offenseMultiplier}) = ${combinedScore.toFixed(1)}`
+      }
+    };
   }
   
   return null;
@@ -242,8 +253,141 @@ function checkPointThreshold(mod, check) {
   const totalScore = basePoints + synergies;
   
   if (totalScore >= check.params.threshold) {
-    return check.result;
+    // Get detailed breakdown
+    const statBreakdown = getStatBreakdown(mod);
+    const synergyBreakdown = getSynergyBreakdown(mod);
+    
+    return {
+      result: check.result,
+      details: {
+        type: 'points',
+        basePoints: Math.round(basePoints),
+        synergyBonus: Math.round(synergies),
+        totalScore: Math.round(totalScore),
+        threshold: check.params.threshold,
+        statBreakdown: statBreakdown,
+        synergyBreakdown: synergyBreakdown
+      }
+    };
   }
+  
+  return null;
+}
+
+// Helper function to get stat breakdown
+function getStatBreakdown(mod) {
+  const breakdown = [];
+  
+  if (!mod.secondaryStat) return breakdown;
+  
+  mod.secondaryStat.forEach(stat => {
+    const statId = stat.stat.unitStatId;
+    const statName = STAT_NAMES[statId];
+    const multiplier = POINT_MULTIPLIERS[statName];
+    
+    if (multiplier) {
+      const value = parseInt(stat.stat.statValueDecimal) / 10000;
+      const points = value * multiplier;
+      
+      breakdown.push({
+        name: statName,
+        value: value,
+        points: Math.round(points),
+        formula: `${value} × ${multiplier} = ${Math.round(points)}`
+      });
+    }
+  });
+  
+  // Sort by points descending
+  return breakdown.sort((a, b) => b.points - a.points);
+}
+
+// Helper function to get synergy breakdown
+function getSynergyBreakdown(mod) {
+  const breakdown = [];
+  const setType = getModSet(mod);
+  const primaryStatId = mod.primaryStat?.stat?.unitStatId;
+  const slotType = getModSlot(mod);
+  
+  // Check Set + Secondary synergies
+  if (mod.secondaryStat) {
+    mod.secondaryStat.forEach(stat => {
+      const statName = STAT_NAMES[stat.stat.unitStatId];
+      if (isStatSynergisticWithSet(stat.stat.unitStatId, setType)) {
+        breakdown.push({
+          type: 'Set + Secondary',
+          description: `${setType} set + ${statName}`,
+          bonus: 15
+        });
+      }
+    });
+  }
+  
+  // Check Secondary combinations
+  const comboBonuses = getSecondaryCombinationDetails(mod);
+  breakdown.push(...comboBonuses);
+  
+  // Check Set + Primary synergies
+  if (isChoiceSlot(slotType)) {
+    const primaryBonus = getSetPrimarySynergyDetails(setType, primaryStatId, slotType);
+    if (primaryBonus) {
+      breakdown.push(primaryBonus);
+    }
+  }
+  
+  return breakdown;
+}
+
+function getSecondaryCombinationDetails(mod) {
+  const bonuses = [];
+  const stats = {};
+  
+  mod.secondaryStat?.forEach(stat => {
+    stats[STAT_NAMES[stat.stat.unitStatId]] = true;
+  });
+  
+  if (stats['Offense'] && stats['Offense %']) {
+    bonuses.push({
+      type: 'Stat Combo',
+      description: 'Offense + Offense %',
+      bonus: 20
+    });
+  }
+  
+  if (stats['Defense'] && stats['Defense %']) {
+    bonuses.push({
+      type: 'Stat Combo',
+      description: 'Defense + Defense %',
+      bonus: 20
+    });
+  }
+  
+  if (stats['Speed'] && stats['Offense']) {
+    bonuses.push({
+      type: 'Stat Combo',
+      description: 'Speed + Offense',
+      bonus: 15
+    });
+  }
+  
+  // ... add other combinations
+  
+  return bonuses;
+}
+
+// Enhanced set/primary synergy with details
+function getSetPrimarySynergyDetails(setType, primaryStatId, slotType) {
+  const primaryStatName = STAT_NAMES[primaryStatId];
+  
+  if (slotType === 'Arrow' && primaryStatId === 5 && setType === 'Speed') {
+    return {
+      type: 'Perfect Match',
+      description: 'Speed Arrow on Speed Set',
+      bonus: 25
+    };
+  }
+  
+  // ... other special cases
   
   return null;
 }
@@ -417,25 +561,37 @@ function formatResult(resultCode, check) {
   let reason = "";
   if (resultCode === "LV" && check.target) {
     reason = `Need to reach level ${check.target} to see all stats`;
-  } else if (check.check === "speed_threshold") {
+  } 
+  else if (check.check === "speed_threshold") {
     if (check.params?.any) {
       reason = "Has speed secondary";
     } else if (check.params?.min) {
       reason = `Speed meets threshold (${check.params.min}+)`;
     }
-  } else if (check.check === "offense_threshold") {
+  } 
+  else if (check.check === "offense_threshold") {
     if (check.params?.any) {
       reason = "Has offense secondary";
     } else if (check.params?.min) {
       reason = `Offense meets threshold (${check.params.min}+)`;
     }
-  } else if (check.check === "default") {
+  }
+  else if (check.check === "combined_speed_offense") {
+    reason = `Combined speed + offense score meets threshold`;
+    details = evaluationDetails;
+  }
+  else if (check.check === "point_threshold") {
+    reason = `Total score meets threshold (${check.params.threshold}+ points)`;
+    details = evaluationDetails;
+  }
+  else if (check.check === "default") {
     reason = resultCode === "S" ? "Doesn't meet any criteria" : "Default action";
   }
 
   return {
     ...resultConfig,
-    reason: reason || resultConfig.text
+    reason: reason || resultConfig.text,
+    details: details  // NEW: Include detailed breakdown
   };
 }
 

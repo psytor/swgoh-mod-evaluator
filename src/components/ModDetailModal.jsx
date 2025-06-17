@@ -3,6 +3,115 @@ import './ModDetailModal.css'
 import { MOD_SETS, MOD_SLOTS, MOD_TIERS, STAT_NAMES, getSpeedRecommendation } from './ModCard'
 import StatColumn from './StatColumn'
 
+function EvaluationDetailsDisplay({ evaluation, mod }) {
+  if (!evaluation || !evaluation.details) {
+    return (
+      <div className="evaluation-explanation">
+        <p>{evaluation?.reason || 'No detailed evaluation available'}</p>
+      </div>
+    );
+  }
+
+  const { details } = evaluation;
+
+  // Combined Speed + Offense Display
+  if (details.type === 'combined') {
+    return (
+      <div className="evaluation-breakdown">
+        <h4>Combined Speed + Offense Check</h4>
+        <div className="formula-display">
+          <div className="formula-main">
+            {details.formula}
+          </div>
+          <div className="formula-explanation">
+            Speed {details.speed} + (Offense {details.offense} × {details.multiplier}) = {details.combinedScore}
+          </div>
+          <div className="threshold-info">
+            Required: {details.threshold} | Result: {details.combinedScore >= details.threshold ? '✓ Pass' : '✗ Fail'}
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Full Point Scoring Display
+  if (details.type === 'points') {
+    return (
+      <div className="evaluation-breakdown">
+        <h4>Full Scoring Analysis</h4>
+        
+        {/* Score Summary */}
+        <div className="score-summary">
+          <div className="score-item">
+            <span className="score-label">Base Points:</span>
+            <span className="score-value">{details.basePoints}</span>
+          </div>
+          <div className="score-item">
+            <span className="score-label">Synergy Bonus:</span>
+            <span className="score-value">+{details.synergyBonus}</span>
+          </div>
+          <div className="score-divider"></div>
+          <div className="score-item score-total">
+            <span className="score-label">Total Score:</span>
+            <span className="score-value">{details.totalScore}</span>
+          </div>
+          <div className="score-item">
+            <span className="score-label">Required:</span>
+            <span className="score-value">{details.threshold}</span>
+          </div>
+        </div>
+
+        {/* Stat Breakdown */}
+        <div className="stat-breakdown-section">
+          <h5>Stat Contributions</h5>
+          <div className="stat-breakdown-list">
+            {details.statBreakdown.map((stat, idx) => (
+              <div key={idx} className="stat-breakdown-item">
+                <span className="stat-name">{stat.name}:</span>
+                <span className="stat-points">{stat.points} pts</span>
+                <span className="stat-formula">({stat.formula})</span>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Synergy Breakdown */}
+        {details.synergyBreakdown.length > 0 && (
+          <div className="synergy-breakdown-section">
+            <h5>Synergy Bonuses</h5>
+            <div className="synergy-breakdown-list">
+              {details.synergyBreakdown.map((synergy, idx) => (
+                <div key={idx} className="synergy-item">
+                  <span className="synergy-type">{synergy.type}:</span>
+                  <span className="synergy-desc">{synergy.description}</span>
+                  <span className="synergy-bonus">+{synergy.bonus}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Visual Explanation */}
+        <div className="evaluation-help">
+          <h5>How Synergy Works</h5>
+          <ul>
+            <li><strong>Set + Secondary:</strong> When secondary stats match the mod set's purpose (e.g., Speed on a Speed set mod)</li>
+            <li><strong>Stat Combos:</strong> When complementary stats appear together (e.g., Offense + Offense %)</li>
+            <li><strong>Perfect Match:</strong> Special bonuses for ideal primary/set combinations (e.g., Speed Arrow on Speed Set)</li>
+          </ul>
+        </div>
+      </div>
+    );
+  }
+
+  // Default display
+  return (
+    <div className="evaluation-explanation">
+      <p>{evaluation.reason}</p>
+    </div>
+  );
+}
+
 function ModDetailModal({ mod, isOpen, onClose, evaluationMode = 'basic' }) {
   // Handle ESC key press
   useEffect(() => {
