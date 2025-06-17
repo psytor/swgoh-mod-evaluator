@@ -147,7 +147,6 @@ async def get_player(ally_code: str):
                     "v": round(mod.primaryStat.value, 4)
                 },
                 "s": [],
-                # REMOVE THIS LINE: "ev": { "b": ..., "s": ... },
                 "e": round(efficiency_data["overall"], 1)
             }
             
