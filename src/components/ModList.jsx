@@ -1,10 +1,10 @@
 import { useState, useEffect } from 'react'
-import ModCard from './ModCard'
-import ModDetailModal from './ModDetailModal'
-import { getCharacterDisplayName, useCharacterNames } from './ModCard'
-import { decodeModData } from '../utils/modDecoder'
 import './ModList.css'
+import ModDetailModal from './ModDetailModal'
+import { decodeModData } from '../utils/modDecoder'
+import { ModCard, getCharacterDisplayName, useCharacterNames } from './ModCard'
 import { evaluateModWithWorkflow } from '../utils/workflowEvaluator';
+import { EVALUATION_WORKFLOWS } from '../config/evaluationWorkflows';
 
 // Calculate collection efficiency using pre-calculated values
 function calculateCollectionEfficiency(mods, evaluationMode, tempLockedMods = []) {
@@ -312,8 +312,11 @@ function ModList({ playerData, evaluationMode, onModeChange, filterType, onFilte
           onChange={(e) => onModeChange(e.target.value)}
           className="filter-dropdown"
         >
-          <option value="basic">Basic (Keep Any Speed)</option>
-          <option value="strict">Strict (Limited Inventory)</option>
+          {Object.entries(EVALUATION_WORKFLOWS).map(([key, workflow]) => (
+            <option key={key} value={key}>
+              {workflow.name}
+            </option>
+          ))}
         </select>
       </div>
 
