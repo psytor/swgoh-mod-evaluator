@@ -127,12 +127,18 @@ const handleRefresh = async (event) => {
       method: 'GET',
       headers: { 'Content-Type': 'application/json' }
     })
+
+    const apiResponse = await response.json()
     
     if (!apiResponse.success) {
       throw new Error('API returned an error')
     }
-    
-    const apiResponse = await response.json()
+
+    // Create the data structure matching what the app expects
+    const data = {
+      ...apiResponse,
+      apiResponse: apiResponse
+    }
     
     // Update saved players
     const updatedPlayers = savedPlayers.map(p => 
