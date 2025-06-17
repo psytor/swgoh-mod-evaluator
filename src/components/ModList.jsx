@@ -243,14 +243,14 @@ function ModList({ playerData, evaluationMode, onModeChange, filterType, onFilte
     // Recommendation filter
     if (activeFilters.includes('all')) return true
 
-    const isLocked = mod.locked && tempLockedMods.includes(mod.id)
+    const isLocked = mod.locked || tempLockedMods.includes(mod.id);
 
     const evaluation = isLocked 
       ? { verdict: 'keep' } 
       : evaluateModWithWorkflow(mod, evaluationMode);
 
     // If we're filtering by locked, also include it
-    if (activeFilters.includes('locked') && isLocked) return true
+    if (activeFilters.includes('locked') && isLocked) return true;
 
     return activeFilters.includes(evaluation.verdict)
   })
