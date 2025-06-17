@@ -234,24 +234,21 @@ function ModList({ playerData, evaluationMode, onModeChange, filterType, onFilte
       return false
     }
 
-    // Handle locked filter specially
-    if (activeFilters.includes('locked') && !activeFilters.includes('all')) {
-      const isLocked = mod.locked || tempLockedMods.includes(mod.id)
-      if (!isLocked) return false
-    }
-
-    // Recommendation filter
+    // If "all" is selected, show everything
     if (activeFilters.includes('all')) return true
 
+    // Check if mod is locked
     const isLocked = mod.locked || tempLockedMods.includes(mod.id);
+    
+    // If locked filter is active AND mod is locked, include it
+    if (activeFilters.includes('locked') && isLocked) return true;
 
+    // Get the evaluation for non-locked mods (locked mods always evaluate to 'keep')
     const evaluation = isLocked 
       ? { verdict: 'keep' } 
       : evaluateModWithWorkflow(mod, evaluationMode);
 
-    // If we're filtering by locked, also include it
-    if (activeFilters.includes('locked') && isLocked) return true;
-
+    // Check if the mod's verdict matches any active filter
     return activeFilters.includes(evaluation.verdict)
   })
 
