@@ -108,10 +108,13 @@
 @media (max-width: 768px) {
   .modal-overlay {
     padding: 10px;
+    padding-top: env(safe-area-inset-top, 20px);
   }
   
   .modal-content {
     max-height: 95vh;
+    margin-top: env(safe-area-inset-top, 20px);
+    max-height: calc(95vh - env(safe-area-inset-top, 20px));
   }
   
   .modal-header {
