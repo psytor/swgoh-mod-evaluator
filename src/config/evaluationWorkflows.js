@@ -292,6 +292,10 @@ export const EVALUATION_WORKFLOWS = {
         ]
       }
     }
+  },
+  compreshensive:{
+    name: "Test Compreshensive",
+    description: "Making sure that bit works"
   }
 };
 
