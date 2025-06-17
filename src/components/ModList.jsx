@@ -1,8 +1,9 @@
 import { useState, useEffect } from 'react'
 import './ModList.css'
+import ModCard from './ModCard'
+import { getCharacterDisplayName, useCharacterNames } from './ModCard'
 import ModDetailModal from './ModDetailModal'
 import { decodeModData } from '../utils/modDecoder'
-import { ModCard, getCharacterDisplayName, useCharacterNames } from './ModCard'
 import { evaluateModWithWorkflow } from '../utils/workflowEvaluator';
 import { EVALUATION_WORKFLOWS } from '../config/evaluationWorkflows';
 
