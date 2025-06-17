@@ -59,7 +59,7 @@ export function evaluateModWithWorkflow(mod, workflowName = 'basic') {
 
   // Get mod properties
   const dots = parseInt(mod.definitionId[1]);
-  const dotKey = dots >= 6 ? 'dot_6' : 'dot_5';
+  const dotKey = dots <= 4 ? 'dot_1-4' : dots === 6 ? 'dot_6' : 'dot_5';
   const tierKey = TIER_KEYS[mod.tier];
   const level = mod.level;
 

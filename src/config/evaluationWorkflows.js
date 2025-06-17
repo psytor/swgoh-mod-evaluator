@@ -6,6 +6,13 @@ export const EVALUATION_WORKFLOWS = {
   basic: {
     name: "Basic Mode (Keep Any Speed)",
     description: "Lenient thresholds for players with limited resources",
+    "dot_1-4": {
+      grey: { level_1: [{ check: "default", result: "S" }] },
+      green: { level_1: [{ check: "default", result: "S" }] },
+      blue: { level_1: [{ check: "default", result: "S" }] },
+      purple: { level_1: [{ check: "default", result: "S" }] },
+      gold: { level_1: [{ check: "default", result: "S" }] }
+    },
     dot_5: {
       grey: {
         level_1: [
@@ -106,6 +113,13 @@ export const EVALUATION_WORKFLOWS = {
   strict: {
     name: "Strict Mode (Limited Inventory)",
     description: "Higher thresholds for players with limited mod space",
+    "dot_1-4": {
+      grey: { level_1: [{ check: "default", result: "S" }] },
+      green: { level_1: [{ check: "default", result: "S" }] },
+      blue: { level_1: [{ check: "default", result: "S" }] },
+      purple: { level_1: [{ check: "default", result: "S" }] },
+      gold: { level_1: [{ check: "default", result: "S" }] }
+    },
     dot_5: {
       grey: {
         level_1: [
@@ -209,6 +223,13 @@ export const EVALUATION_WORKFLOWS = {
   compreshensive:{
     name: "Minimal Template",              // Required - shown in dropdown
     description: "What it does",        // Optional but recommended
+    "dot_1-4": {
+      grey: { level_1: [{ check: "default", result: "S" }] },
+      green: { level_1: [{ check: "default", result: "S" }] },
+      blue: { level_1: [{ check: "default", result: "S" }] },
+      purple: { level_1: [{ check: "default", result: "S" }] },
+      gold: { level_1: [{ check: "default", result: "S" }] }
+    },
     dot_5: {                           // Required - 5-dot configuration
       grey: {                          // Required - all 5 tiers needed
         level_1: [                     // Required - at least one level
