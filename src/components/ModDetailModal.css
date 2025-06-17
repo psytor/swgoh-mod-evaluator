@@ -108,7 +108,7 @@
 @media (max-width: 768px) {
   .modal-overlay {
     padding: 10px;
-    padding-top: env(safe-area-inset-top, 20px);
+    padding-top: 70px;
   }
   
   .modal-content {
