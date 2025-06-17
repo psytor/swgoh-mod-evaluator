@@ -74,71 +74,30 @@ export const EVALUATION_WORKFLOWS = {
       }
     },
     dot_6: {
-      // 6-dot mods use same thresholds but cannot be sliced further
-      grey: {
+      grey: { 
         level_1: [
-          { check: "needs_leveling", result: "LV", target: 9 }
-        ],
-        level_9: [
-          { check: "speed_threshold", params: { any: true }, result: "K" },
-          { check: "default", result: "S" }
-        ],
-        level_12: [
-          { check: "speed_threshold", params: { any: true }, result: "K" },
-          { check: "default", result: "S" }
-        ]
+          { check: "default", result: "K" }  // Keep all 6-dot grey
+        ] 
       },
-      green: {
+      green: { 
         level_1: [
-          { check: "needs_leveling", result: "LV", target: 9 }
-        ],
-        level_9: [
-          { check: "speed_threshold", params: { any: true }, result: "K" },
-          { check: "default", result: "S" }
-        ],
-        level_12: [
-          { check: "speed_threshold", params: { any: true }, result: "K" },
-          { check: "default", result: "S" }
-        ]
+          { check: "default", result: "K" }  // Keep all 6-dot green
+        ] 
       },
-      blue: {
+      blue: { 
         level_1: [
-          { check: "needs_leveling", result: "LV", target: 12 }
-        ],
-        level_6: [
-          { check: "needs_leveling", result: "LV", target: 12 }
-        ],
-        level_12: [
-          { check: "speed_threshold", params: { min: 6 }, result: "K" },
-          { check: "default", result: "S" }
-        ]
+          { check: "default", result: "K" }  // Keep all 6-dot blue
+        ] 
       },
-      purple: {
+      purple: { 
         level_1: [
-          { check: "needs_leveling", result: "LV", target: 12 }
-        ],
-        level_3: [
-          { check: "needs_leveling", result: "LV", target: 12 }
-        ],
-        level_12: [
-          { check: "speed_threshold", params: { min: 6 }, result: "K" },
-          { check: "default", result: "S" }
-        ]
+          { check: "default", result: "K" }  // Keep all 6-dot purple
+        ] 
       },
-      gold: {
+      gold: { 
         level_1: [
-          { check: "speed_threshold", params: { min: 8 }, result: "K" },
-          { check: "needs_leveling", result: "LV", target: 12 }
-        ],
-        level_12: [
-          { check: "speed_threshold", params: { min: 8 }, result: "K" },
-          { check: "default", result: "S" }
-        ],
-        level_15: [
-          // 6-dot gold cannot be sliced, just keep/sell
-          { check: "speed_threshold", params: { min: 8 }, result: "K" },
-          { check: "default", result: "S" }
-        ]
+          { check: "default", result: "K" }  // Keep all 6-dot gold
+        ] 
       }
     }
   },
@@ -220,82 +179,90 @@ export const EVALUATION_WORKFLOWS = {
       }
     },
     dot_6: {
-      // 6-dot mods use same thresholds but cannot be sliced further
-      grey: {
+      grey: { 
         level_1: [
-          { check: "needs_leveling", result: "LV", target: 9 }
-        ],
-        level_9: [
-          { check: "speed_threshold", params: { any: true }, result: "K" },
-          { check: "default", result: "S" }
-        ],
-        level_12: [
-          { check: "speed_threshold", params: { any: true }, result: "K" },
-          { check: "default", result: "S" }
-        ]
+          { check: "default", result: "K" }  // Keep all 6-dot grey
+        ] 
       },
-      green: {
+      green: { 
         level_1: [
-          { check: "needs_leveling", result: "LV", target: 9 }
-        ],
-        level_9: [
-          { check: "speed_threshold", params: { min: 5 }, result: "K" },
-          { check: "default", result: "S" }
-        ],
-        level_12: [
-          { check: "speed_threshold", params: { min: 5 }, result: "K" },
-          { check: "default", result: "S" }
-        ]
+          { check: "default", result: "K" }  // Keep all 6-dot green
+        ] 
       },
-      blue: {
+      blue: { 
         level_1: [
-          { check: "needs_leveling", result: "LV", target: 12 }
-        ],
-        level_6: [
-          { check: "needs_leveling", result: "LV", target: 12 }
-        ],
-        level_12: [
-          { check: "speed_threshold", params: { min: 8 }, result: "K" },
-          { check: "default", result: "S" }
-        ]
+          { check: "default", result: "K" }  // Keep all 6-dot blue
+        ] 
       },
-      purple: {
+      purple: { 
         level_1: [
-          { check: "needs_leveling", result: "LV", target: 12 }
-        ],
-        level_3: [
-          { check: "needs_leveling", result: "LV", target: 12 }
-        ],
-        level_12: [
-          { check: "speed_threshold", params: { min: 10 }, result: "K" },
-          { check: "default", result: "S" }
-        ],
-        level_15: [
-          // 6-dot purple cannot be sliced, just keep/sell
-          { check: "speed_threshold", params: { min: 10 }, result: "K" },
-          { check: "default", result: "S" }
-        ]
+          { check: "default", result: "K" }  // Keep all 6-dot purple
+        ] 
       },
-      gold: {
+      gold: { 
         level_1: [
-          { check: "speed_threshold", params: { min: 10 }, result: "K" },
-          { check: "needs_leveling", result: "LV", target: 12 }
-        ],
-        level_12: [
-          { check: "speed_threshold", params: { min: 10 }, result: "K" },
-          { check: "default", result: "S" }
-        ],
-        level_15: [
-          // 6-dot gold cannot be sliced, just keep/sell
-          { check: "speed_threshold", params: { min: 10 }, result: "K" },
-          { check: "default", result: "S" }
-        ]
+          { check: "default", result: "K" }  // Keep all 6-dot gold
+        ] 
       }
     }
   },
   compreshensive:{
-    name: "Test Compreshensive",
-    description: "Making sure that bit works"
+    name: "Minimal Template",              // Required - shown in dropdown
+    description: "What it does",        // Optional but recommended
+    dot_5: {                           // Required - 5-dot configuration
+      grey: {                          // Required - all 5 tiers needed
+        level_1: [                     // Required - at least one level
+          { check: "default", result: "K" }  // Required - must have default
+        ]
+      },
+      green: {                         // Required
+        level_1: [
+          { check: "default", result: "K" }
+        ]
+      },
+      blue: {                          // Required
+        level_1: [
+          { check: "default", result: "K" }
+        ]
+      },
+      purple: {                        // Required
+        level_1: [
+          { check: "default", result: "K" }
+        ]
+      },
+      gold: {                          // Required
+        level_1: [
+          { check: "default", result: "K" }
+        ]
+      }
+    },
+    dot_6: {                           // Required - 6-dot configuration
+      grey: {                          // Required - all 5 tiers needed
+        level_1: [
+          { check: "default", result: "K" }
+        ]
+      },
+      green: {                         // Required
+        level_1: [
+          { check: "default", result: "K" }
+        ]
+      },
+      blue: {                          // Required
+        level_1: [
+          { check: "default", result: "K" }
+        ]
+      },
+      purple: {                        // Required
+        level_1: [
+          { check: "default", result: "K" }
+        ]
+      },
+      gold: {                          // Required
+        level_1: [
+          { check: "default", result: "K" }
+        ]
+      }
+    }
   }
 };
 
