@@ -545,7 +545,7 @@ function checkSpeedArrow(mod, check) {
 /**
  * Format the result
  */
-function formatResult(resultCode, check) {
+function formatResult(resultCode, check, evaluationDetails = null) {
   const resultConfig = RESULT_CODES[resultCode];
   if (!resultConfig) {
     console.warn(`Unknown result code: ${resultCode}`);
@@ -559,6 +559,8 @@ function formatResult(resultCode, check) {
 
   // Build reason string
   let reason = "";
+  let details = evaluationDetails; // Initialize details from parameter
+  
   if (resultCode === "LV" && check.target) {
     reason = `Need to reach level ${check.target} to see all stats`;
   } 
@@ -578,11 +580,9 @@ function formatResult(resultCode, check) {
   }
   else if (check.check === "combined_speed_offense") {
     reason = `Combined speed + offense score meets threshold`;
-    details = evaluationDetails;
   }
   else if (check.check === "point_threshold") {
     reason = `Total score meets threshold (${check.params.threshold}+ points)`;
-    details = evaluationDetails;
   }
   else if (check.check === "default") {
     reason = resultCode === "S" ? "Doesn't meet any criteria" : "Default action";
@@ -591,7 +591,7 @@ function formatResult(resultCode, check) {
   return {
     ...resultConfig,
     reason: reason || resultConfig.text,
-    details: details  // NEW: Include detailed breakdown
+    details: details  // Include detailed breakdown if provided
   };
 }
 
