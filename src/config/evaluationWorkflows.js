@@ -3,7 +3,7 @@
 
 export const EVALUATION_WORKFLOWS = {
   // YOUR EXISTING BASIC MODE - CONVERTED TO WORKFLOW FORMAT
-  basic: {
+  beginner: {
     name: "Beginner Mode",
     description: "Limited in resources, this helps you keep good speed mods that will help you go through the beginning stages of the game.",
     "dot_1-4": {

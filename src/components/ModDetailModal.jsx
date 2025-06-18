@@ -118,7 +118,7 @@ function EvaluationDetailsDisplay({ evaluation, mod }) {
   );
 }
 
-function ModDetailModal({ mod, isOpen, onClose, evaluationMode = 'basic' }) {
+function ModDetailModal({ mod, isOpen, onClose, evaluationMode = 'beginner' }) {
   // Handle ESC key press
   useEffect(() => {
     const handleEsc = (e) => {

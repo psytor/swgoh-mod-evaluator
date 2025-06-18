@@ -34,7 +34,10 @@ const DEFENSIVE_SETS = ['Health', 'Defense', 'Tenacity'];
 /**
  * Main evaluation function using workflows
  */
-export function evaluateModWithWorkflow(mod, workflowName = 'basic') {
+/**
+ * Main evaluation function using workflows
+ */
+export function evaluateModWithWorkflow(mod, workflowName = 'beginner') {
   // Special cases first
   if (mod.locked) {
     const score = calculateModScore(mod);
@@ -43,7 +46,7 @@ export function evaluateModWithWorkflow(mod, workflowName = 'basic') {
       text: "Locked",
       className: "keep",
       reason: "Mod is locked in game",
-      score: score  // ADD SCORE
+      score: score
     };
   }
 
@@ -93,9 +96,22 @@ export function evaluateModWithWorkflow(mod, workflowName = 'basic') {
 
   // Execute checks in order
   for (const check of checks) {
-    const result = executeCheck(mod, check);
-    if (result) {
-      const formattedResult = formatResult(result, check);
+    const checkResult = executeCheck(mod, check);
+    if (checkResult) {
+      let resultCode, target, details;
+      
+      if (typeof checkResult === 'string') {
+        // Simple string result
+        resultCode = checkResult;
+        target = check.target; // fallback to check's target if any
+      } else if (typeof checkResult === 'object') {
+        // Object result with possible target and/or details
+        resultCode = checkResult.result;
+        target = checkResult.target || check.target;
+        details = checkResult.details;
+      }
+      
+      const formattedResult = formatResult(resultCode, { ...check, target }, details);
       const score = calculateModScore(mod);
       return {
         ...formattedResult,
@@ -103,8 +119,6 @@ export function evaluateModWithWorkflow(mod, workflowName = 'basic') {
       };
     }
   }
-
-  const result = formatResult(resultCode, check);
 
   const score = calculateModScore(mod);
 
@@ -161,7 +175,8 @@ function executeCheck(mod, check) {
       return checkSpeedArrow(mod, check);
     
     case "default":
-      return check.result;
+      // Even default can have a target if needed
+      return check.target ? { result: check.result, target: check.target } : check.result;
     
     default:
       console.warn(`Unknown check type: ${check.check}`);
@@ -174,7 +189,7 @@ function executeCheck(mod, check) {
  */
 function checkNeedsLeveling(mod, check) {
   if (mod.level < check.target) {
-    return check.result;
+    return { result: check.result, target: check.target };
   }
   return null;
 }
@@ -184,33 +199,20 @@ function checkNeedsLeveling(mod, check) {
  */
 function checkSpeedThreshold(mod, check) {
   const speedStat = mod.secondaryStat?.find(stat => stat.stat.unitStatId === 5);
-  
-  console.log('=== SPEED CHECK DEBUG ===');
-  console.log('Mod ID:', mod.id);
-  console.log('Check params:', check.params);
-  console.log('Check result:', check.result);
-  console.log('Has speed stat:', !!speedStat);
-  
   if (!speedStat) {
-    console.log('No speed stat found');
-    return null; // No speed, check fails
+    return null;
   }
 
-  console.log('Raw speed value:', speedStat.stat.statValueDecimal);
   const speedValue = Math.floor(parseInt(speedStat.stat.statValueDecimal) / 10000);
-  console.log('Calculated speed value:', speedValue);
   
   if (check.params?.any && speedValue > 0) {
-    console.log('ANY speed check PASSED, returning:', check.result);
-    return check.result;
+    return check.target ? { result: check.result, target: check.target } : check.result;
   }
   
   if (check.params?.min && speedValue >= check.params.min) {
-    console.log('MIN speed check PASSED, returning:', check.result);
-    return check.result;
+    return check.target ? { result: check.result, target: check.target } : check.result;
   }
   
-  console.log('No speed checks passed');
   return null;
 }
 
@@ -220,21 +222,22 @@ function checkSpeedThreshold(mod, check) {
 function checkOffenseThreshold(mod, check) {
   const offenseStat = mod.secondaryStat?.find(stat => stat.stat.unitStatId === 41);
   if (!offenseStat) {
-    return null; // No offense, check fails
+    return null;
   }
 
   const offenseValue = Math.floor(parseInt(offenseStat.stat.statValueDecimal) / 10000);
   
   if (check.params?.any && offenseValue > 0) {
-    return check.result;
+    return check.target ? { result: check.result, target: check.target } : check.result;
   }
   
   if (check.params?.min && offenseValue >= check.params.min) {
-    return check.result;
+    return check.target ? { result: check.result, target: check.target } : check.result;
   }
   
   return null;
 }
+
 
 /**
  * Check combined speed + offense threshold
@@ -243,18 +246,16 @@ function checkCombinedSpeedOffense(mod, check) {
   const speedStat = mod.secondaryStat?.find(stat => stat.stat.unitStatId === 5);
   const offenseStat = mod.secondaryStat?.find(stat => stat.stat.unitStatId === 41);
   
-  // BOTH stats must be present
   if (!speedStat || !offenseStat) return null;
   
   const speedValue = Math.floor(parseInt(speedStat.stat.statValueDecimal) / 10000);
   const offenseValue = Math.floor(parseInt(offenseStat.stat.statValueDecimal) / 10000);
   
-  // Check if BOTH meet minimum requirements
   const speedMeetsMin = speedValue >= (check.params.minSpeed || 0);
   const offenseMeetsMin = offenseValue >= (check.params.minOffense || 0);
   
   if (speedMeetsMin && offenseMeetsMin) {
-    return {
+    const result = {
       result: check.result,
       details: {
         type: 'combined',
@@ -265,6 +266,12 @@ function checkCombinedSpeedOffense(mod, check) {
         bothPresent: true
       }
     };
+    
+    if (check.target) {
+      result.target = check.target;
+    }
+    
+    return result;
   }
   
   return null;
@@ -279,11 +286,10 @@ function checkPointThreshold(mod, check) {
   const totalScore = basePoints + synergies;
   
   if (totalScore >= check.params.threshold) {
-    // Get detailed breakdown
     const statBreakdown = getStatBreakdown(mod);
     const synergyBreakdown = getSynergyBreakdown(mod);
     
-    return {
+    const result = {
       result: check.result,
       details: {
         type: 'points',
@@ -295,6 +301,12 @@ function checkPointThreshold(mod, check) {
         synergyBreakdown: synergyBreakdown
       }
     };
+    
+    if (check.target) {
+      result.target = check.target;
+    }
+    
+    return result;
   }
   
   return null;
@@ -563,7 +575,7 @@ function getSetPrimarySynergy(setType, primaryStatId, slotType) {
 function checkSpeedArrow(mod, check) {
   const isSpeedArrow = mod.definitionId[2] === '2' && mod.primaryStat?.stat?.unitStatId === 5;
   if (isSpeedArrow) {
-    return check.result;
+    return check.target ? { result: check.result, target: check.target } : check.result;
   }
   return null;
 }
@@ -585,18 +597,21 @@ function formatResult(resultCode, check, evaluationDetails = null) {
 
   // Build reason string
   let reason = "";
-  let details = evaluationDetails; // Initialize details from parameter
+  let text = resultConfig.text;
+  let details = evaluationDetails;
   
+  // Handle LV with target - update the display text too
   if (resultCode === "LV" && check.target) {
-    reason = `Need to reach level ${check.target} to see all stats`;
-  } 
+    text = `Level to ${check.target}`;
+    reason = `Need to reach level ${check.target} to evaluate`;
+  }
   else if (check.check === "speed_threshold") {
     if (check.params?.any) {
       reason = "Has speed secondary";
     } else if (check.params?.min) {
       reason = `Speed meets threshold (${check.params.min}+)`;
     }
-  } 
+  }
   else if (check.check === "offense_threshold") {
     if (check.params?.any) {
       reason = "Has offense secondary";
@@ -610,14 +625,18 @@ function formatResult(resultCode, check, evaluationDetails = null) {
   else if (check.check === "point_threshold") {
     reason = `Total score meets threshold (${check.params.threshold}+ points)`;
   }
+  else if (check.check === "speed_arrow") {
+    reason = "Speed Arrow - always valuable";
+  }
   else if (check.check === "default") {
     reason = resultCode === "S" ? "Doesn't meet any criteria" : "Default action";
   }
 
   return {
     ...resultConfig,
+    text: text,  // Use the potentially updated text
     reason: reason || resultConfig.text,
-    details: details  // Include detailed breakdown if provided
+    details: details
   };
 }
 

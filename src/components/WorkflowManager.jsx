@@ -63,7 +63,7 @@ function WorkflowManager({ onWorkflowChange, currentWorkflow }) {
       
       // If deleting current workflow, switch to basic
       if (currentWorkflow === key) {
-        onWorkflowChange('basic');
+        onWorkflowChange('beginner');
       }
     }
   };

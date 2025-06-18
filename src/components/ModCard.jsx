@@ -431,7 +431,7 @@ function getCharacterDisplayName(characterId, characterNames) {
   };
 }
 
-function ModCard({ mod, evaluationMode = 'basic', isTempLocked = false, onToggleTempLock, onClick }) {
+function ModCard({ mod, evaluationMode = 'beginner', isTempLocked = false, onToggleTempLock, onClick }) {
 
   const { characterNames } = useCharacterNames();
 
