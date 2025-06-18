@@ -25,7 +25,7 @@ export const EVALUATION_WORKFLOWS = {
           { check: "default", result: "S" }
         ],
         level_15: [
-          { check: "speed_arrow", result: "K" },
+          { check: "speed_arrow", result: "SL" },
           { check: "speed_threshold", params: {any: true}, result: "SL"},
           { check: "default", result: "S" }
         ]
@@ -37,25 +37,40 @@ export const EVALUATION_WORKFLOWS = {
         ],
         level_9: [
           { check: "speed_arrow", result: "LV", target: 15},
+          { check: "speed_threshold", params: { any: true }, result: "LV", target: 12},
+          { check: "default", result: "S"}
+        ],
+        level_12: [
+          { check: "speed_arrow", result: "LV", target: 15},
           { check: "speed_threshold", params: { any: true }, result: "LV", target: 15},
           { check: "default", result: "S"}
         ],
         level_15: [
-          { check: "speed_arrow", result: "K" },
+          { check: "speed_arrow", result: "SL" },
           { check: "speed_threshold", params: { min: 5 }, result: "SL"},
           { check: "speed_threshold", params: {any: true}, result: "K"},
           { check: "default", result: "S" }
         ]
       },
-      blue: { // Next
+      blue: {
         level_1: [
-          { check: "needs_leveling", result: "LV", target: 12 }
+          { check: "speed_arrow", result: "LV", target: 15 },
+          { check: "needs_leveling", result: "LV", target: 9 }
         ],
         level_6: [
-          { check: "needs_leveling", result: "LV", target: 12 }
+          { check: "speed_arrow", result: "LV", target: 15},
+          { check: "speed_threshold", params: { any: true }, result: "LV", target: 12},
+          { check: "default", result: "S"}
         ],
         level_12: [
-          { check: "speed_threshold", params: { min: 6 }, result: "K" },
+          { check: "speed_arrow", result: "LV", target: 15},
+          { check: "speed_threshold", params: { min: 6 }, result: "LV", target: 15},
+          { check: "default", result: "S"}
+        ],
+        level_15: [
+          { check: "speed_arrow", result: "K" },
+          { check: "speed_threshold", params: { min: 8 }, result: "SL"},
+          { check: "speed_threshold", params: {any: true}, result: "K"},
           { check: "default", result: "S" }
         ]
       },
