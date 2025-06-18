@@ -16,6 +16,7 @@ export const EVALUATION_WORKFLOWS = {
     dot_5: {
       grey: {
         level_1: [
+          { check: "speed_arrow", result: "LV", target: 15 },
           { check: "needs_leveling", result: "LV", target: 9 }
         ],
         level_9: [
