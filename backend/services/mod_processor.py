@@ -2,6 +2,8 @@ from typing import List, Dict, Any, Optional
 from models.mod import ProcessedMod, SecondaryStat, PrimaryStat, PlayerData
 from datetime import datetime
 import logging
+import json
+from pathlib import Path
 
 logger = logging.getLogger(__name__)
 
@@ -24,6 +26,54 @@ class ModProcessor:
 
     def __init__(self):
         pass
+
+        self.character_names = self._load_character_names()
+
+    def _load_character_names(self):
+        """Load character names from shared data"""
+        try:
+            char_file = Path("/app/shared-data/charname.json")
+            if char_file.exists():
+                with open(char_file, 'r') as f:
+                    character_data = json.load(f)
+                
+                # Convert to lookup dictionary
+                char_dict = {}
+                for char in character_data:
+                    if len(char) >= 3:
+                        char_id = char[0]
+                        char_name = char[2]
+                        char_dict[char_id] = char_name
+                
+                logger.info(f"Loaded {len(char_dict)} character names")
+                return char_dict
+            else:
+                logger.warning("Character names file not found")
+                return {}
+        except Exception as e:
+            logger.error(f"Error loading character names: {e}")
+            return {}
+    
+    def get_character_name(self, character_id: str) -> str:
+        """Get character display name from ID"""
+        if not character_id:
+            return "Unknown"
+        
+        # Extract base ID (before colon)
+        base_id = character_id.split(':')[0]
+        
+        # Check for special mappings (like VEERS -> VEERS_GENERAL)
+        character_id_fixes = {
+            'VEERS': 'VEERS_GENERAL',
+            'R2D2_LEGENDARY': 'R2D2'
+            # Add more mappings as needed
+        }
+        
+        if base_id in character_id_fixes:
+            base_id = character_id_fixes[base_id]
+        
+        # Return the character name or the ID if not found
+        return self.character_names.get(base_id, base_id)
     
     def process_player_data(self, raw_data: Dict[str, Any], ally_code: str) -> PlayerData:
         """
@@ -130,6 +180,8 @@ class ModProcessor:
                     statRollerBoundsMax=stat_data.get('statRollerBoundsMax', '')
                 )
                 secondary_stats.append(secondary_stat)
+            
+            character_display_name = self.get_character_name(character_id)
             
             return ProcessedMod(
                 id=mod_id,

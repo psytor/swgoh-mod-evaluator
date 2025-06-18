@@ -570,15 +570,7 @@ function ModCard({ mod, evaluationMode = 'beginner', isTempLocked = false, onTog
       })()}
       
       <div className="mod-character">
-        {(() => {
-          const charInfo = getCharacterDisplayName(mod.characterName, characterNames);
-          return (
-            <>
-              {charInfo.hasWarning && <span className="character-warning">⚠️ </span>}
-              {charInfo.name}
-            </>
-          );
-        })()}
+        {mod.characterName || 'Unknown'}
       </div>
       <div className="mod-lock-container">
         <button 

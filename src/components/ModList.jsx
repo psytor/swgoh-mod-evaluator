@@ -1,7 +1,6 @@
 import { useState, useEffect } from 'react'
 import './ModList.css'
 import ModCard from './ModCard'
-import { getCharacterDisplayName, useCharacterNames } from './ModCard'
 import ModDetailModal from './ModDetailModal'
 import { decodeModData } from '../utils/modDecoder'
 import { evaluateModWithWorkflow } from '../utils/workflowEvaluator';
@@ -208,12 +207,8 @@ function ModList({ playerData, evaluationMode, onModeChange, filterType, onFilte
 
     // Rest of the function remains the same...
     const uniqueCharacters = [...new Set(extractedMods.map(mod => mod.characterName))]
-      .sort((a, b) => {
-        const nameA = getCharacterDisplayName(a, characterNames).name
-        const nameB = getCharacterDisplayName(b, characterNames).name
-        return nameA.localeCompare(nameB)
-      })
-    setCharacterList(uniqueCharacters)
+      .filter(name => name && name !== 'Unknown')
+      .sort((a, b) => a.localeCompare(b));
 
     setMods(extractedMods)
     setLoading(false)
@@ -317,14 +312,11 @@ if (window.location.hash === '#debug' && filteredMods.length > 0) {
           className="filter-dropdown"
         >
           <option value="all">All Characters</option>
-          {characterList.map(charId => {
-            const charInfo = getCharacterDisplayName(charId, characterNames);
-            return (
-              <option key={charId} value={charId}>
-                {charInfo.hasWarning ? `⚠️ ${charInfo.name}` : charInfo.name}
-              </option>
-            );
-          })}
+          {characterList.map(charName => (
+            <option key={charName} value={charName}>
+              {charName}
+            </option>
+          ))}
         </select>
       </div>
 

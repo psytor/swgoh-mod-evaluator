@@ -22,6 +22,5 @@ export function decodeModData(compactMod) {
       rollEfficiencies: stat.re
     })),
     efficiency: compactMod.e
-    // REMOVED: basicEvaluation and strictEvaluation
   };
 }

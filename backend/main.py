@@ -141,7 +141,7 @@ async def get_player(ally_code: str):
                 "l": mod.level,
                 "t": mod.tier,
                 "k": mod.locked,
-                "c": mod.characterId.split(':')[0],
+                "c": mod.characterName,
                 "p": {
                     "i": mod.primaryStat.unitStatId,
                     "v": round(mod.primaryStat.value, 4)
