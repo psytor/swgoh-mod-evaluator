@@ -37,11 +37,13 @@ const DEFENSIVE_SETS = ['Health', 'Defense', 'Tenacity'];
 export function evaluateModWithWorkflow(mod, workflowName = 'basic') {
   // Special cases first
   if (mod.locked) {
+    const score = calculateModScore(mod);
     return {
       verdict: "keep",
       text: "Locked",
       className: "keep",
-      reason: "Mod is locked in game"
+      reason: "Mod is locked in game",
+      score: score  // ADD SCORE
     };
   }
 
@@ -97,12 +99,17 @@ export function evaluateModWithWorkflow(mod, workflowName = 'basic') {
     }
   }
 
+  const result = formatResult(resultCode, check);
+
+  const score = calculateModScore(mod);
+
   // Should never reach here if default check is configured
   return {
     verdict: "sell",
     text: "Sell",
     className: "sell",
-    reason: "No checks passed"
+    reason: "No checks passed",
+    score: score
   };
 }
 
@@ -605,4 +612,30 @@ export function getAvailableWorkflows() {
     name: workflow.name,
     description: workflow.description
   }));
+}
+
+export function calculateModScore(mod) {
+  const basePoints = calculateBasePoints(mod);
+  const synergies = calculateSynergies(mod);
+  const totalScore = basePoints + synergies;
+  
+  // Get breakdowns for debugging
+  const statBreakdown = getStatBreakdown(mod);
+  const synergyBreakdown = getSynergyBreakdown(mod);
+  
+  return {
+    basePoints: Math.round(basePoints),
+    synergyBonus: Math.round(synergies),
+    totalScore: Math.round(totalScore),
+    
+    // Detailed breakdowns
+    statBreakdown: statBreakdown,
+    synergyBreakdown: synergyBreakdown,
+    
+    // Quick reference values
+    hasSpeed: statBreakdown.some(s => s.name === 'Speed'),
+    hasOffense: statBreakdown.some(s => s.name === 'Offense'),
+    speedValue: statBreakdown.find(s => s.name === 'Speed')?.value || 0,
+    offenseValue: statBreakdown.find(s => s.name === 'Offense')?.value || 0
+  };
 }

@@ -219,6 +219,30 @@ function ModList({ playerData, evaluationMode, onModeChange, filterType, onFilte
     setLoading(false)
   }, [playerData, characterNames])
 
+  // Add debug logging
+  useEffect(() => {
+    if (window.location.hash === '#debug' && filteredMods.length > 0) {
+      console.log('=== MOD SCORES DEBUG TABLE ===');
+      console.table(
+        filteredMods.slice(0, 50).map(mod => {
+          const isLocked = mod.locked || tempLockedMods.includes(mod.id);
+          const evaluation = evaluateModWithWorkflow(mod, evaluationMode);
+
+          
+          return {
+            character: mod.characterName.split(':')[0],
+            verdict: evaluation.verdict || evaluation.type,
+            totalScore: evaluation.score?.totalScore || 0,
+            basePoints: evaluation.score?.basePoints || 0,
+            synergyBonus: evaluation.score?.synergyBonus || 0,
+            speed: evaluation.score?.speedValue || 0,
+            offense: evaluation.score?.offenseValue || 0
+          };
+        })
+      );
+    }
+  }, [filteredMods, evaluationMode, tempLockedMods]);
+
   if (loading) {
     return <div className="loading">Processing mods...</div>
   }
@@ -243,43 +267,29 @@ function ModList({ playerData, evaluationMode, onModeChange, filterType, onFilte
     // If locked filter is active AND mod is locked, include it
     if (activeFilters.includes('locked') && isLocked) return true;
 
-    // Get the evaluation for non-locked mods (locked mods always evaluate to 'keep')
+    // Evaluate the mod using the workflow
     const evaluation = isLocked 
       ? { verdict: 'keep' } 
       : evaluateModWithWorkflow(mod, evaluationMode);
 
     // Check if the mod's verdict matches any active filter
-    return activeFilters.includes(evaluation.verdict)
-  })
+    return activeFilters.includes(evaluation.verdict);
+  });
 
-  // Calculate summary statistics
-  const modStats = filteredMods.reduce((acc, mod) => {
-    const isLocked = mod.locked || tempLockedMods.includes(mod.id);
-    
-    // Use pre-calculated evaluation
-    const evaluation = isLocked 
-      ? { verdict: 'keep' } 
-      : evaluateModWithWorkflow(mod, evaluationMode);
-    
-    const verdict = evaluation.verdict;
-    acc[verdict] = (acc[verdict] || 0) + 1;
-    return acc;
-  }, {});
+    // Calculate collection efficiency
+    const collectionStats = calculateCollectionEfficiency(filteredMods, evaluationMode, tempLockedMods);
 
-  // Calculate collection efficiency
-  const collectionStats = calculateCollectionEfficiency(filteredMods, evaluationMode, tempLockedMods);
+    const toggleTempLock = (modId) => {
+      setTempLockedMods(prev => {
+        const newLocks = prev.includes(modId)
+          ? prev.filter(id => id !== modId)
+          : [...prev, modId]
 
-  const toggleTempLock = (modId) => {
-    setTempLockedMods(prev => {
-      const newLocks = prev.includes(modId)
-        ? prev.filter(id => id !== modId)
-        : [...prev, modId]
-
-      // Save to localStorage
-      localStorage.setItem('swgoh_temp_locked_mods', JSON.stringify(newLocks))
-      return newLocks
-    })
-  }
+        // Save to localStorage
+        localStorage.setItem('swgoh_temp_locked_mods', JSON.stringify(newLocks))
+        return newLocks
+      })
+    }
 
   // Filter controls content (reusable for both mobile and desktop)
   const filterControls = (

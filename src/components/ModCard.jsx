@@ -476,7 +476,11 @@ function ModCard({ mod, evaluationMode = 'basic', isTempLocked = false, onToggle
   };
 
    return (
-    <div className={`mod-card mod-${modColorName.toLowerCase()} ${is6Dot ? 'mod-6dot' : ''}`} onClick={handleClick}>
+    <div className={`mod-card mod-${modColorName.toLowerCase()} ${is6Dot ? 'mod-6dot' : ''}`} onClick={handleClick}
+    data-mod-score={recommendation.score?.totalScore}
+    data-base-points={recommendation.score?.basePoints}
+    data-synergy-bonus={recommendation.score?.synergyBonus}
+    >
       {/* Recommendation Badge */}
       <div className={`mod-recommendation ${recommendation.className}`}>
         {recommendation.text}
@@ -581,6 +585,21 @@ function ModCard({ mod, evaluationMode = 'basic', isTempLocked = false, onToggle
           {(mod.locked || isTempLocked) ? '🔒' : '🔓'}
         </button>
       </div>
+      {window.location.hash === '#debug' && recommendation.score && (
+        <div style={{
+          position: 'absolute',
+          bottom: '2px',
+          left: '2px',
+          fontSize: '10px',
+          color: '#fff',
+          background: 'rgba(0,0,0,0.8)',
+          padding: '2px 4px',
+          borderRadius: '3px',
+          zIndex: 20
+        }}>
+          Score: {recommendation.score.totalScore}
+        </div>
+      )}
     </div>
   );
 }
