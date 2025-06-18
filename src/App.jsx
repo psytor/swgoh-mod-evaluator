@@ -6,7 +6,7 @@ import NavBar from './components/NavBar'
 
 function App() {
   const [playerData, setPlayerData] = useState(null)
-  const [evaluationMode, setEvaluationMode] = useState('basic') // 'basic' or 'strict'
+  const [evaluationMode, setEvaluationMode] = useState('beginner')
   const [filterType, setFilterType] = useState('all') // 'all', 'keep', 'sell', 'slice', 'level'
   const [isRefreshing, setIsRefreshing] = useState(false)
 
