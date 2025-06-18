@@ -47,7 +47,7 @@ export const EVALUATION_WORKFLOWS = {
           { check: "default", result: "S" }
         ]
       },
-      blue: {
+      blue: { // Next
         level_1: [
           { check: "needs_leveling", result: "LV", target: 12 }
         ],
