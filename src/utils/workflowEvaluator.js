@@ -95,7 +95,12 @@ export function evaluateModWithWorkflow(mod, workflowName = 'basic') {
   for (const check of checks) {
     const result = executeCheck(mod, check);
     if (result) {
-      return formatResult(result, check);
+      const formattedResult = formatResult(result, check);
+      const score = calculateModScore(mod);
+      return {
+        ...formattedResult,
+        score: score
+      };
     }
   }
 
