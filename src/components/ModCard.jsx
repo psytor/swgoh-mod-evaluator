@@ -463,6 +463,11 @@ function ModCard({ mod, evaluationMode = 'basic', isTempLocked = false, onToggle
   const isLocked = mod.locked || isTempLocked
   const recommendation = getSpeedRecommendation(mod, evaluationMode, isLocked);
 
+  // Calculate score for debug display
+  if (window.location.hash === '#debug' && !recommendation.score) {
+    const evaluation = evaluateModWithWorkflow(mod, evaluationMode);
+    recommendation.score = evaluation.score;
+  }
   
   const primaryStatId = mod.primaryStat?.stat?.unitStatId;
   const primaryStatName = STAT_NAMES[primaryStatId] || `Stat ${primaryStatId}`;
