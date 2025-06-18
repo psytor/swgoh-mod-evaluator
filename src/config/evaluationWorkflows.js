@@ -42,6 +42,7 @@ export const EVALUATION_WORKFLOWS = {
         ],
         level_15: [
           { check: "speed_arrow", result: "K" },
+          { check: "speed_threshold", params: { min: 5 }, result: "SL"},
           { check: "speed_threshold", params: {any: true}, result: "K"},
           { check: "default", result: "S" }
         ]
