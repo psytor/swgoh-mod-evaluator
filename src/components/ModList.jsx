@@ -252,29 +252,25 @@ function ModList({ playerData, evaluationMode, onModeChange, filterType, onFilte
     return activeFilters.includes(evaluation.verdict);
   });
 
-  // Add debug logging
-  useEffect(() => {
-    if (window.location.hash === '#debug' && filteredMods.length > 0) {
-      console.log('=== MOD SCORES DEBUG TABLE ===');
-      console.table(
-        filteredMods.slice(0, 50).map(mod => {
-          const isLocked = mod.locked || tempLockedMods.includes(mod.id);
-          const evaluation = evaluateModWithWorkflow(mod, evaluationMode);
-
-          
-          return {
-            character: mod.characterName.split(':')[0],
-            verdict: evaluation.verdict || evaluation.type,
-            totalScore: evaluation.score?.totalScore || 0,
-            basePoints: evaluation.score?.basePoints || 0,
-            synergyBonus: evaluation.score?.synergyBonus || 0,
-            speed: evaluation.score?.speedValue || 0,
-            offense: evaluation.score?.offenseValue || 0
-          };
-        })
-      );
-    }
-  }, [filteredMods, evaluationMode, tempLockedMods]);
+  // Debug logging - simple console log, no useEffect needed
+  if (window.location.hash === '#debug' && filteredMods.length > 0) {
+    console.log('=== MOD SCORES DEBUG TABLE ===');
+    console.table(
+      filteredMods.slice(0, 50).map(mod => {
+        const evaluation = evaluateModWithWorkflow(mod, evaluationMode);
+        
+        return {
+          character: mod.characterName.split(':')[0],
+          verdict: evaluation.verdict,
+          totalScore: evaluation.score?.totalScore || 0,
+          basePoints: evaluation.score?.basePoints || 0,
+          synergyBonus: evaluation.score?.synergyBonus || 0,
+          speed: evaluation.score?.speedValue || 0,
+          offense: evaluation.score?.offenseValue || 0
+        };
+      })
+    );
+  }
 
   // Calculate collection efficiency
   const collectionStats = calculateCollectionEfficiency(filteredMods, evaluationMode, tempLockedMods);
