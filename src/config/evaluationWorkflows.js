@@ -98,16 +98,19 @@ export const EVALUATION_WORKFLOWS = {
       },
       gold: {
         level_1: [
-          { check: "speed_threshold", params: { min: 8 }, result: "K" },
-          { check: "needs_leveling", result: "LV", target: 12 }
+          { check: "speed_arrow", result: "LV", target: 15 },
+          { check: "speed_threshold", params: { any: true }, result: "LV", target: 12},
+          { check: "default", result: "S"}
         ],
         level_12: [
-          { check: "speed_threshold", params: { min: 8 }, result: "K" },
-          { check: "default", result: "S" }
+          { check: "speed_arrow", result: "LV", target: 15},
+          { check: "speed_threshold", params: { min: 8 }, result: "LV", target: 15},
+          { check: "default", result: "S"}
         ],
         level_15: [
-          { check: "speed_threshold", params: { min: 12 }, result: "SL" },
-          { check: "speed_threshold", params: { min: 8 }, result: "K" },
+          { check: "speed_arrow", result: "SL" },
+          { check: "speed_threshold", params: { min: 12 }, result: "SL"},
+          { check: "speed_threshold", params: {any: true}, result: "K"},
           { check: "default", result: "S" }
         ]
       }
@@ -115,36 +118,35 @@ export const EVALUATION_WORKFLOWS = {
     dot_6: {
       grey: { 
         level_1: [
-          { check: "default", result: "K" }  // Keep all 6-dot grey
+          { check: "default", result: "K" }
         ] 
       },
       green: { 
         level_1: [
-          { check: "default", result: "K" }  // Keep all 6-dot green
+          { check: "default", result: "K" }
         ] 
       },
       blue: { 
         level_1: [
-          { check: "default", result: "K" }  // Keep all 6-dot blue
+          { check: "default", result: "K" }
         ] 
       },
       purple: { 
         level_1: [
-          { check: "default", result: "K" }  // Keep all 6-dot purple
+          { check: "default", result: "K" }
         ] 
       },
       gold: { 
         level_1: [
-          { check: "default", result: "K" }  // Keep all 6-dot gold
+          { check: "default", result: "K" }
         ] 
       }
     }
   },
   
-  // YOUR EXISTING STRICT MODE - CONVERTED TO WORKFLOW FORMAT
-  strict: {
-    name: "Strict Mode (Limited Inventory)",
-    description: "Higher thresholds for players with limited mod space",
+  begin_poor: {
+    name: "Beginner (Poor)",
+    description: "You are Broke and limited in resources, this helps you keep good speed mods that will help you go through the beginning stages of the game.",
     "dot_1-4": {
       grey: { level_1: [{ check: "default", result: "S" }] },
       green: { level_1: [{ check: "default", result: "S" }] },
@@ -155,71 +157,101 @@ export const EVALUATION_WORKFLOWS = {
     dot_5: {
       grey: {
         level_1: [
+          { check: "speed_arrow", result: "LV", target: 15 },
           { check: "needs_leveling", result: "LV", target: 9 }
         ],
         level_9: [
-          { check: "speed_threshold", params: { any: true }, result: "K" },
+          { check: "speed_arrow", result: "LV", target: 15 },
+          { check: "speed_threshold", params: { any: true }, result: "LV", target: 15 },
           { check: "default", result: "S" }
         ],
-        level_12: [
-          { check: "speed_threshold", params: { any: true }, result: "K" },
+        level_15: [
+          { check: "speed_arrow", result: "SL" },
+          { check: "speed_threshold", params: {any: true}, result: "SL"},
           { check: "default", result: "S" }
         ]
       },
       green: {
         level_1: [
+          { check: "speed_arrow", result: "LV", target: 15 },
           { check: "needs_leveling", result: "LV", target: 9 }
         ],
         level_9: [
-          { check: "speed_threshold", params: { min: 5 }, result: "K" },
-          { check: "default", result: "S" }
+          { check: "speed_arrow", result: "LV", target: 15},
+          { check: "speed_threshold", params: { any: true }, result: "LV", target: 12},
+          { check: "default", result: "S"}
         ],
         level_12: [
-          { check: "speed_threshold", params: { min: 5 }, result: "K" },
+          { check: "speed_arrow", result: "LV", target: 15},
+          { check: "speed_threshold", params: { any: true }, result: "LV", target: 15},
+          { check: "default", result: "S"}
+        ],
+        level_15: [
+          { check: "speed_arrow", result: "SL" },
+          { check: "speed_threshold", params: { min: 5 }, result: "SL"},
+          { check: "speed_threshold", params: {any: true}, result: "K"},
           { check: "default", result: "S" }
         ]
       },
       blue: {
         level_1: [
-          { check: "needs_leveling", result: "LV", target: 12 }
+          { check: "speed_arrow", result: "LV", target: 15 },
+          { check: "needs_leveling", result: "LV", target: 6 }
         ],
         level_6: [
-          { check: "needs_leveling", result: "LV", target: 12 }
+          { check: "speed_arrow", result: "LV", target: 15},
+          { check: "speed_threshold", params: { any: true }, result: "LV", target: 12},
+          { check: "default", result: "S"}
         ],
         level_12: [
-          { check: "speed_threshold", params: { min: 8 }, result: "K" },
+          { check: "speed_arrow", result: "LV", target: 15},
+          { check: "speed_threshold", params: { min: 6 }, result: "LV", target: 15},
+          { check: "default", result: "S"}
+        ],
+        level_15: [
+          { check: "speed_arrow", result: "SL" },
+          { check: "speed_threshold", params: { min: 8 }, result: "SL"},
+          { check: "speed_threshold", params: {any: true}, result: "K"},
           { check: "default", result: "S" }
         ]
       },
       purple: {
         level_1: [
-          { check: "needs_leveling", result: "LV", target: 12 }
+          { check: "speed_arrow", result: "LV", target: 15 },
+          { check: "needs_leveling", result: "LV", target: 3 }
         ],
         level_3: [
-          { check: "needs_leveling", result: "LV", target: 12 }
+          { check: "speed_arrow", result: "LV", target: 15},
+          { check: "speed_threshold", params: { any: true }, result: "LV", target: 12},
+          { check: "default", result: "S"}
         ],
         level_12: [
-          { check: "speed_threshold", params: { min: 10 }, result: "K" },
-          { check: "default", result: "S" }
+          { check: "speed_arrow", result: "LV", target: 15},
+          { check: "speed_threshold", params: { min: 6 }, result: "LV", target: 15},
+          { check: "default", result: "S"}
         ],
         level_15: [
-          { check: "speed_threshold", params: { min: 15 }, result: "SL" },
-          { check: "speed_threshold", params: { min: 10 }, result: "K" },
+          { check: "speed_arrow", result: "SL" },
+          { check: "speed_threshold", params: { min: 10 }, result: "SL"},
+          { check: "speed_threshold", params: {any: true}, result: "K"},
           { check: "default", result: "S" }
         ]
       },
       gold: {
         level_1: [
-          { check: "speed_threshold", params: { min: 10 }, result: "K" },
-          { check: "needs_leveling", result: "LV", target: 12 }
+          { check: "speed_arrow", result: "LV", target: 15 },
+          { check: "speed_threshold", params: { any: true }, result: "LV", target: 12},
+          { check: "default", result: "S"}
         ],
         level_12: [
-          { check: "speed_threshold", params: { min: 10 }, result: "K" },
-          { check: "default", result: "S" }
+          { check: "speed_arrow", result: "LV", target: 15},
+          { check: "speed_threshold", params: { min: 8 }, result: "LV", target: 15},
+          { check: "default", result: "S"}
         ],
         level_15: [
-          { check: "speed_threshold", params: { min: 15 }, result: "SL" },
-          { check: "speed_threshold", params: { min: 10 }, result: "K" },
+          { check: "speed_arrow", result: "SL" },
+          { check: "speed_threshold", params: { min: 12 }, result: "SL"},
+          { check: "speed_threshold", params: {any: true}, result: "K"},
           { check: "default", result: "S" }
         ]
       }
