@@ -218,25 +218,26 @@ function checkCombinedSpeedOffense(mod, check) {
   const speedStat = mod.secondaryStat?.find(stat => stat.stat.unitStatId === 5);
   const offenseStat = mod.secondaryStat?.find(stat => stat.stat.unitStatId === 41);
   
+  // BOTH stats must be present
   if (!speedStat || !offenseStat) return null;
   
   const speedValue = Math.floor(parseInt(speedStat.stat.statValueDecimal) / 10000);
   const offenseValue = Math.floor(parseInt(offenseStat.stat.statValueDecimal) / 10000);
   
-  const combinedScore = speedValue + (offenseValue * check.params.offenseMultiplier);
+  // Check if BOTH meet minimum requirements
+  const speedMeetsMin = speedValue >= (check.params.minSpeed || 0);
+  const offenseMeetsMin = offenseValue >= (check.params.minOffense || 0);
   
-  if (combinedScore >= check.params.threshold) {
-    // Return result with details
+  if (speedMeetsMin && offenseMeetsMin) {
     return {
       result: check.result,
       details: {
         type: 'combined',
         speed: speedValue,
         offense: offenseValue,
-        multiplier: check.params.offenseMultiplier,
-        combinedScore: combinedScore.toFixed(1),
-        threshold: check.params.threshold,
-        formula: `${speedValue} + (${offenseValue} × ${check.params.offenseMultiplier}) = ${combinedScore.toFixed(1)}`
+        minSpeed: check.params.minSpeed || 0,
+        minOffense: check.params.minOffense || 0,
+        bothPresent: true
       }
     };
   }

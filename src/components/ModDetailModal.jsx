@@ -18,16 +18,22 @@ function EvaluationDetailsDisplay({ evaluation, mod }) {
   if (details.type === 'combined') {
     return (
       <div className="evaluation-breakdown">
-        <h4>Combined Speed + Offense Check</h4>
-        <div className="formula-display">
-          <div className="formula-main">
-            {details.formula}
+        <h4>Combined Speed & Offense Check</h4>
+        <div className="combined-check">
+          <div className="stat-requirement">
+            <span className="stat-label">Speed:</span>
+            <span className={`stat-value ${details.speed >= details.minSpeed ? 'pass' : 'fail'}`}>
+              {details.speed} / {details.minSpeed} required
+            </span>
           </div>
-          <div className="formula-explanation">
-            Speed {details.speed} + (Offense {details.offense} × {details.multiplier}) = {details.combinedScore}
+          <div className="stat-requirement">
+            <span className="stat-label">Offense:</span>
+            <span className={`stat-value ${details.offense >= details.minOffense ? 'pass' : 'fail'}`}>
+              {details.offense} / {details.minOffense} required
+            </span>
           </div>
-          <div className="threshold-info">
-            Required: {details.threshold} | Result: {details.combinedScore >= details.threshold ? '✓ Pass' : '✗ Fail'}
+          <div className="combined-result">
+            Both stats present and meet minimums: {details.bothPresent ? '✓ Pass' : '✗ Fail'}
           </div>
         </div>
       </div>
