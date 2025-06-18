@@ -19,11 +19,11 @@ export const EVALUATION_WORKFLOWS = {
           { check: "needs_leveling", result: "LV", target: 9 }
         ],
         level_9: [
-          { check: "speed_threshold", params: { any: true }, result: "K" },
+          { check: "speed_threshold", params: { any: true }, result: "LV", target: 15 },
           { check: "default", result: "S" }
         ],
-        level_12: [
-          { check: "speed_threshold", params: { any: true }, result: "K" },
+        level_15: [
+          { check: "speed_threshold", params: {any: true}, result: "K"},
           { check: "default", result: "S" }
         ]
       },
