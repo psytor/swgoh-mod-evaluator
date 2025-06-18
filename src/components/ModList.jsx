@@ -272,6 +272,20 @@ function ModList({ playerData, evaluationMode, onModeChange, filterType, onFilte
     );
   }
 
+  // Calculate summary statistics
+  const modStats = filteredMods.reduce((acc, mod) => {
+    const isLocked = mod.locked || tempLockedMods.includes(mod.id);
+    
+    // Evaluate using workflow
+    const evaluation = isLocked 
+      ? { verdict: 'keep' } 
+      : evaluateModWithWorkflow(mod, evaluationMode);
+    
+    const verdict = evaluation.verdict;
+    acc[verdict] = (acc[verdict] || 0) + 1;
+    return acc;
+  }, {});
+
   // Calculate collection efficiency
   const collectionStats = calculateCollectionEfficiency(filteredMods, evaluationMode, tempLockedMods);
 
