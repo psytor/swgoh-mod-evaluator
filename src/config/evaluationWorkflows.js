@@ -4,8 +4,8 @@
 export const EVALUATION_WORKFLOWS = {
   // YOUR EXISTING BASIC MODE - CONVERTED TO WORKFLOW FORMAT
   basic: {
-    name: "Basic Mode (Keep Any Speed)",
-    description: "Lenient thresholds for players with limited resources",
+    name: "Beginner Mode",
+    description: "Limited in resources, this helps you keep good speed mods that will help you go through the beginning stages of the game.",
     "dot_1-4": {
       grey: { level_1: [{ check: "default", result: "S" }] },
       green: { level_1: [{ check: "default", result: "S" }] },
@@ -26,20 +26,23 @@ export const EVALUATION_WORKFLOWS = {
         ],
         level_15: [
           { check: "speed_arrow", result: "K" },
-          { check: "speed_threshold", params: {any: true}, result: "K"},
+          { check: "speed_threshold", params: {any: true}, result: "SL"},
           { check: "default", result: "S" }
         ]
       },
       green: {
         level_1: [
+          { check: "speed_arrow", result: "LV", target: 15 },
           { check: "needs_leveling", result: "LV", target: 9 }
         ],
         level_9: [
-          { check: "speed_threshold", params: { any: true }, result: "K" },
-          { check: "default", result: "S" }
+          { check: "speed_arrow", result: "LV", target: 15},
+          { check: "speed_threshold", params: { any: true }, result: "LV", target: 15},
+          { check: "default", result: "S"}
         ],
-        level_12: [
-          { check: "speed_threshold", params: { any: true }, result: "K" },
+        level_15: [
+          { check: "speed_arrow", result: "K" },
+          { check: "speed_threshold", params: {any: true}, result: "K"},
           { check: "default", result: "S" }
         ]
       },
