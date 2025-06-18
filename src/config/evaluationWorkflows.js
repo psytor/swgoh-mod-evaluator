@@ -55,7 +55,7 @@ export const EVALUATION_WORKFLOWS = {
       blue: {
         level_1: [
           { check: "speed_arrow", result: "LV", target: 15 },
-          { check: "needs_leveling", result: "LV", target: 9 }
+          { check: "needs_leveling", result: "LV", target: 6 }
         ],
         level_6: [
           { check: "speed_arrow", result: "LV", target: 15},
@@ -76,13 +76,23 @@ export const EVALUATION_WORKFLOWS = {
       },
       purple: {
         level_1: [
-          { check: "needs_leveling", result: "LV", target: 12 }
+          { check: "speed_arrow", result: "LV", target: 15 },
+          { check: "needs_leveling", result: "LV", target: 3 }
         ],
         level_3: [
-          { check: "needs_leveling", result: "LV", target: 12 }
+          { check: "speed_arrow", result: "LV", target: 15},
+          { check: "speed_threshold", params: { any: true }, result: "LV", target: 12},
+          { check: "default", result: "S"}
         ],
         level_12: [
-          { check: "speed_threshold", params: { min: 6 }, result: "K" },
+          { check: "speed_arrow", result: "LV", target: 15},
+          { check: "speed_threshold", params: { min: 6 }, result: "LV", target: 15},
+          { check: "default", result: "S"}
+        ],
+        level_15: [
+          { check: "speed_arrow", result: "SL" },
+          { check: "speed_threshold", params: { min: 10 }, result: "SL"},
+          { check: "speed_threshold", params: {any: true}, result: "K"},
           { check: "default", result: "S" }
         ]
       },
