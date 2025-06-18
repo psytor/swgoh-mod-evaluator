@@ -184,20 +184,33 @@ function checkNeedsLeveling(mod, check) {
  */
 function checkSpeedThreshold(mod, check) {
   const speedStat = mod.secondaryStat?.find(stat => stat.stat.unitStatId === 5);
+  
+  console.log('=== SPEED CHECK DEBUG ===');
+  console.log('Mod ID:', mod.id);
+  console.log('Check params:', check.params);
+  console.log('Check result:', check.result);
+  console.log('Has speed stat:', !!speedStat);
+  
   if (!speedStat) {
+    console.log('No speed stat found');
     return null; // No speed, check fails
   }
 
+  console.log('Raw speed value:', speedStat.stat.statValueDecimal);
   const speedValue = Math.floor(parseInt(speedStat.stat.statValueDecimal) / 10000);
+  console.log('Calculated speed value:', speedValue);
   
   if (check.params?.any && speedValue > 0) {
+    console.log('ANY speed check PASSED, returning:', check.result);
     return check.result;
   }
   
   if (check.params?.min && speedValue >= check.params.min) {
+    console.log('MIN speed check PASSED, returning:', check.result);
     return check.result;
   }
   
+  console.log('No speed checks passed');
   return null;
 }
 
