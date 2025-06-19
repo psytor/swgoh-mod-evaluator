@@ -16,7 +16,7 @@ class Settings:
     ]
     
     # External API
-    SWGOH_API_URL: str = os.getenv("SWGOH_API_URL", "http://swgoh_comlink:2500/player")
+    SWGOH_API_URL: str = os.getenv("SWGOH_API_URL", "http://swgoh_comlink:2500")
     
     # Cache settings
     CACHE_TTL_SECONDS: int = 3600  # 1 hour

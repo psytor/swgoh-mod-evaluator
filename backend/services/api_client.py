@@ -19,6 +19,7 @@ class SWGOHAPIClient:
         Returns:
             Raw API response as dictionary, or None if failed
         """
+        # SWGOH Comlink expects this specific payload structure
         payload = {
             "payload": {
                 "allyCode": ally_code
@@ -33,8 +34,15 @@ class SWGOHAPIClient:
         try:
             logger.info(f"Fetching player data for ally code: {ally_code}")
             
+            # The URL should be just the base URL, not including /player
+            url = self.api_url
+            if not url.endswith('/player'):
+                url = f"{url}/player"
+                
+            logger.debug(f"Making request to: {url}")
+            
             response = requests.post(
-                self.api_url,
+                url,
                 json=payload,
                 headers=headers,
                 timeout=self.timeout
@@ -52,12 +60,14 @@ class SWGOHAPIClient:
             logger.error(f"Timeout while fetching data for ally code: {ally_code}")
             return None
             
-        except requests.exceptions.ConnectionError:
-            logger.error(f"Connection error while fetching data for ally code: {ally_code}")
+        except requests.exceptions.ConnectionError as e:
+            logger.error(f"Connection error while fetching data for ally code: {ally_code}. Error: {str(e)}")
             return None
             
         except requests.exceptions.HTTPError as e:
             logger.error(f"HTTP error {e.response.status_code} for ally code: {ally_code}")
+            if e.response.text:
+                logger.error(f"Response body: {e.response.text}")
             return None
             
         except requests.exceptions.RequestException as e:
