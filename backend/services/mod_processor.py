@@ -103,8 +103,6 @@ class ModProcessor:
                 logger.warning(f"Invalid definition ID for mod {mod_id}: {definition_id}")
                 return None
             
-            logger.info(f"Processing mod with dots: {definition_id[1] if definition_id else 'unknown'}")
-
             # Parse definition ID
             set_key = definition_id[0]
             dots = int(definition_id[1])
