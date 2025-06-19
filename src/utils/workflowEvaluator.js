@@ -1,6 +1,3 @@
-// workflowEvaluator.js - Workflow evaluation engine
-// Place this in src/utils/workflowEvaluator.js
-
 import { EVALUATION_WORKFLOWS, RESULT_CODES, TIER_KEYS } from '../config/evaluationWorkflows';
 
 const POINT_MULTIPLIERS = {
@@ -27,13 +24,15 @@ const STAT_NAMES = {
   55: "Health %", 56: "Protection %"
 };
 
+// Reverse mapping: name to ID
+const STAT_IDS = Object.fromEntries(
+  Object.entries(STAT_NAMES).map(([id, name]) => [name, parseInt(id)])
+);
+
 // Set categorization for synergy
 const OFFENSIVE_SETS = ['Speed', 'Offense', 'Critical Damage', 'Critical Chance', 'Potency'];
 const DEFENSIVE_SETS = ['Health', 'Defense', 'Tenacity'];
 
-/**
- * Main evaluation function using workflows
- */
 /**
  * Main evaluation function using workflows
  */
@@ -103,7 +102,7 @@ export function evaluateModWithWorkflow(mod, workflowName = 'beginner') {
       if (typeof checkResult === 'string') {
         // Simple string result
         resultCode = checkResult;
-        target = check.target; // fallback to check's target if any
+        target = check.target;
       } else if (typeof checkResult === 'object') {
         // Object result with possible target and/or details
         resultCode = checkResult.result;
@@ -159,14 +158,14 @@ function executeCheck(mod, check) {
     case "needs_leveling":
       return checkNeedsLeveling(mod, check);
     
-    case "speed_threshold":
-      return checkSpeedThreshold(mod, check);
-    
-    case "offense_threshold":
-      return checkOffenseThreshold(mod, check);
+    case "stat_threshold":
+      return checkStatThreshold(mod, check);
 
     case "combined_speed_offense":
       return checkCombinedSpeedOffense(mod, check);
+      
+    case "combined_stats":
+      return checkCombinedStats(mod, check);
 
     case "point_threshold":
       return checkPointThreshold(mod, check);
@@ -175,8 +174,14 @@ function executeCheck(mod, check) {
       return checkSpeedArrow(mod, check);
     
     case "default":
-      // Even default can have a target if needed
       return check.target ? { result: check.result, target: check.target } : check.result;
+    
+    // Keep old checks for backward compatibility
+    case "speed_threshold":
+      return checkStatThreshold(mod, { ...check, params: { ...check.params, stat: "Speed" } });
+    
+    case "offense_threshold":
+      return checkStatThreshold(mod, { ...check, params: { ...check.params, stat: "Offense" } });
     
     default:
       console.warn(`Unknown check type: ${check.check}`);
@@ -195,21 +200,35 @@ function checkNeedsLeveling(mod, check) {
 }
 
 /**
- * Check speed threshold
+ * Generic stat threshold check - REPLACES speed_threshold and offense_threshold
  */
-function checkSpeedThreshold(mod, check) {
-  const speedStat = mod.secondaryStat?.find(stat => stat.stat.unitStatId === 5);
-  if (!speedStat) {
+function checkStatThreshold(mod, check) {
+  const statName = check.params?.stat;
+  if (!statName) {
+    console.warn("stat_threshold check requires params.stat");
     return null;
   }
-
-  const speedValue = Math.floor(parseInt(speedStat.stat.statValueDecimal) / 10000);
   
-  if (check.params?.any && speedValue > 0) {
+  const statId = STAT_IDS[statName];
+  if (!statId) {
+    console.warn(`Unknown stat name: ${statName}`);
+    return null;
+  }
+  
+  const statData = mod.secondaryStat?.find(stat => stat.stat.unitStatId === statId);
+  if (!statData) {
+    return null; // Stat not present on mod
+  }
+
+  const statValue = Math.floor(parseInt(statData.stat.statValueDecimal) / 10000);
+  
+  // Check for "any" - any value > 0
+  if (check.params?.any && statValue > 0) {
     return check.target ? { result: check.result, target: check.target } : check.result;
   }
   
-  if (check.params?.min && speedValue >= check.params.min) {
+  // Check for minimum threshold
+  if (check.params?.min && statValue >= check.params.min) {
     return check.target ? { result: check.result, target: check.target } : check.result;
   }
   
@@ -217,53 +236,62 @@ function checkSpeedThreshold(mod, check) {
 }
 
 /**
- * Check offense threshold
+ * Combined stats check - generalized version of combined_speed_offense
  */
-function checkOffenseThreshold(mod, check) {
-  const offenseStat = mod.secondaryStat?.find(stat => stat.stat.unitStatId === 41);
-  if (!offenseStat) {
+function checkCombinedStats(mod, check) {
+  const stats = check.params?.stats || [];
+  if (stats.length < 2) {
+    console.warn("combined_stats check requires at least 2 stats in params.stats");
     return null;
   }
-
-  const offenseValue = Math.floor(parseInt(offenseStat.stat.statValueDecimal) / 10000);
   
-  if (check.params?.any && offenseValue > 0) {
-    return check.target ? { result: check.result, target: check.target } : check.result;
+  const statValues = {};
+  const statPresent = {};
+  
+  // Get values for all required stats
+  for (const statConfig of stats) {
+    const statName = statConfig.stat;
+    const statId = STAT_IDS[statName];
+    
+    if (!statId) {
+      console.warn(`Unknown stat name in combined check: ${statName}`);
+      return null;
+    }
+    
+    const statData = mod.secondaryStat?.find(stat => stat.stat.unitStatId === statId);
+    if (statData) {
+      statValues[statName] = Math.floor(parseInt(statData.stat.statValueDecimal) / 10000);
+      statPresent[statName] = true;
+    } else {
+      statValues[statName] = 0;
+      statPresent[statName] = false;
+    }
   }
   
-  if (check.params?.min && offenseValue >= check.params.min) {
-    return check.target ? { result: check.result, target: check.target } : check.result;
+  // Check if all required stats are present
+  const allPresent = stats.every(statConfig => statPresent[statConfig.stat]);
+  if (!allPresent) {
+    return null;
   }
   
-  return null;
-}
-
-
-/**
- * Check combined speed + offense threshold
- */
-function checkCombinedSpeedOffense(mod, check) {
-  const speedStat = mod.secondaryStat?.find(stat => stat.stat.unitStatId === 5);
-  const offenseStat = mod.secondaryStat?.find(stat => stat.stat.unitStatId === 41);
+  // Check individual minimums
+  const allMeetMinimums = stats.every(statConfig => {
+    const statValue = statValues[statConfig.stat];
+    return statValue >= (statConfig.min || 0);
+  });
   
-  if (!speedStat || !offenseStat) return null;
-  
-  const speedValue = Math.floor(parseInt(speedStat.stat.statValueDecimal) / 10000);
-  const offenseValue = Math.floor(parseInt(offenseStat.stat.statValueDecimal) / 10000);
-  
-  const speedMeetsMin = speedValue >= (check.params.minSpeed || 0);
-  const offenseMeetsMin = offenseValue >= (check.params.minOffense || 0);
-  
-  if (speedMeetsMin && offenseMeetsMin) {
+  if (allMeetMinimums) {
     const result = {
       result: check.result,
       details: {
         type: 'combined',
-        speed: speedValue,
-        offense: offenseValue,
-        minSpeed: check.params.minSpeed || 0,
-        minOffense: check.params.minOffense || 0,
-        bothPresent: true
+        stats: stats.map(statConfig => ({
+          name: statConfig.stat,
+          value: statValues[statConfig.stat],
+          min: statConfig.min || 0,
+          meets: statValues[statConfig.stat] >= (statConfig.min || 0)
+        })),
+        allPresent: true
       }
     };
     
@@ -275,6 +303,25 @@ function checkCombinedSpeedOffense(mod, check) {
   }
   
   return null;
+}
+
+/**
+ * Legacy combined speed + offense check - kept for compatibility
+ */
+function checkCombinedSpeedOffense(mod, check) {
+  // Convert to new format and use checkCombinedStats
+  const newCheck = {
+    ...check,
+    check: "combined_stats",
+    params: {
+      stats: [
+        { stat: "Speed", min: check.params?.minSpeed || 0 },
+        { stat: "Offense", min: check.params?.minOffense || 0 }
+      ]
+    }
+  };
+  
+  return checkCombinedStats(mod, newCheck);
 }
 
 /**
@@ -312,7 +359,210 @@ function checkPointThreshold(mod, check) {
   return null;
 }
 
-// Helper function to get stat breakdown
+function checkSpeedArrow(mod, check) {
+  const isSpeedArrow = mod.definitionId[2] === '2' && mod.primaryStat?.stat?.unitStatId === 5;
+  if (isSpeedArrow) {
+    return check.target ? { result: check.result, target: check.target } : check.result;
+  }
+  return null;
+}
+
+/**
+ * Format the result
+ */
+function formatResult(resultCode, check, evaluationDetails = null) {
+  const resultConfig = RESULT_CODES[resultCode];
+  if (!resultConfig) {
+    console.warn(`Unknown result code: ${resultCode}`);
+    return {
+      verdict: "sell",
+      text: "Sell",
+      className: "sell",
+      reason: "Unknown result"
+    };
+  }
+
+  // Build reason string
+  let reason = "";
+  let text = resultConfig.text;
+  let details = evaluationDetails;
+  
+  // Handle LV with target - update the display text too
+  if (resultCode === "LV" && check.target) {
+    text = `Level to ${check.target}`;
+    reason = `Need to reach level ${check.target} to evaluate`;
+  }
+  else if (check.check === "stat_threshold") {
+    const statName = check.params?.stat || "Unknown Stat";
+    if (check.params?.any) {
+      reason = `Has ${statName} secondary`;
+    } else if (check.params?.min) {
+      reason = `${statName} meets threshold (${check.params.min}+)`;
+    }
+  }
+  else if (check.check === "combined_stats" || check.check === "combined_speed_offense") {
+    reason = `Combined stats meet thresholds`;
+  }
+  else if (check.check === "point_threshold") {
+    reason = `Total score meets threshold (${check.params.threshold}+ points)`;
+  }
+  else if (check.check === "speed_arrow") {
+    reason = "Speed Arrow - always valuable";
+  }
+  else if (check.check === "default") {
+    reason = resultCode === "S" ? "Doesn't meet any criteria" : "Default action";
+  }
+  // Legacy compatibility
+  else if (check.check === "speed_threshold") {
+    if (check.params?.any) {
+      reason = "Has speed secondary";
+    } else if (check.params?.min) {
+      reason = `Speed meets threshold (${check.params.min}+)`;
+    }
+  }
+  else if (check.check === "offense_threshold") {
+    if (check.params?.any) {
+      reason = "Has offense secondary";
+    } else if (check.params?.min) {
+      reason = `Offense meets threshold (${check.params.min}+)`;
+    }
+  }
+
+  return {
+    ...resultConfig,
+    text: text,
+    reason: reason || resultConfig.text,
+    details: details
+  };
+}
+
+// All the calculation functions remain the same...
+// [Including calculateBasePoints, calculateSynergies, etc.]
+
+function calculateBasePoints(mod) {
+  let totalPoints = 0;
+  
+  if (!mod.secondaryStat) return 0;
+  
+  mod.secondaryStat.forEach(stat => {
+    const statId = stat.stat.unitStatId;
+    const statName = STAT_NAMES[statId];
+    const multiplier = POINT_MULTIPLIERS[statName];
+    
+    if (multiplier) {
+      const value = parseInt(stat.stat.statValueDecimal) / 10000;
+      totalPoints += value * multiplier;
+    }
+  });
+  
+  return totalPoints;
+}
+
+function calculateSynergies(mod) {
+  let synergies = 0;
+  
+  const setType = getModSet(mod);
+  const primaryStatId = mod.primaryStat?.stat?.unitStatId;
+  const slotType = getModSlot(mod);
+  
+  if (mod.secondaryStat) {
+    mod.secondaryStat.forEach(stat => {
+      if (isStatSynergisticWithSet(stat.stat.unitStatId, setType)) {
+        synergies += 15;
+      }
+    });
+  }
+  
+  synergies += getSecondaryCombinationBonuses(mod);
+  
+  if (isChoiceSlot(slotType)) {
+    synergies += getSetPrimarySynergy(setType, primaryStatId, slotType);
+  }
+  
+  return synergies;
+}
+
+function getModSet(mod) {
+  const setKey = mod.definitionId[0];
+  const sets = {
+    "1": "Health", "2": "Offense", "3": "Defense", "4": "Speed",
+    "5": "Critical Chance", "6": "Critical Damage", "7": "Potency", "8": "Tenacity"
+  };
+  return sets[setKey];
+}
+
+function getModSlot(mod) {
+  const slotKey = mod.definitionId[2];
+  const slots = {
+    "1": "Square", "2": "Arrow", "3": "Diamond",
+    "4": "Triangle", "5": "Circle", "6": "Cross"
+  };
+  return slots[slotKey];
+}
+
+function isChoiceSlot(slotType) {
+  return !['Square', 'Diamond'].includes(slotType);
+}
+
+function isStatSynergisticWithSet(statId, setType) {
+  const statName = STAT_NAMES[statId];
+  
+  const setSynergies = {
+    'Speed': ['Speed', 'Offense', 'Offense %', 'Critical Chance %', 'Potency %'],
+    'Offense': ['Offense', 'Offense %', 'Critical Chance %', 'Critical Damage %', 'Speed'],
+    'Critical Damage': ['Critical Chance %', 'Offense', 'Offense %', 'Speed'],
+    'Critical Chance': ['Critical Damage %', 'Offense', 'Offense %', 'Speed'],
+    'Potency': ['Potency %', 'Speed', 'Offense', 'Offense %'],
+    'Health': ['Health', 'Health %', 'Protection', 'Protection %', 'Defense %'],
+    'Defense': ['Defense', 'Defense %', 'Health %', 'Protection %', 'Tenacity %'],
+    'Tenacity': ['Tenacity %', 'Speed', 'Defense', 'Defense %', 'Health %']
+  };
+  
+  return setSynergies[setType]?.includes(statName) || false;
+}
+
+function getSecondaryCombinationBonuses(mod) {
+  let bonus = 0;
+  const stats = {};
+  
+  mod.secondaryStat?.forEach(stat => {
+    stats[STAT_NAMES[stat.stat.unitStatId]] = true;
+  });
+  
+  if (stats['Offense'] && stats['Offense %']) bonus += 20;
+  if (stats['Defense'] && stats['Defense %']) bonus += 20;
+  if (stats['Health'] && stats['Health %']) bonus += 15;
+  if (stats['Protection'] && stats['Protection %']) bonus += 15;
+  if (stats['Speed'] && stats['Offense']) bonus += 15;
+  if (stats['Speed'] && stats['Critical Chance %']) bonus += 15;
+  if (stats['Speed'] && stats['Potency %']) bonus += 10;
+  
+  return bonus;
+}
+
+function getSetPrimarySynergy(setType, primaryStatId, slotType) {
+  const primaryStatName = STAT_NAMES[primaryStatId];
+  
+  if (slotType === 'Arrow' && primaryStatId === 5 && setType === 'Speed') return 25;
+  if (slotType === 'Cross' && primaryStatName === 'Potency %' && setType === 'Potency') return 20;
+  if (slotType === 'Cross' && primaryStatName === 'Tenacity %' && setType === 'Tenacity') return 20;
+  if (slotType === 'Triangle' && primaryStatName === 'Critical Damage %' && setType === 'Critical Damage') return 15;
+  if (slotType === 'Triangle' && primaryStatName === 'Critical Chance %' && setType === 'Critical Chance') return 15;
+  
+  const isOffensiveSet = OFFENSIVE_SETS.includes(setType);
+  const isDefensiveSet = DEFENSIVE_SETS.includes(setType);
+  
+  const offensiveStats = ['Offense %', 'Critical Chance %', 'Critical Damage %', 'Speed', 'Potency %'];
+  const defensiveStats = ['Defense %', 'Health %', 'Protection %', 'Tenacity %'];
+  
+  if ((isOffensiveSet && offensiveStats.includes(primaryStatName)) ||
+      (isDefensiveSet && defensiveStats.includes(primaryStatName))) {
+    return 10;
+  }
+  
+  return 0;
+}
+
 function getStatBreakdown(mod) {
   const breakdown = [];
   
@@ -336,18 +586,15 @@ function getStatBreakdown(mod) {
     }
   });
   
-  // Sort by points descending
   return breakdown.sort((a, b) => b.points - a.points);
 }
 
-// Helper function to get synergy breakdown
 function getSynergyBreakdown(mod) {
   const breakdown = [];
   const setType = getModSet(mod);
   const primaryStatId = mod.primaryStat?.stat?.unitStatId;
   const slotType = getModSlot(mod);
   
-  // Check Set + Secondary synergies
   if (mod.secondaryStat) {
     mod.secondaryStat.forEach(stat => {
       const statName = STAT_NAMES[stat.stat.unitStatId];
@@ -361,11 +608,9 @@ function getSynergyBreakdown(mod) {
     });
   }
   
-  // Check Secondary combinations
   const comboBonuses = getSecondaryCombinationDetails(mod);
   breakdown.push(...comboBonuses);
   
-  // Check Set + Primary synergies
   if (isChoiceSlot(slotType)) {
     const primaryBonus = getSetPrimarySynergyDetails(setType, primaryStatId, slotType);
     if (primaryBonus) {
@@ -408,12 +653,9 @@ function getSecondaryCombinationDetails(mod) {
     });
   }
   
-  // ... add other combinations
-  
   return bonuses;
 }
 
-// Enhanced set/primary synergy with details
 function getSetPrimarySynergyDetails(setType, primaryStatId, slotType) {
   const primaryStatName = STAT_NAMES[primaryStatId];
   
@@ -425,224 +667,9 @@ function getSetPrimarySynergyDetails(setType, primaryStatId, slotType) {
     };
   }
   
-  // ... other special cases
-  
   return null;
 }
 
-/**
- * Calculate base points for all secondary stats
- */
-function calculateBasePoints(mod) {
-  let totalPoints = 0;
-  
-  if (!mod.secondaryStat) return 0;
-  
-  mod.secondaryStat.forEach(stat => {
-    const statId = stat.stat.unitStatId;
-    const statName = STAT_NAMES[statId];
-    const multiplier = POINT_MULTIPLIERS[statName];
-    
-    if (multiplier) {
-      const value = parseInt(stat.stat.statValueDecimal) / 10000;
-      totalPoints += value * multiplier;
-    }
-  });
-  
-  return totalPoints;
-}
-
-/**
- * Calculate synergy bonuses
- */
-function calculateSynergies(mod) {
-  let synergies = 0;
-  
-  // Get mod properties
-  const setType = getModSet(mod);
-  const primaryStatId = mod.primaryStat?.stat?.unitStatId;
-  const slotType = getModSlot(mod);
-  
-  // 1. Set + Secondary synergies (+15 each match)
-  if (mod.secondaryStat) {
-    mod.secondaryStat.forEach(stat => {
-      if (isStatSynergisticWithSet(stat.stat.unitStatId, setType)) {
-        synergies += 15;
-      }
-    });
-  }
-  
-  // 2. Secondary combinations
-  synergies += getSecondaryCombinationBonuses(mod);
-  
-  // 3. Set + Primary synergies (choice slots only)
-  if (isChoiceSlot(slotType)) {
-    synergies += getSetPrimarySynergy(setType, primaryStatId, slotType);
-  }
-  
-  return synergies;
-}
-
-// Helper functions for synergy calculation
-
-function getModSet(mod) {
-  const setKey = mod.definitionId[0];
-  const sets = {
-    "1": "Health", "2": "Offense", "3": "Defense", "4": "Speed",
-    "5": "Critical Chance", "6": "Critical Damage", "7": "Potency", "8": "Tenacity"
-  };
-  return sets[setKey];
-}
-
-function getModSlot(mod) {
-  const slotKey = mod.definitionId[2];
-  const slots = {
-    "1": "Square", "2": "Arrow", "3": "Diamond",
-    "4": "Triangle", "5": "Circle", "6": "Cross"
-  };
-  return slots[slotKey];
-}
-
-function isChoiceSlot(slotType) {
-  // Square and Diamond have fixed primaries
-  return !['Square', 'Diamond'].includes(slotType);
-}
-
-function isStatSynergisticWithSet(statId, setType) {
-  const statName = STAT_NAMES[statId];
-  
-  // Define synergistic stats for each set
-  const setSynergies = {
-    'Speed': ['Speed', 'Offense', 'Offense %', 'Critical Chance %', 'Potency %'],
-    'Offense': ['Offense', 'Offense %', 'Critical Chance %', 'Critical Damage %', 'Speed'],
-    'Critical Damage': ['Critical Chance %', 'Offense', 'Offense %', 'Speed'],
-    'Critical Chance': ['Critical Damage %', 'Offense', 'Offense %', 'Speed'],
-    'Potency': ['Potency %', 'Speed', 'Offense', 'Offense %'],
-    'Health': ['Health', 'Health %', 'Protection', 'Protection %', 'Defense %'],
-    'Defense': ['Defense', 'Defense %', 'Health %', 'Protection %', 'Tenacity %'],
-    'Tenacity': ['Tenacity %', 'Speed', 'Defense', 'Defense %', 'Health %']
-  };
-  
-  return setSynergies[setType]?.includes(statName) || false;
-}
-
-function getSecondaryCombinationBonuses(mod) {
-  let bonus = 0;
-  const stats = {};
-  
-  // Map stat IDs to names
-  mod.secondaryStat?.forEach(stat => {
-    stats[STAT_NAMES[stat.stat.unitStatId]] = true;
-  });
-  
-  // Check combinations
-  if (stats['Offense'] && stats['Offense %']) bonus += 20;
-  if (stats['Defense'] && stats['Defense %']) bonus += 20;
-  if (stats['Health'] && stats['Health %']) bonus += 15;
-  if (stats['Protection'] && stats['Protection %']) bonus += 15;
-  if (stats['Speed'] && stats['Offense']) bonus += 15;
-  if (stats['Speed'] && stats['Critical Chance %']) bonus += 15;
-  if (stats['Speed'] && stats['Potency %']) bonus += 10;
-  
-  return bonus;
-}
-
-function getSetPrimarySynergy(setType, primaryStatId, slotType) {
-  const primaryStatName = STAT_NAMES[primaryStatId];
-  
-  // Special bonuses for perfect matches
-  if (slotType === 'Arrow' && primaryStatId === 5 && setType === 'Speed') return 25;
-  if (slotType === 'Cross' && primaryStatName === 'Potency %' && setType === 'Potency') return 20;
-  if (slotType === 'Cross' && primaryStatName === 'Tenacity %' && setType === 'Tenacity') return 20;
-  if (slotType === 'Triangle' && primaryStatName === 'Critical Damage %' && setType === 'Critical Damage') return 15;
-  if (slotType === 'Triangle' && primaryStatName === 'Critical Chance %' && setType === 'Critical Chance') return 15;
-  
-  // General good match
-  const isOffensiveSet = OFFENSIVE_SETS.includes(setType);
-  const isDefensiveSet = DEFENSIVE_SETS.includes(setType);
-  
-  const offensiveStats = ['Offense %', 'Critical Chance %', 'Critical Damage %', 'Speed', 'Potency %'];
-  const defensiveStats = ['Defense %', 'Health %', 'Protection %', 'Tenacity %'];
-  
-  if ((isOffensiveSet && offensiveStats.includes(primaryStatName)) ||
-      (isDefensiveSet && defensiveStats.includes(primaryStatName))) {
-    return 10;
-  }
-  
-  return 0;
-}
-
-function checkSpeedArrow(mod, check) {
-  const isSpeedArrow = mod.definitionId[2] === '2' && mod.primaryStat?.stat?.unitStatId === 5;
-  if (isSpeedArrow) {
-    return check.target ? { result: check.result, target: check.target } : check.result;
-  }
-  return null;
-}
-
-/**
- * Format the result
- */
-function formatResult(resultCode, check, evaluationDetails = null) {
-  const resultConfig = RESULT_CODES[resultCode];
-  if (!resultConfig) {
-    console.warn(`Unknown result code: ${resultCode}`);
-    return {
-      verdict: "sell",
-      text: "Sell",
-      className: "sell",
-      reason: "Unknown result"
-    };
-  }
-
-  // Build reason string
-  let reason = "";
-  let text = resultConfig.text;
-  let details = evaluationDetails;
-  
-  // Handle LV with target - update the display text too
-  if (resultCode === "LV" && check.target) {
-    text = `Level to ${check.target}`;
-    reason = `Need to reach level ${check.target} to evaluate`;
-  }
-  else if (check.check === "speed_threshold") {
-    if (check.params?.any) {
-      reason = "Has speed secondary";
-    } else if (check.params?.min) {
-      reason = `Speed meets threshold (${check.params.min}+)`;
-    }
-  }
-  else if (check.check === "offense_threshold") {
-    if (check.params?.any) {
-      reason = "Has offense secondary";
-    } else if (check.params?.min) {
-      reason = `Offense meets threshold (${check.params.min}+)`;
-    }
-  }
-  else if (check.check === "combined_speed_offense") {
-    reason = `Combined speed + offense score meets threshold`;
-  }
-  else if (check.check === "point_threshold") {
-    reason = `Total score meets threshold (${check.params.threshold}+ points)`;
-  }
-  else if (check.check === "speed_arrow") {
-    reason = "Speed Arrow - always valuable";
-  }
-  else if (check.check === "default") {
-    reason = resultCode === "S" ? "Doesn't meet any criteria" : "Default action";
-  }
-
-  return {
-    ...resultConfig,
-    text: text,  // Use the potentially updated text
-    reason: reason || resultConfig.text,
-    details: details
-  };
-}
-
-/**
- * Get available workflow names and descriptions
- */
 export function getAvailableWorkflows() {
   return Object.entries(EVALUATION_WORKFLOWS).map(([key, workflow]) => ({
     key,
@@ -656,7 +683,6 @@ export function calculateModScore(mod) {
   const synergies = calculateSynergies(mod);
   const totalScore = basePoints + synergies;
   
-  // Get breakdowns for debugging
   const statBreakdown = getStatBreakdown(mod);
   const synergyBreakdown = getSynergyBreakdown(mod);
   
@@ -664,12 +690,8 @@ export function calculateModScore(mod) {
     basePoints: Math.round(basePoints),
     synergyBonus: Math.round(synergies),
     totalScore: Math.round(totalScore),
-    
-    // Detailed breakdowns
     statBreakdown: statBreakdown,
     synergyBreakdown: synergyBreakdown,
-    
-    // Quick reference values
     hasSpeed: statBreakdown.some(s => s.name === 'Speed'),
     hasOffense: statBreakdown.some(s => s.name === 'Offense'),
     speedValue: statBreakdown.find(s => s.name === 'Speed')?.value || 0,
