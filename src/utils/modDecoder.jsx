@@ -6,6 +6,7 @@ export function decodeModData(compactMod) {
     tier: compactMod.t,
     locked: compactMod.k,
     characterName: compactMod.c,
+    characterDisplayName: compactMod.cn,
     primaryStat: {
       stat: {
         unitStatId: compactMod.p.i,

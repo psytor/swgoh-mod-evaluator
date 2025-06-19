@@ -206,9 +206,11 @@ function ModList({ playerData, evaluationMode, onModeChange, filterType, onFilte
     }
 
     // Rest of the function remains the same...
-    const uniqueCharacters = [...new Set(extractedMods.map(mod => mod.characterName))]
-      .filter(name => name && name !== 'Unknown')
-      .sort((a, b) => a.localeCompare(b));
+    const uniqueCharacters = [...new Set(extractedMods.map(mod => ({
+      id: mod.characterName,
+      displayName: mod.characterDisplayName || mod.characterName
+    })))]
+      .sort((a, b) => a.displayName.localeCompare(b.displayName))
 
     setMods(extractedMods)
     setLoading(false)
@@ -312,11 +314,11 @@ if (window.location.hash === '#debug' && filteredMods.length > 0) {
           className="filter-dropdown"
         >
           <option value="all">All Characters</option>
-          {characterList.map(charName => (
-            <option key={charName} value={charName}>
-              {charName}
-            </option>
-          ))}
+            {uniqueCharacters.map(char => (
+              <option key={char.id} value={char.id}>
+                {char.displayName}
+              </option>
+            ))}
         </select>
       </div>
 

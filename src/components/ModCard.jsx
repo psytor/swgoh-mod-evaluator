@@ -8,64 +8,6 @@ import { evaluateModWithWorkflow } from '../utils/workflowEvaluator';
 let characterNamesCache = null;
 let loadingPromise = null;
 
-// Function to load character names from external server
-async function loadCharacterNames() {
-  // If we already have the data cached, return it
-  if (characterNamesCache) {
-    return characterNamesCache;
-  }
-  
-  // If a load is already in progress, wait for it
-  if (loadingPromise) {
-    return loadingPromise;
-  }
-  
-  // Start a new load
-  loadingPromise = fetch('https://farmroadmap.dynv6.net/api/character-names')
-    .then(response => {
-      if (!response.ok) {
-        throw new Error(`Failed to load character names: ${response.status}`);
-      }
-      return response.json();
-    })
-    .then(data => {
-      characterNamesCache = data;
-      loadingPromise = null;
-      return data;
-    })
-    .catch(error => {
-      console.error('Error loading character names:', error);
-      loadingPromise = null;
-      // Return empty array as fallback
-      return [];
-    });
-  
-  return loadingPromise;
-}
-
-// Hook to use character names in components
-function useCharacterNames() {
-  const [characterNames, setCharacterNames] = useState(characterNamesCache || []);
-  const [loading, setLoading] = useState(!characterNamesCache);
-  const [error, setError] = useState(null);
-  
-  useEffect(() => {
-    if (!characterNamesCache) {
-      loadCharacterNames()
-        .then(names => {
-          setCharacterNames(names);
-          setLoading(false);
-        })
-        .catch(err => {
-          setError(err);
-          setLoading(false);
-        });
-    }
-  }, []);
-  
-  return { characterNames, loading, error };
-}
-
 // Mappings from the API documentation
 export const MOD_SETS = {
   1: "Health", 2: "Offense", 3: "Defense", 4: "Speed",
@@ -390,12 +332,6 @@ function ModShapeVisual({ shapeType, setType, modTierName, is6Dot, shapeAtlasUrl
   return <>{layers}</>;
 }
 
-const CHARACTER_ID_FIXES = {
-  'VEERS': 'VEERS_GENERAL',
-  'R2D2_LEGENDARY': 'R2D2'
-  // Add more mappings here as you find them
-};
-
 function getCharacterDisplayName(characterId, characterNames) {
   if (!characterId) return { name: 'Unknown', hasWarning: true };
   
@@ -409,11 +345,6 @@ function getCharacterDisplayName(characterId, characterNames) {
   
   // Extract the base ID (before the colon)
   let baseId = characterId.split(':')[0];
-  
-  // Check if this ID needs to be remapped
-  if (CHARACTER_ID_FIXES[baseId]) {
-    baseId = CHARACTER_ID_FIXES[baseId];
-  }
   
   // Search through the array for matching unit
   const character = characterNames.find(char => char[0] === baseId);
@@ -570,7 +501,7 @@ function ModCard({ mod, evaluationMode = 'beginner', isTempLocked = false, onTog
       })()}
       
       <div className="mod-character">
-        {mod.characterName || 'Unknown'}
+        {mod.characterDisplayName || mod.characterName}
       </div>
       <div className="mod-lock-container">
         <button 
