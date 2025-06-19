@@ -98,7 +98,6 @@ function CollectionEfficiencyDisplay({ collectionStats, modStats }) {
 }
 
 function ModList({ playerData, evaluationMode, onModeChange, filterType, onFilterChange }) {
-  const { characterNames } = useCharacterNames();
   const [mods, setMods] = useState([])
   const [loading, setLoading] = useState(true)
   const [selectedCharacter, setSelectedCharacter] = useState('all')
