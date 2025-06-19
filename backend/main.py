@@ -105,13 +105,6 @@ async def get_player(ally_code: str):
             }
         }
 
-        # Convert character names list to dictionary for efficient lookup
-        character_names_list = await get_character_names()
-        character_names = {}
-        for char in character_names_list:
-            if len(char) >= 3:
-                character_names[char[0]] = char[2]
-        
         for mod in processed_data.mods:
             # Calculate efficiency data (still needed for display)
             efficiency_data = evaluation_engine.calculate_roll_efficiency(mod)
