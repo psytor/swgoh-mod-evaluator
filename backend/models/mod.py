@@ -20,7 +20,7 @@ class ProcessedMod(BaseModel):
     tier: int
     locked: bool
     characterId: str
-    characterDisplayName: str
+    characterDisplayName: str  # ADD THIS LINE
     primaryStat: PrimaryStat
     secondaryStats: List[SecondaryStat]
     
