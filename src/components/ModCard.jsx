@@ -332,36 +332,6 @@ function ModShapeVisual({ shapeType, setType, modTierName, is6Dot, shapeAtlasUrl
   return <>{layers}</>;
 }
 
-function getCharacterDisplayName(characterId, characterNames) {
-  if (!characterId) return { name: 'Unknown', hasWarning: true };
-  
-  // If characterNames is not loaded yet, return the ID
-  if (!characterNames || !Array.isArray(characterNames)) {
-    return { 
-      name: characterId.split(':')[0], 
-      hasWarning: false 
-    };
-  }
-  
-  // Extract the base ID (before the colon)
-  let baseId = characterId.split(':')[0];
-  
-  // Search through the array for matching unit
-  const character = characterNames.find(char => char[0] === baseId);
-  
-  if (!character || !character[2]) {
-    return { 
-      name: baseId, 
-      hasWarning: true 
-    };
-  }
-  
-  return { 
-    name: character[2], 
-    hasWarning: false 
-  };
-}
-
 function ModCard({ mod, evaluationMode = 'beginner', isTempLocked = false, onToggleTempLock, onClick }) {
 
   const { characterNames } = useCharacterNames();
@@ -531,7 +501,5 @@ function ModCard({ mod, evaluationMode = 'beginner', isTempLocked = false, onTog
     </div>
   );
 }
-
-export { getCharacterDisplayName, useCharacterNames };
 
 export default ModCard;
