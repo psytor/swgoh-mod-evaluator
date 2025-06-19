@@ -4,8 +4,6 @@ from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from datetime import datetime
 from config import settings
-import json
-import os
 from services.api_client import SWGOHAPIClient
 from services.mod_processor import ModProcessor
 from services.evaluation_engine import EvaluationEngine
