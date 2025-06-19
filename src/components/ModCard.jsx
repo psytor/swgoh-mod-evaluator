@@ -4,10 +4,6 @@ import miscAtlas from '../assets/misc_atlas.png';
 import { useState, useEffect } from 'react';
 import { evaluateModWithWorkflow } from '../utils/workflowEvaluator';
 
-// Character names cache and loading state
-let characterNamesCache = null;
-let loadingPromise = null;
-
 // Mappings from the API documentation
 export const MOD_SETS = {
   1: "Health", 2: "Offense", 3: "Defense", 4: "Speed",
@@ -333,8 +329,6 @@ function ModShapeVisual({ shapeType, setType, modTierName, is6Dot, shapeAtlasUrl
 }
 
 function ModCard({ mod, evaluationMode = 'beginner', isTempLocked = false, onToggleTempLock, onClick }) {
-
-  const { characterNames } = useCharacterNames();
 
   const handleClick = (e) => {
     // Don't trigger if clicking on the lock button
