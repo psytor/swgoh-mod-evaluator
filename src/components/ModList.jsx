@@ -205,15 +205,20 @@ function ModList({ playerData, evaluationMode, onModeChange, filterType, onFilte
     }
 
     // Rest of the function remains the same...
-    const uniqueCharacters = [...new Set(extractedMods.map(mod => ({
-      id: mod.characterName,
-      displayName: mod.characterDisplayName || mod.characterName
-    })))]
-      .sort((a, b) => a.displayName.localeCompare(b.displayName))
+    const uniqueCharacters = [...new Set(extractedMods.map(mod => mod.characterName))]
+    .sort((a, b) => {
+      // Find the display names from the mods
+      const modA = extractedMods.find(m => m.characterName === a)
+      const modB = extractedMods.find(m => m.characterName === b)
+      const nameA = modA?.characterDisplayName || a
+      const nameB = modB?.characterDisplayName || b
+      return nameA.localeCompare(nameB)
+    })
+    setCharacterList(uniqueCharacters)
 
     setMods(extractedMods)
     setLoading(false)
-  }, [playerData, characterNames])
+  }, [playerData])
 
   if (loading) {
     return <div className="loading">Processing mods...</div>
@@ -313,11 +318,16 @@ if (window.location.hash === '#debug' && filteredMods.length > 0) {
           className="filter-dropdown"
         >
           <option value="all">All Characters</option>
-            {uniqueCharacters.map(char => (
-              <option key={char.id} value={char.id}>
-                {char.displayName}
-              </option>
-            ))}
+            {characterList.map(charId => {
+              // Find a mod with this character to get the display name
+              const mod = mods.find(m => m.characterName === charId)
+              const displayName = mod?.characterDisplayName || charId
+              return (
+                <option key={charId} value={charId}>
+                  {displayName}
+                </option>
+              );
+            })}
         </select>
       </div>
 
