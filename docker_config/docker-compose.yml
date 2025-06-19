@@ -1,4 +1,30 @@
 services:
+
+  postgres:
+    container_name: swgoh_postgres
+    image: postgres:17.4
+    restart: unless-stopped
+    environment:
+      POSTGRES_PASSWORD: frmdev1234
+      POSTGRES_DB: swgoh
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - swgoh-network
+
+  swgoh_comlink:
+    container_name: swgoh_comlink
+    image: ghcr.io/swgoh-utils/swgoh-comlink:latest
+    restart: unless-stopped
+    environment:
+      APP_NAME: FarmingRoadmap_Production
+      PORT: 2500
+    ports:
+      - "2500:2500"
+    networks:
+      - swgoh-network
   # Mod Evaluator Backend
   mod-evaluator:
     build: ./mod-evaluator/backend
@@ -11,12 +37,23 @@ services:
     environment:
       - PYTHONPATH=/app
       - LOG_LEVEL=INFO
+      - SWGOH_API_URL=http://swgoh_comlink:2500/player
+      - POSTGRES_HOST=postgres
+      - POSTGRES_DB=swgoh_frm
+      - POSTGRES_USER=frm_dev
+      - POSTGRES_PASSWORD=swg0hfrmd3v
+    depends_on:
+      - postgres
+      - swgoh_comlink
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
       interval: 30s
       timeout: 10s
       retries: 3
 
+volumes:
+  postgres_data:
+
 networks:
-  default:
-    name: swgoh-network
+  swgoh-network:
+    driver: bridge
