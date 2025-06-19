@@ -60,24 +60,6 @@ async def clear_all_cache():
 async def root():
     return {"message": "SWGOH Mod Evaluator API is running"}
 
-@app.get("/api/character-names")
-async def get_character_names():
-    """Serve character names from shared data"""
-    try:
-        char_file = Path("/app/shared-data/charname.json")
-        if char_file.exists():
-            with open(char_file, 'r') as f:
-                character_data = json.load(f)
-            
-            # Return the raw array format to preserve all data including language code
-            return character_data
-        else:
-            logger.warning("Character names file not found")
-            return {}
-    except Exception as e:
-        logger.error(f"Error loading character names: {e}")
-        return {}
-
 @app.get("/api/player/{ally_code}")
 async def get_player(ally_code: str):
     # Validate ally code format (9 digits)
@@ -141,7 +123,8 @@ async def get_player(ally_code: str):
                 "l": mod.level,
                 "t": mod.tier,
                 "k": mod.locked,
-                "c": mod.characterName,
+                "c": mod.characterId.split(':')[0],
+                "cn": mod.characterDisplayName,
                 "p": {
                     "i": mod.primaryStat.unitStatId,
                     "v": round(mod.primaryStat.value, 4)

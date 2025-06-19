@@ -19,7 +19,8 @@ class ProcessedMod(BaseModel):
     level: int
     tier: int
     locked: bool
-    characterName: str
+    characterId: str
+    characterDisplayName: str
     primaryStat: PrimaryStat
     secondaryStats: List[SecondaryStat]
     

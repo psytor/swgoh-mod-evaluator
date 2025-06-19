@@ -4,6 +4,7 @@ from datetime import datetime
 import logging
 import json
 from pathlib import Path
+from services.db_connection import DatabaseConnection
 
 logger = logging.getLogger(__name__)
 
@@ -25,9 +26,7 @@ class ModProcessor:
     }
 
     def __init__(self):
-        pass
-
-        self.character_names = self._load_character_names()
+        self.db = DatabaseConnection()
 
     def _load_character_names(self):
         """Load character names from shared data"""
@@ -142,6 +141,9 @@ class ModProcessor:
             level = mod_data.get('level', 1)
             tier = mod_data.get('tier', 1)
             locked = mod_data.get('locked', False)
+
+            base_character_id = character_id.split(':')[0]
+            character_display_name = self.db.get_character_name(base_character_id)
             
             if not definition_id or len(definition_id) != 3:
                 logger.warning(f"Invalid definition ID for mod {mod_id}: {definition_id}")
@@ -190,6 +192,7 @@ class ModProcessor:
                 tier=tier,
                 locked=locked,
                 characterId=character_id,
+                characterDisplayName=character_display_name,
                 primaryStat=primary_stat,
                 secondaryStats=secondary_stats,
                 dots=dots,

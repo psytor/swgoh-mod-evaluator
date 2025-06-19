@@ -16,7 +16,7 @@ class Settings:
     ]
     
     # External API
-    SWGOH_API_URL: str = "https://farmroadmap.dynv6.net/comlink/player"
+    SWGOH_API_URL: str = os.getenv("SWGOH_API_URL", "http://swgoh_comlink:2500/player")
     
     # Cache settings
     CACHE_TTL_SECONDS: int = 3600  # 1 hour
