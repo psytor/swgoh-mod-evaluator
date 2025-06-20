@@ -1,8 +1,8 @@
-from typing import List, Dict, Any, Optional
+from typing import List, Dict, Any, Optional, Set
 from models.mod import ProcessedMod, SecondaryStat, PrimaryStat, PlayerData
 from datetime import datetime
 import logging
-from services.db_connection import DatabaseConnection  # ADD THIS
+from services.db_connection import DatabaseConnection
 
 logger = logging.getLogger(__name__)
 
@@ -24,7 +24,7 @@ class ModProcessor:
     }
 
     def __init__(self):
-        self.db = DatabaseConnection()  # ADD THIS
+        self.db = DatabaseConnection()
     
     def process_player_data(self, raw_data: Dict[str, Any], ally_code: str) -> PlayerData:
         """
@@ -40,8 +40,8 @@ class ModProcessor:
         try:
             player_name = raw_data.get('name', 'Unknown Player')
             
-            # Extract mods from roster
-            all_mods = self.extract_mods_from_roster(raw_data)
+            # Extract mods from roster WITH BATCHED CHARACTER NAMES
+            all_mods = self.extract_mods_from_roster_optimized(raw_data)
             
             logger.info(f"Processed {len(all_mods)} total mods for player {player_name}")
             
@@ -49,17 +49,17 @@ class ModProcessor:
                 playerName=player_name,
                 allyCode=ally_code,
                 lastUpdated=datetime.now().isoformat(),
-                mods=all_mods,  # Use all_mods directly
+                mods=all_mods,
                 totalMods=len(all_mods),
-                processedMods=len(all_mods)  # Same count since we're not filtering
+                processedMods=len(all_mods)
             )
             
         except Exception as e:
             logger.error(f"Error processing player data for {ally_code}: {str(e)}")
             raise
     
-    def extract_mods_from_roster(self, raw_data: Dict[str, Any]) -> List[ProcessedMod]:
-        """Extract all mods from roster units"""
+    def extract_mods_from_roster_optimized(self, raw_data: Dict[str, Any]) -> List[ProcessedMod]:
+        """Extract all mods from roster units with optimized character name lookup"""
         mods = []
         
         roster_units = raw_data.get('rosterUnit', [])
@@ -67,25 +67,41 @@ class ModProcessor:
             logger.warning("No roster units found in player data")
             return mods
         
+        # STEP 1: Collect all unique character IDs first
+        unique_character_ids = set()
         for unit in roster_units:
             character_id = unit.get('definitionId', 'UNKNOWN')
+            base_character_id = character_id.split(':')[0]
+            unique_character_ids.add(base_character_id)
+        
+        # STEP 2: Batch fetch ALL character names in ONE database call
+        logger.info(f"Fetching names for {len(unique_character_ids)} unique characters")
+        character_names = self.db.get_character_names_batch(list(unique_character_ids))
+        
+        # STEP 3: Process mods with cached character names
+        for unit in roster_units:
+            character_id = unit.get('definitionId', 'UNKNOWN')
+            base_character_id = character_id.split(':')[0]
+            character_display_name = character_names.get(base_character_id, base_character_id)
+            
             equipped_mods = unit.get('equippedStatMod', [])
             
             for mod_data in equipped_mods:
                 try:
-                    processed_mod = self.process_single_mod(mod_data, character_id)
+                    processed_mod = self.process_single_mod_optimized(
+                        mod_data, character_id, character_display_name
+                    )
                     if processed_mod:
                         mods.append(processed_mod)
                 except Exception as e:
                     logger.warning(f"Failed to process mod {mod_data.get('id', 'unknown')}: {str(e)}")
                     continue
 
-        logger.info(f"Extracted {len(mods)} total mods before filtering")
-        
+        logger.info(f"Extracted {len(mods)} total mods with batched character names")
         return mods
     
-    def process_single_mod(self, mod_data: Dict[str, Any], character_id: str) -> Optional[ProcessedMod]:
-        """Process a single mod from raw API data"""
+    def process_single_mod_optimized(self, mod_data: Dict[str, Any], character_id: str, character_display_name: str) -> Optional[ProcessedMod]:
+        """Process a single mod with pre-fetched character name"""
         try:
             # Extract basic mod info
             mod_id = mod_data.get('id', '')
@@ -93,11 +109,6 @@ class ModProcessor:
             level = mod_data.get('level', 1)
             tier = mod_data.get('tier', 1)
             locked = mod_data.get('locked', False)
-            
-            # Get the base character ID (remove star level)
-            base_character_id = character_id.split(':')[0]
-            # Look up the display name
-            character_display_name = self.db.get_character_name(base_character_id)
             
             if not definition_id or len(definition_id) != 3:
                 logger.warning(f"Invalid definition ID for mod {mod_id}: {definition_id}")
@@ -142,7 +153,7 @@ class ModProcessor:
                 tier=tier,
                 locked=locked,
                 characterId=character_id,
-                characterDisplayName=character_display_name,  # ADD THIS
+                characterDisplayName=character_display_name,  # Pre-fetched!
                 primaryStat=primary_stat,
                 secondaryStats=secondary_stats,
                 dots=dots,
