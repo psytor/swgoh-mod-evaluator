@@ -78,7 +78,7 @@ function SlotFilterSprite({ slot, isActive, onClick }) {
           height: '40px',
           backgroundImage: `url(${charactermodsAtlas})`,
           backgroundPosition: `-${sprite.x}px -${sprite.y}px`,
-          backgroundSize: 'auto',
+          backgroundSize: `${atlasWidth}px ${atlasHeight}px`,
           transform: `scale(${40 / sprite.w})`,
           transformOrigin: 'center'
         }}
@@ -105,7 +105,7 @@ function SetFilterSprite({ set, isActive, onClick }) {
           height: '40px',
           backgroundImage: `url(${miscAtlas})`,
           backgroundPosition: `-${sprite.x}px -${sprite.y}px`,
-          backgroundSize: 'auto',
+          backgroundSize: `${atlasWidth}px ${atlasHeight}px`,
           transform: `scale(${40 / sprite.w})`,
           transformOrigin: 'center'
         }}
