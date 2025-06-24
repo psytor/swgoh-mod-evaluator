@@ -41,7 +41,7 @@
 }
 
 .filter-toggle-tab.open {
-  right: 350px; /* Adjust based on panel width */
+  right: 400px; /* Adjust based on panel width */
 }
 
 .filter-toggle-tab span {
