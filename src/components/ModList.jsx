@@ -621,7 +621,7 @@ function ModList({ playerData, evaluationMode, onModeChange }) {
                   if (!sprite) return null;
                   
                   // Scale from 120x120 to 40x40
-                  const scale = 30 / 120;
+                  const scale = 25 / 120;
                   
                   return (
                     <div
