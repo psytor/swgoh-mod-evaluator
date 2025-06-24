@@ -41,7 +41,7 @@
 }
 
 .filter-toggle-tab.open {
-  right: 300px; /* Adjust based on panel width */
+  right: 350px; /* Adjust based on panel width */
 }
 
 .filter-toggle-tab span {
@@ -73,7 +73,7 @@
   .filter-bar.filter-panel {
     position: fixed;
     top: 0;
-    right: -300px; /* Start off-screen */
+    right: -350px; /* Start off-screen */
     left: auto;
     width: 300px;
     height: 100vh;
