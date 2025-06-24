@@ -582,7 +582,7 @@ function ModList({ playerData, evaluationMode, onModeChange }) {
                   if (!sprite) return null;
                   
                   // Calculate scale to fit in 40x40
-                  const scale = Math.min(40 / sprite.w, 40 / sprite.h);
+                  const scale = Math.min(30 / sprite.w, 30 / sprite.h);
                   const scaledWidth = sprite.w * scale;
                   const scaledHeight = sprite.h * scale;
                   
