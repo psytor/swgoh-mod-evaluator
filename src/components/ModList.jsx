@@ -8,27 +8,8 @@ import { EVALUATION_WORKFLOWS } from '../config/evaluationWorkflows';
 import charactermodsAtlas from '../assets/charactermods_datacard_atlas.png';
 import miscAtlas from '../assets/misc_atlas.png';
 
-// Import the constants we need
-const MOD_SETS = {
-  1: "Health", 2: "Offense", 3: "Defense", 4: "Speed",
-  5: "Critical Chance", 6: "Critical Damage", 7: "Potency", 8: "Tenacity"
-};
-
-const MOD_SLOTS = {
-  1: "Square", 2: "Arrow", 3: "Diamond",
-  4: "Triangle", 5: "Circle", 6: "Cross"
-};
-
-const MOD_TIERS = {
-  1: "Grey", 2: "Green", 3: "Blue", 4: "Purple", 5: "Gold"
-};
-
-const STAT_NAMES = {
-  1: "Health", 5: "Speed", 16: "Critical Damage %", 17: "Potency %",
-  18: "Tenacity %", 28: "Protection", 41: "Offense", 42: "Defense",
-  48: "Offense %", 49: "Defense %", 52: "Accuracy %", 53: "Critical Chance %", 
-  54: "Critical Avoidance %", 55: "Health %", 56: "Protection %"
-};
+// Import the constants from ModCard
+import { MOD_SETS, MOD_SLOTS, MOD_TIERS, STAT_NAMES } from './ModCard';
 
 // Sprite data for filter display
 const MOD_SHAPE_SPRITES = {
@@ -51,88 +32,113 @@ const MOD_SET_SPRITES = {
   "Tenacity": { x: 1288, y: 1385, w: 120, h: 120 }
 };
 
-// Primary stats available by slot
-const PRIMARY_STATS_BY_SLOT = {
-  "Square": [48], // Always Offense %
-  "Arrow": [5, 52, 54, 55, 56, 48, 49], // Speed, Accuracy %, Crit Avoidance %, Health %, Protection %, Offense %, Defense %
-  "Diamond": [49], // Always Defense %
-  "Triangle": [53, 16, 55, 56, 48, 49], // Crit Chance %, Crit Damage %, Health %, Protection %, Offense %, Defense %
-  "Circle": [55, 56], // Health %, Protection %
-  "Cross": [18, 17, 55, 56, 48, 49] // Tenacity %, Potency %, Health %, Protection %, Offense %, Defense %
-};
+// Calculate collection efficiency
+function calculateCollectionEfficiency(mods, evaluationMode, tempLockedMods = []) {
+  if (!mods || mods.length === 0) return { average: 0, count: 0, breakdown: {} };
 
-// Component for sprite-based slot filter
-function SlotFilterSprite({ slot, isActive, onClick }) {
-  const sprite = MOD_SHAPE_SPRITES[slot];
-  if (!sprite) return null;
+  let totalEfficiency = 0;
+  let modCount = 0;
+  const breakdown = {
+    keep: { total: 0, count: 0 },
+    sell: { total: 0, count: 0 },
+    slice: { total: 0, count: 0 },
+    level: { total: 0, count: 0 }
+  };
 
+  mods.forEach(mod => {
+    const modEfficiency = mod.efficiency || 0;
+
+    if (modEfficiency > 0) {
+      totalEfficiency += modEfficiency;
+      modCount++;
+
+      const isLocked = mod.locked || tempLockedMods.includes(mod.id);
+      const evaluation = isLocked 
+        ? { verdict: 'keep' } 
+        : evaluateModWithWorkflow(mod, evaluationMode);
+      
+      const verdict = evaluation.verdict;
+      
+      if (breakdown[verdict]) {
+        breakdown[verdict].total += modEfficiency;
+        breakdown[verdict].count++;
+      }
+    }
+  });
+
+  return {
+    average: modCount > 0 ? totalEfficiency / modCount : 0,
+    count: modCount,
+    breakdown: Object.keys(breakdown).reduce((acc, key) => {
+      acc[key] = {
+        ...breakdown[key],
+        average: breakdown[key].count > 0 ? breakdown[key].total / breakdown[key].count : 0
+      };
+      return acc;
+    }, {})
+  };
+}
+
+// Component to display collection efficiency
+function CollectionEfficiencyDisplay({ collectionStats, modStats }) {
   return (
-    <div 
-      className={`sprite-filter-item ${isActive ? 'active' : ''}`}
-      onClick={onClick}
-    >
-      <div 
-        className="filter-sprite-shape"
-        style={{
-          width: '40px',
-          height: '40px',
-          backgroundImage: `url(${charactermodsAtlas})`,
-          backgroundPosition: `-${sprite.x}px -${sprite.y}px`,
-          backgroundSize: 'auto',
-          transform: `scale(${40 / sprite.w})`,
-          transformOrigin: 'center'
-        }}
-      />
-      <span>{slot}</span>
+    <div className="collection-efficiency">
+      <div className="collection-overall">
+        <span className="efficiency-label">Collection Average:</span>
+        <span className="efficiency-value">{collectionStats.average.toFixed(1)}%</span>
+      </div>
+
+      <div className="collection-breakdown">
+        {modStats.keep > 0 && (
+          <div className="breakdown-item breakdown-keep">
+            <span className="breakdown-label">Keep: {modStats.keep}</span>
+            <span className="breakdown-separator">-</span>
+            <span className="breakdown-value">{collectionStats.breakdown.keep?.average.toFixed(1) || '0.0'}%</span>
+          </div>
+        )}
+        {modStats.sell > 0 && (
+          <div className="breakdown-item breakdown-sell">
+            <span className="breakdown-label">Sell: {modStats.sell}</span>
+            <span className="breakdown-separator">-</span>
+            <span className="breakdown-value">{collectionStats.breakdown.sell?.average.toFixed(1) || '0.0'}%</span>
+          </div>
+        )}
+        {modStats.slice > 0 && (
+          <div className="breakdown-item breakdown-slice">
+            <span className="breakdown-label">Slice: {modStats.slice}</span>
+            <span className="breakdown-separator">-</span>
+            <span className="breakdown-value">{collectionStats.breakdown.slice?.average.toFixed(1) || '0.0'}%</span>
+          </div>
+        )}
+        {modStats.level > 0 && (
+          <div className="breakdown-item breakdown-level">
+            <span className="breakdown-label">Level: {modStats.level}</span>
+            <span className="breakdown-separator">-</span>
+            <span className="breakdown-value">{collectionStats.breakdown.level?.average.toFixed(1) || '0.0'}%</span>
+          </div>
+        )}
+      </div>
     </div>
   );
 }
 
-// Component for sprite-based set filter
-function SetFilterSprite({ set, isActive, onClick }) {
-  const sprite = MOD_SET_SPRITES[set];
-  if (!sprite) return null;
-
-  return (
-    <div 
-      className={`sprite-filter-item ${isActive ? 'active' : ''}`}
-      onClick={onClick}
-    >
-      <div 
-        className="filter-sprite-set"
-        style={{
-          width: '40px',
-          height: '40px',
-          backgroundImage: `url(${miscAtlas})`,
-          backgroundPosition: `-${sprite.x}px -${sprite.y}px`,
-          backgroundSize: 'auto',
-          transform: `scale(${40 / sprite.w})`,
-          transformOrigin: 'center'
-        }}
-      />
-      <span>{set.split(' ').map(word => word.charAt(0)).join('')}</span>
-    </div>
-  );
-}
-
-// Enhanced ModList component
 function ModList({ playerData, evaluationMode, onModeChange }) {
   const [mods, setMods] = useState([])
   const [loading, setLoading] = useState(true)
+  const [selectedCharacter, setSelectedCharacter] = useState('all')
+  const [characterList, setCharacterList] = useState([])
+  const [activeFilters, setActiveFilters] = useState(['all'])
   const [filterPanelOpen, setFilterPanelOpen] = useState(false)
   const [isMobile, setIsMobile] = useState(false)
 
   // Enhanced filter state
-  const [activeFilters, setActiveFilters] = useState({
+  const [advancedFilters, setAdvancedFilters] = useState({
     slots: [],          // ['Square', 'Arrow', ...]
     sets: [],           // ['Speed', 'Offense', ...]
     tiers: [],          // [1, 2, 3, 4, 5]
     rarities: [],       // ['1-4', '5', '6']
     primaryStats: [],   // [5, 48, ...] (stat IDs)
     secondaryStats: [], // [5, 41, ...] (stat IDs)
-    character: 'all',
-    recommendations: ['all'],
-    locked: false
   });
 
   const [tempLockedMods, setTempLockedMods] = useState(() => {
@@ -146,7 +152,7 @@ function ModList({ playerData, evaluationMode, onModeChange }) {
 
   // Filter toggle functions
   const toggleSlotFilter = (slot) => {
-    setActiveFilters(prev => ({
+    setAdvancedFilters(prev => ({
       ...prev,
       slots: prev.slots.includes(slot) 
         ? prev.slots.filter(s => s !== slot)
@@ -155,7 +161,7 @@ function ModList({ playerData, evaluationMode, onModeChange }) {
   };
 
   const toggleSetFilter = (set) => {
-    setActiveFilters(prev => ({
+    setAdvancedFilters(prev => ({
       ...prev,
       sets: prev.sets.includes(set) 
         ? prev.sets.filter(s => s !== set)
@@ -164,7 +170,7 @@ function ModList({ playerData, evaluationMode, onModeChange }) {
   };
 
   const toggleTierFilter = (tier) => {
-    setActiveFilters(prev => ({
+    setAdvancedFilters(prev => ({
       ...prev,
       tiers: prev.tiers.includes(tier) 
         ? prev.tiers.filter(t => t !== tier)
@@ -173,7 +179,7 @@ function ModList({ playerData, evaluationMode, onModeChange }) {
   };
 
   const toggleRarityFilter = (rarity) => {
-    setActiveFilters(prev => ({
+    setAdvancedFilters(prev => ({
       ...prev,
       rarities: prev.rarities.includes(rarity) 
         ? prev.rarities.filter(r => r !== rarity)
@@ -181,17 +187,8 @@ function ModList({ playerData, evaluationMode, onModeChange }) {
     }));
   };
 
-  const togglePrimaryStatFilter = (statId) => {
-    setActiveFilters(prev => ({
-      ...prev,
-      primaryStats: prev.primaryStats.includes(statId) 
-        ? prev.primaryStats.filter(s => s !== statId)
-        : [...prev.primaryStats, statId]
-    }));
-  };
-
   const toggleSecondaryStatFilter = (statId) => {
-    setActiveFilters(prev => ({
+    setAdvancedFilters(prev => ({
       ...prev,
       secondaryStats: prev.secondaryStats.includes(statId) 
         ? prev.secondaryStats.filter(s => s !== statId)
@@ -199,21 +196,68 @@ function ModList({ playerData, evaluationMode, onModeChange }) {
     }));
   };
 
-  const clearAllFilters = () => {
-    setActiveFilters({
+  const clearAdvancedFilters = () => {
+    setAdvancedFilters({
       slots: [],
       sets: [],
       tiers: [],
       rarities: [],
       primaryStats: [],
       secondaryStats: [],
-      character: 'all',
-      recommendations: ['all'],
-      locked: false
     });
   };
 
-  // Extract and process mods
+  const handleModClick = (mod) => {
+    setSelectedMod(mod)
+    setIsModalOpen(true)
+  }
+
+  const handleModalClose = () => {
+    setIsModalOpen(false)
+    setTimeout(() => setSelectedMod(null), 300)
+  }
+
+  // Detect mobile viewport
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth <= 768)
+    }
+
+    checkMobile()
+    window.addEventListener('resize', checkMobile)
+    return () => window.removeEventListener('resize', checkMobile)
+  }, [])
+
+  // Close panel when clicking outside on mobile
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (filterPanelOpen && !event.target.closest('.filter-panel') && !event.target.closest('.filter-toggle-tab')) {
+        setFilterPanelOpen(false)
+      }
+    }
+
+    document.addEventListener('click', handleClickOutside)
+    return () => document.removeEventListener('click', handleClickOutside)
+  }, [filterPanelOpen])
+
+  const toggleFilter = (filterName) => {
+    setActiveFilters(prev => {
+      if (filterName === 'all') {
+        return ['all']
+      }
+
+      let newFilters = prev.filter(f => f !== 'all')
+
+      if (prev.includes(filterName)) {
+        newFilters = newFilters.filter(f => f !== filterName)
+      } else {
+        newFilters = [...newFilters, filterName]
+      }
+
+      return newFilters.length === 0 ? ['all'] : newFilters
+    })
+  }
+
   useEffect(() => {
     let extractedMods = []
 
@@ -222,7 +266,12 @@ function ModList({ playerData, evaluationMode, onModeChange }) {
         if (mod.d !== undefined) {
           return decodeModData(mod);
         }
-        return mod;
+        return {
+          ...mod,
+          characterName: mod.characterId.split(':')[0],
+          basicEvaluation: mod.evaluations?.basic || {},
+          strictEvaluation: mod.evaluations?.strict || {}
+        };
       });
     } else if (playerData?.rosterUnit) {
       playerData.rosterUnit.forEach(unit => {
@@ -240,99 +289,123 @@ function ModList({ playerData, evaluationMode, onModeChange }) {
       })
     }
 
+    const uniqueCharacters = [...new Set(extractedMods.map(mod => mod.characterName))]
+    .sort((a, b) => {
+      const modA = extractedMods.find(m => m.characterName === a)
+      const modB = extractedMods.find(m => m.characterName === b)
+      const nameA = modA?.characterDisplayName || a
+      const nameB = modB?.characterDisplayName || b
+      return nameA.localeCompare(nameB)
+    })
+    setCharacterList(uniqueCharacters)
+
     setMods(extractedMods)
     setLoading(false)
   }, [playerData])
-
-  // Mobile detection
-  useEffect(() => {
-    const checkMobile = () => {
-      setIsMobile(window.innerWidth <= 768)
-    }
-    checkMobile()
-    window.addEventListener('resize', checkMobile)
-    return () => window.removeEventListener('resize', checkMobile)
-  }, [])
 
   if (loading) {
     return <div className="loading">Processing mods...</div>
   }
 
-  // Enhanced filter function
+  // Filter mods based on all filters
   const filteredMods = mods.filter(mod => {
+    // Character filter
+    if (selectedCharacter !== 'all' && mod.characterName !== selectedCharacter) {
+      return false
+    }
+
+    // Advanced filters
     // Slots filter
-    if (activeFilters.slots.length > 0) {
+    if (advancedFilters.slots.length > 0) {
       const modSlot = MOD_SLOTS[mod.definitionId[2]];
-      if (!activeFilters.slots.includes(modSlot)) return false;
+      if (!advancedFilters.slots.includes(modSlot)) return false;
     }
     
     // Sets filter
-    if (activeFilters.sets.length > 0) {
+    if (advancedFilters.sets.length > 0) {
       const modSet = MOD_SETS[mod.definitionId[0]];
-      if (!activeFilters.sets.includes(modSet)) return false;
+      if (!advancedFilters.sets.includes(modSet)) return false;
     }
     
     // Tiers filter
-    if (activeFilters.tiers.length > 0) {
-      if (!activeFilters.tiers.includes(mod.tier)) return false;
+    if (advancedFilters.tiers.length > 0) {
+      if (!advancedFilters.tiers.includes(mod.tier)) return false;
     }
     
     // Rarity filter
-    if (activeFilters.rarities.length > 0) {
+    if (advancedFilters.rarities.length > 0) {
       const dots = parseInt(mod.definitionId[1]);
       const rarityGroup = dots <= 4 ? '1-4' : dots.toString();
-      if (!activeFilters.rarities.includes(rarityGroup)) return false;
-    }
-    
-    // Primary stats filter
-    if (activeFilters.primaryStats.length > 0) {
-      const primaryStatId = mod.primaryStat?.stat?.unitStatId;
-      if (!activeFilters.primaryStats.includes(primaryStatId)) return false;
+      if (!advancedFilters.rarities.includes(rarityGroup)) return false;
     }
     
     // Secondary stats filter
-    if (activeFilters.secondaryStats.length > 0) {
+    if (advancedFilters.secondaryStats.length > 0) {
       const modSecondaryIds = mod.secondaryStat?.map(s => s.stat.unitStatId) || [];
-      const hasAnySecondary = activeFilters.secondaryStats.some(statId => 
+      const hasAnySecondary = advancedFilters.secondaryStats.some(statId => 
         modSecondaryIds.includes(statId)
       );
       if (!hasAnySecondary) return false;
     }
 
-    // Character filter
-    if (activeFilters.character !== 'all' && mod.characterName !== activeFilters.character) {
-      return false;
-    }
+    // If "all" is selected, show everything
+    if (activeFilters.includes('all')) return true
 
-    // Recommendation filter
-    if (!activeFilters.recommendations.includes('all')) {
-      const isLocked = mod.locked || tempLockedMods.includes(mod.id);
-      if (activeFilters.locked && !isLocked) return false;
-      
-      const evaluation = isLocked 
-        ? { verdict: 'keep' } 
-        : evaluateModWithWorkflow(mod, evaluationMode);
-      
-      if (!activeFilters.recommendations.includes(evaluation.verdict)) return false;
-    }
+    // Check if mod is locked
+    const isLocked = mod.locked || tempLockedMods.includes(mod.id);
+    
+    // If locked filter is active AND mod is locked, include it
+    if (activeFilters.includes('locked') && isLocked) return true;
 
-    return true;
+    // Evaluate the mod
+    const evaluation = isLocked 
+      ? { verdict: 'keep' } 
+      : evaluateModWithWorkflow(mod, evaluationMode);
+
+    // Check if the mod's verdict matches any active filter
+    return activeFilters.includes(evaluation.verdict);
   });
 
-  // Get active filter count
+  // Calculate summary statistics
+  const modStats = filteredMods.reduce((acc, mod) => {
+    const isLocked = mod.locked || tempLockedMods.includes(mod.id);
+    const evaluation = isLocked 
+      ? { verdict: 'keep' } 
+      : evaluateModWithWorkflow(mod, evaluationMode);
+    
+    const verdict = evaluation.verdict;
+    acc[verdict] = (acc[verdict] || 0) + 1;
+    return acc;
+  }, {});
+
+  // Calculate collection efficiency
+  const collectionStats = calculateCollectionEfficiency(filteredMods, evaluationMode, tempLockedMods);
+
+  const toggleTempLock = (modId) => {
+    setTempLockedMods(prev => {
+      const newLocks = prev.includes(modId)
+        ? prev.filter(id => id !== modId)
+        : [...prev, modId]
+
+      localStorage.setItem('swgoh_temp_locked_mods', JSON.stringify(newLocks))
+      return newLocks
+    })
+  }
+
+  // Calculate active filter count
   const activeFilterCount = 
-    activeFilters.slots.length +
-    activeFilters.sets.length +
-    activeFilters.tiers.length +
-    activeFilters.rarities.length +
-    activeFilters.primaryStats.length +
-    activeFilters.secondaryStats.length +
-    (activeFilters.character !== 'all' ? 1 : 0) +
-    (activeFilters.recommendations.length > 0 && !activeFilters.recommendations.includes('all') ? 1 : 0);
+    advancedFilters.slots.length +
+    advancedFilters.sets.length +
+    advancedFilters.tiers.length +
+    advancedFilters.rarities.length +
+    advancedFilters.primaryStats.length +
+    advancedFilters.secondaryStats.length +
+    (selectedCharacter !== 'all' ? 1 : 0) +
+    (activeFilters.length > 0 && !activeFilters.includes('all') ? 1 : 0);
 
   return (
     <div className="mod-list-wrapper">
-      {/* Filter Toggle Tab */}
+      {/* Mobile Filter Toggle Tab */}
       <div
         className={`filter-toggle-tab ${filterPanelOpen ? 'open' : ''}`}
         onClick={() => setFilterPanelOpen(!filterPanelOpen)}
@@ -349,14 +422,37 @@ function ModList({ playerData, evaluationMode, onModeChange }) {
         )}
       </div>
 
-      {/* Header */}
-      <div className="mod-list-header">
-        <h1>Your Mods</h1>
-        <p className="mod-count">
-          Showing {filteredMods.length} of {mods.length} mods
-          {activeFilterCount > 0 && ` (${activeFilterCount} filters active)`}
-        </p>
-      </div>
+      {/* Desktop Filter Bar / Mobile Header + Filter Panel */}
+      {!isMobile && (
+        <div className="filter-bar">
+          <div className="filter-bar-content">
+            <div className="filter-bar-header">
+              <h1>Your Mods</h1>
+              <p className="mod-count">
+                Showing {filteredMods.length} of {mods.length} mods
+                {!activeFilters.includes('all') && ` (${activeFilters.join(', ')})`}
+              </p>
+              {filteredMods.length > 0 && (
+                <CollectionEfficiencyDisplay collectionStats={collectionStats} modStats={modStats} />
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Mobile scrollable header */}
+      {isMobile && (
+        <div className="mobile-header">
+          <h1>Your Mods</h1>
+          <p className="mod-count">
+            Showing {filteredMods.length} of {mods.length} mods
+            {!activeFilters.includes('all') && ` (${activeFilters.join(', ')})`}
+          </p>
+          {filteredMods.length > 0 && (
+            <CollectionEfficiencyDisplay collectionStats={collectionStats} modStats={modStats} />
+          )}
+        </div>
+      )}
 
       {/* Enhanced Filter Panel */}
       <div className={`filter-panel enhanced ${filterPanelOpen ? 'open' : ''}`}>
@@ -368,120 +464,250 @@ function ModList({ playerData, evaluationMode, onModeChange }) {
             ×
           </button>
 
-          <div className="filter-panel-header">
-            <h2>Filters</h2>
-            <button 
-              className="clear-all-filters"
-              onClick={clearAllFilters}
-              disabled={activeFilterCount === 0}
-            >
-              Clear All
-            </button>
-          </div>
+          <h2 className="filter-panel-title">Filters</h2>
 
-          {/* Slot Filter */}
-          <div className="filter-section">
-            <h3>Slots</h3>
-            <div className="filter-sprites-grid">
-              {Object.entries(MOD_SLOTS).map(([key, name]) => (
-                <SlotFilterSprite
-                  key={key}
-                  slot={name}
-                  isActive={activeFilters.slots.includes(name)}
-                  onClick={() => toggleSlotFilter(name)}
-                />
-              ))}
+          <div className="filter-controls-panel">
+            {/* Character Filter */}
+            <div className="filter-group">
+              <label>Character:</label>
+              <select
+                value={selectedCharacter}
+                onChange={(e) => setSelectedCharacter(e.target.value)}
+                className="filter-dropdown"
+              >
+                <option value="all">All Characters</option>
+                {characterList.map(charId => {
+                  const mod = mods.find(m => m.characterName === charId)
+                  const displayName = mod?.characterDisplayName || charId
+                  return (
+                    <option key={charId} value={charId}>
+                      {displayName}
+                    </option>
+                  );
+                })}
+              </select>
             </div>
-          </div>
 
-          {/* Set Filter */}
-          <div className="filter-section">
-            <h3>Sets</h3>
-            <div className="filter-sprites-grid sets">
-              {Object.entries(MOD_SETS).map(([key, name]) => (
-                <SetFilterSprite
-                  key={key}
-                  set={name}
-                  isActive={activeFilters.sets.includes(name)}
-                  onClick={() => toggleSetFilter(name)}
-                />
-              ))}
+            {/* Evaluation Mode Filter */}
+            <div className="filter-group">
+              <label>Evaluation Mode:</label>
+              <select
+                value={evaluationMode}
+                onChange={(e) => onModeChange(e.target.value)}
+                className="filter-dropdown"
+              >
+                {Object.entries(EVALUATION_WORKFLOWS).map(([key, workflow]) => (
+                  <option key={key} value={key}>
+                    {workflow.name}
+                  </option>
+                ))}
+              </select>
             </div>
-          </div>
 
-          {/* Tier Filter */}
-          <div className="filter-section">
-            <h3>Tier</h3>
-            <div className="filter-buttons-row">
-              {Object.entries(MOD_TIERS).map(([tier, name]) => (
+            {/* Recommendation Filters */}
+            <div className="filter-group">
+              <label>Recommendations:</label>
+              <div className="toggle-filters">
                 <button
-                  key={tier}
-                  className={`filter-button tier-${name.toLowerCase()} ${
-                    activeFilters.tiers.includes(parseInt(tier)) ? 'active' : ''
-                  }`}
-                  onClick={() => toggleTierFilter(parseInt(tier))}
+                  className={`toggle-button ${activeFilters.includes('all') ? 'active' : ''}`}
+                  onClick={() => toggleFilter('all')}
                 >
-                  {name}
+                  All
                 </button>
-              ))}
-            </div>
-          </div>
-
-          {/* Rarity Filter */}
-          <div className="filter-section">
-            <h3>Rarity</h3>
-            <div className="filter-buttons-row">
-              <button
-                className={`filter-button rarity ${
-                  activeFilters.rarities.includes('1-4') ? 'active' : ''
-                }`}
-                onClick={() => toggleRarityFilter('1-4')}
-              >
-                <span className="dots">●●●●</span>
-                <span>1-4 Dots</span>
-              </button>
-              <button
-                className={`filter-button rarity ${
-                  activeFilters.rarities.includes('5') ? 'active' : ''
-                }`}
-                onClick={() => toggleRarityFilter('5')}
-              >
-                <span className="dots">●●●●●</span>
-                <span>5 Dots</span>
-              </button>
-              <button
-                className={`filter-button rarity ${
-                  activeFilters.rarities.includes('6') ? 'active' : ''
-                }`}
-                onClick={() => toggleRarityFilter('6')}
-              >
-                <span className="dots">●●●●●●</span>
-                <span>6 Dots</span>
-              </button>
-            </div>
-          </div>
-
-          {/* Secondary Stats Filter */}
-          <div className="filter-section">
-            <h3>Secondary Stats</h3>
-            <div className="stat-filter-grid">
-              {Object.entries(STAT_NAMES).map(([id, name]) => (
                 <button
-                  key={id}
-                  className={`stat-filter-chip ${
-                    activeFilters.secondaryStats.includes(parseInt(id)) ? 'active' : ''
-                  }`}
-                  onClick={() => toggleSecondaryStatFilter(parseInt(id))}
+                  className={`toggle-button ${activeFilters.includes('keep') ? 'active' : ''}`}
+                  onClick={() => toggleFilter('keep')}
                 >
-                  {name}
+                  Keep
                 </button>
-              ))}
+                <button
+                  className={`toggle-button ${activeFilters.includes('sell') ? 'active' : ''}`}
+                  onClick={() => toggleFilter('sell')}
+                >
+                  Sell
+                </button>
+                <button
+                  className={`toggle-button ${activeFilters.includes('slice') ? 'active' : ''}`}
+                  onClick={() => toggleFilter('slice')}
+                >
+                  Slice
+                </button>
+                <button
+                  className={`toggle-button ${activeFilters.includes('level') ? 'active' : ''}`}
+                  onClick={() => toggleFilter('level')}
+                >
+                  Level
+                </button>
+                <button
+                  className={`toggle-button ${activeFilters.includes('locked') ? 'active' : ''}`}
+                  onClick={() => toggleFilter('locked')}
+                >
+                  Locked
+                </button>
+              </div>
+            </div>
+
+            {/* Advanced Filters Header */}
+            <div className="advanced-filters-header">
+              <h3>Advanced Filters</h3>
+              <button 
+                className="clear-advanced-btn"
+                onClick={clearAdvancedFilters}
+                disabled={activeFilterCount === 0}
+              >
+                Clear
+              </button>
+            </div>
+
+            {/* Slot Filter with Sprites */}
+            <div className="filter-section">
+              <h4>Slots</h4>
+              <div className="filter-sprites-grid">
+                {Object.entries(MOD_SLOTS).map(([key, name]) => {
+                  const sprite = MOD_SHAPE_SPRITES[name];
+                  if (!sprite) return null;
+                  
+                  // Calculate scale to fit in 40x40
+                  const scale = Math.min(40 / sprite.w, 40 / sprite.h);
+                  const scaledWidth = sprite.w * scale;
+                  const scaledHeight = sprite.h * scale;
+                  
+                  return (
+                    <div
+                      key={key}
+                      className={`sprite-filter-item ${advancedFilters.slots.includes(name) ? 'active' : ''}`}
+                      onClick={() => toggleSlotFilter(name)}
+                    >
+                      <div className="filter-sprite-container">
+                        <div
+                          className="filter-sprite-shape"
+                          style={{
+                            width: `${scaledWidth}px`,
+                            height: `${scaledHeight}px`,
+                            backgroundImage: `url(${charactermodsAtlas})`,
+                            backgroundPosition: `-${sprite.x * scale}px -${sprite.y * scale}px`,
+                            backgroundSize: `${1024 * scale}px auto`,
+                            imageRendering: 'pixelated'
+                          }}
+                        />
+                      </div>
+                      <span>{name}</span>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* Set Filter with Sprites */}
+            <div className="filter-section">
+              <h4>Sets</h4>
+              <div className="filter-sprites-grid sets">
+                {Object.entries(MOD_SETS).map(([key, name]) => {
+                  const sprite = MOD_SET_SPRITES[name];
+                  if (!sprite) return null;
+                  
+                  // Scale from 120x120 to 40x40
+                  const scale = 40 / 120;
+                  
+                  return (
+                    <div
+                      key={key}
+                      className={`sprite-filter-item ${advancedFilters.sets.includes(name) ? 'active' : ''}`}
+                      onClick={() => toggleSetFilter(name)}
+                    >
+                      <div className="filter-sprite-container">
+                        <div
+                          className="filter-sprite-set"
+                          style={{
+                            width: '40px',
+                            height: '40px',
+                            backgroundImage: `url(${miscAtlas})`,
+                            backgroundPosition: `-${sprite.x * scale}px -${sprite.y * scale}px`,
+                            backgroundSize: `${2048 * scale}px auto`,
+                            imageRendering: 'pixelated'
+                          }}
+                        />
+                      </div>
+                      <span>{name.split(' ').map(word => word.charAt(0)).join('')}</span>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* Tier Filter */}
+            <div className="filter-section">
+              <h4>Tier</h4>
+              <div className="filter-buttons-row">
+                {Object.entries(MOD_TIERS).map(([tier, name]) => (
+                  <button
+                    key={tier}
+                    className={`filter-button tier-${name.toLowerCase()} ${
+                      advancedFilters.tiers.includes(parseInt(tier)) ? 'active' : ''
+                    }`}
+                    onClick={() => toggleTierFilter(parseInt(tier))}
+                  >
+                    {name}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Rarity Filter */}
+            <div className="filter-section">
+              <h4>Rarity (Dots)</h4>
+              <div className="filter-buttons-row">
+                <button
+                  className={`filter-button rarity ${
+                    advancedFilters.rarities.includes('1-4') ? 'active' : ''
+                  }`}
+                  onClick={() => toggleRarityFilter('1-4')}
+                >
+                  <span className="dots">●●●●</span>
+                  <span>1-4</span>
+                </button>
+                <button
+                  className={`filter-button rarity ${
+                    advancedFilters.rarities.includes('5') ? 'active' : ''
+                  }`}
+                  onClick={() => toggleRarityFilter('5')}
+                >
+                  <span className="dots">●●●●●</span>
+                  <span>5</span>
+                </button>
+                <button
+                  className={`filter-button rarity ${
+                    advancedFilters.rarities.includes('6') ? 'active' : ''
+                  }`}
+                  onClick={() => toggleRarityFilter('6')}
+                >
+                  <span className="dots">●●●●●●</span>
+                  <span>6</span>
+                </button>
+              </div>
+            </div>
+
+            {/* Secondary Stats Filter */}
+            <div className="filter-section">
+              <h4>Secondary Stats</h4>
+              <div className="stat-filter-grid">
+                {Object.entries(STAT_NAMES).map(([id, name]) => (
+                  <button
+                    key={id}
+                    className={`stat-filter-chip ${
+                      advancedFilters.secondaryStats.includes(parseInt(id)) ? 'active' : ''
+                    }`}
+                    onClick={() => toggleSecondaryStatFilter(parseInt(id))}
+                  >
+                    {name}
+                  </button>
+                ))}
+              </div>
             </div>
           </div>
         </div>
       </div>
 
-      {/* Mod Grid */}
       <div className={`mod-list-container ${isMobile ? 'mobile' : ''}`}>
         <div className="mod-grid">
           {filteredMods.map((mod, index) => (
@@ -490,19 +716,8 @@ function ModList({ playerData, evaluationMode, onModeChange }) {
               mod={mod}
               evaluationMode={evaluationMode}
               isTempLocked={tempLockedMods.includes(mod.id)}
-              onToggleTempLock={(modId) => {
-                setTempLockedMods(prev => {
-                  const newLocks = prev.includes(modId)
-                    ? prev.filter(id => id !== modId)
-                    : [...prev, modId]
-                  localStorage.setItem('swgoh_temp_locked_mods', JSON.stringify(newLocks))
-                  return newLocks
-                })
-              }}
-              onClick={(mod) => {
-                setSelectedMod(mod)
-                setIsModalOpen(true)
-              }}
+              onToggleTempLock={toggleTempLock}
+              onClick={handleModClick}
             />
           ))}
         </div>
@@ -511,10 +726,7 @@ function ModList({ playerData, evaluationMode, onModeChange }) {
       <ModDetailModal 
         mod={selectedMod}
         isOpen={isModalOpen}
-        onClose={() => {
-          setIsModalOpen(false)
-          setTimeout(() => setSelectedMod(null), 300)
-        }}
+        onClose={handleModalClose}
         evaluationMode={evaluationMode}
       />
     </div>
