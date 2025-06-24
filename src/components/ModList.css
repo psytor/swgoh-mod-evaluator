@@ -514,3 +514,285 @@
 .filter-controls-panel .toggle-button {
   padding: 10px 16px;
 }
+
+/* Enhanced Filter Panel Styling */
+.filter-panel {
+  width: 350px; /* Increased width for new filters */
+}
+
+.filter-panel-content {
+  padding: 70px 20px 20px;
+  max-height: 100vh;
+  overflow-y: auto;
+}
+
+/* Filter Section Styling */
+.filter-section {
+  margin-bottom: 24px;
+  border-bottom: 1px solid #334155;
+  padding-bottom: 16px;
+}
+
+.filter-section:last-child {
+  border-bottom: none;
+  margin-bottom: 0;
+}
+
+.filter-section-title {
+  color: #3b82f6;
+  font-size: 14px;
+  font-weight: 600;
+  margin: 0 0 12px 0;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+/* Filter Grid for Visual Items */
+.filter-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+  gap: 8px;
+}
+
+/* Individual Filter Item */
+.filter-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  background-color: #1e293b;
+  border: 1px solid #334155;
+  border-radius: 6px;
+  color: #cbd5e1;
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+  min-height: 40px;
+}
+
+.filter-item:hover {
+  background-color: #334155;
+  border-color: #475569;
+  color: #e2e8f0;
+}
+
+.filter-item.selected {
+  background-color: #3b82f6;
+  border-color: #2563eb;
+  color: white;
+  box-shadow: 0 2px 4px rgba(59, 130, 246, 0.3);
+}
+
+.filter-item.selected:hover {
+  background-color: #2563eb;
+  border-color: #1d4ed8;
+}
+
+/* Filter Sprite Styling */
+.filter-sprite {
+  flex-shrink: 0;
+  border-radius: 3px;
+  background-repeat: no-repeat;
+  image-rendering: pixelated;
+  image-rendering: -moz-crisp-edges;
+  image-rendering: crisp-edges;
+  -ms-interpolation-mode: nearest-neighbor;
+}
+
+/* Tier Color Indicator */
+.tier-color-indicator {
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.filter-item.selected .tier-color-indicator {
+  border-color: rgba(255, 255, 255, 0.4);
+}
+
+/* Filter Name */
+.filter-name {
+  flex: 1;
+  text-align: left;
+  line-height: 1.2;
+}
+
+/* Clear Filters Button */
+.clear-filters-btn {
+  width: 100%;
+  padding: 10px 16px;
+  background-color: #dc2626;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  margin-bottom: 16px;
+}
+
+.clear-filters-btn:hover {
+  background-color: #b91c1c;
+}
+
+.clear-filters-btn:active {
+  background-color: #991b1b;
+}
+
+/* Adjust Grid for Different Filter Types */
+
+/* Slots and Sets - 2 columns for better sprite visibility */
+.filter-section:has(.filter-sprite) .filter-grid {
+  grid-template-columns: repeat(2, 1fr);
+}
+
+/* Stats - 1 column for better readability */
+.filter-section:nth-last-child(-n+2) .filter-grid {
+  grid-template-columns: 1fr;
+}
+
+/* Tiers and Rarity - 1 column */
+.filter-section:has(.tier-color-indicator) .filter-grid,
+.filter-section:has([title*="quality"]) .filter-grid {
+  grid-template-columns: 1fr;
+}
+
+/* Mobile Responsive Adjustments */
+@media (max-width: 768px) {
+  .filter-panel {
+    width: 300px;
+  }
+  
+  .filter-grid {
+    grid-template-columns: 1fr !important;
+    gap: 6px;
+  }
+  
+  .filter-item {
+    padding: 10px 12px;
+    min-height: 44px; /* Better touch targets */
+  }
+  
+  .filter-name {
+    font-size: 13px;
+  }
+}
+
+/* Enhanced Filter Panel Scrolling */
+.filter-panel-content::-webkit-scrollbar {
+  width: 6px;
+}
+
+.filter-panel-content::-webkit-scrollbar-track {
+  background: #1e293b;
+  border-radius: 3px;
+}
+
+.filter-panel-content::-webkit-scrollbar-thumb {
+  background: #475569;
+  border-radius: 3px;
+}
+
+.filter-panel-content::-webkit-scrollbar-thumb:hover {
+  background: #64748b;
+}
+
+/* Filter Panel Animation for Mobile */
+@media (max-width: 768px) {
+  .filter-panel {
+    transition: right 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+  }
+  
+  .filter-panel.open {
+    box-shadow: -4px 0 20px rgba(0, 0, 0, 0.3);
+  }
+}
+
+/* Enhanced Toggle Filters for Better Spacing */
+.filter-controls-panel .toggle-filters {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.filter-controls-panel .toggle-button {
+  padding: 8px 12px;
+  font-size: 12px;
+  text-align: center;
+}
+
+/* Special Styling for Different Filter Categories */
+
+/* Primary/Secondary Stats - Different Background */
+.filter-section:nth-last-child(-n+2) .filter-item {
+  background-color: #0f172a;
+  border-color: #1e293b;
+}
+
+.filter-section:nth-last-child(-n+2) .filter-item:hover {
+  background-color: #1e293b;
+  border-color: #334155;
+}
+
+.filter-section:nth-last-child(-n+2) .filter-item.selected {
+  background-color: #7c3aed;
+  border-color: #6d28d9;
+}
+
+.filter-section:nth-last-child(-n+2) .filter-item.selected:hover {
+  background-color: #6d28d9;
+  border-color: #5b21b6;
+}
+
+/* Rarity Filter - Special Styling */
+.filter-section:has([title*="quality"]) .filter-item {
+  justify-content: center;
+  text-align: center;
+  flex-direction: column;
+  gap: 4px;
+  min-height: 50px;
+}
+
+.filter-section:has([title*="quality"]) .filter-name {
+  text-align: center;
+  font-weight: 600;
+}
+
+/* Active Filter Count Badge */
+.filter-section-title::after {
+  content: "";
+  margin-left: 8px;
+  padding: 2px 6px;
+  background-color: #3b82f6;
+  color: white;
+  border-radius: 10px;
+  font-size: 10px;
+  font-weight: 700;
+  display: none;
+}
+
+.filter-section.has-active-filters .filter-section-title::after {
+  display: inline;
+  content: attr(data-count);
+}
+
+/* Improved Visual Hierarchy */
+.filter-controls-panel > .filter-group:first-child,
+.filter-controls-panel > .filter-group:nth-child(2),
+.filter-controls-panel > .filter-group:nth-child(3) {
+  padding-bottom: 16px;
+  margin-bottom: 16px;
+  border-bottom: 1px solid #334155;
+}
+
+/* Enhanced Desktop Filter Bar for More Filters */
+@media (min-width: 769px) {
+  .mod-list-wrapper {
+    padding-top: 180px; /* Slightly more space for potential filter indicators */
+  }
+} 
