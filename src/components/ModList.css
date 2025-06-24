@@ -127,7 +127,7 @@
   }
   
   .filter-toggle-tab.open {
-    right: calc(100% - 50px);
+    right: calc(100% - 25px);
   }
 }
 
