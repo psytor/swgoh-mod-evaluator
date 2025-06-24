@@ -51,6 +51,10 @@ const MOD_SET_SPRITES = {
   "Tenacity": { x: 1288, y: 1385, w: 120, h: 120 }
 };
 
+const mistAtlasWidth = 2048;
+const mistAtlasHeight = 2048;
+
+
 // Primary stats available by slot
 const PRIMARY_STATS_BY_SLOT = {
   "Square": [48], // Always Offense %
@@ -60,6 +64,9 @@ const PRIMARY_STATS_BY_SLOT = {
   "Circle": [55, 56], // Health %, Protection %
   "Cross": [18, 17, 55, 56, 48, 49] // Tenacity %, Potency %, Health %, Protection %, Offense %, Defense %
 };
+
+const datacardAtlasWidth = 1024;
+const atacardAtlasHeight = 512;
 
 // Component for sprite-based slot filter
 function SlotFilterSprite({ slot, isActive, onClick }) {
@@ -78,7 +85,7 @@ function SlotFilterSprite({ slot, isActive, onClick }) {
           height: '40px',
           backgroundImage: `url(${charactermodsAtlas})`,
           backgroundPosition: `-${sprite.x}px -${sprite.y}px`,
-          backgroundSize: `${atlasWidth}px ${atlasHeight}px`,
+          backgroundSize: `${datacardAtlasWidth}px ${atacardAtlasHeight}px`,
           transform: `scale(${40 / sprite.w})`,
           transformOrigin: 'center'
         }}
@@ -105,7 +112,7 @@ function SetFilterSprite({ set, isActive, onClick }) {
           height: '40px',
           backgroundImage: `url(${miscAtlas})`,
           backgroundPosition: `-${sprite.x}px -${sprite.y}px`,
-          backgroundSize: `${atlasWidth}px ${atlasHeight}px`,
+          backgroundSize: `${mistAtlasWidth}px ${atacardAtlasHeight}px`,
           transform: `scale(${40 / sprite.w})`,
           transformOrigin: 'center'
         }}
