@@ -338,6 +338,11 @@ function ModList({ playerData, evaluationMode, onModeChange }) {
       const rarityGroup = dots <= 4 ? '1-4' : dots.toString();
       if (!advancedFilters.rarities.includes(rarityGroup)) return false;
     }
+
+    if (advancedFilters.primaryStats.length > 0) {
+      const primaryStatId = mod.primaryStat?.stat?.unitStatId;
+      if (!advancedFilters.primaryStats.includes(primaryStatId)) return false;
+    }
     
     // Secondary stats filter
     if (advancedFilters.secondaryStats.length > 0) {
@@ -391,6 +396,15 @@ function ModList({ playerData, evaluationMode, onModeChange }) {
       return newLocks
     })
   }
+
+  const togglePrimaryStatFilter = (statId) => {
+    setAdvancedFilters(prev => ({
+      ...prev,
+      primaryStats: prev.primaryStats.includes(statId) 
+        ? prev.primaryStats.filter(s => s !== statId)
+        : [...prev.primaryStats, statId]
+    }));
+  };
 
   // Calculate active filter count
   const activeFilterCount = 
@@ -607,7 +621,7 @@ function ModList({ playerData, evaluationMode, onModeChange }) {
                   if (!sprite) return null;
                   
                   // Scale from 120x120 to 40x40
-                  const scale = 40 / 120;
+                  const scale = 30 / 120;
                   
                   return (
                     <div
@@ -684,6 +698,25 @@ function ModList({ playerData, evaluationMode, onModeChange }) {
                   <span className="dots">●●●●●●</span>
                   <span>6</span>
                 </button>
+              </div>
+            </div>
+
+            {/* Primary Stats Filter */}
+            <div className="filter-section">
+              <h4>Primary Stats</h4>
+              <div className="stat-filter-grid">
+                {/* You'll need to show only stats that can be primary stats */}
+                {[5, 48, 49, 52, 53, 54, 55, 56, 16, 17, 18].map(statId => (
+                  <button
+                    key={statId}
+                    className={`stat-filter-chip ${
+                      advancedFilters.primaryStats.includes(statId) ? 'active' : ''
+                    }`}
+                    onClick={() => togglePrimaryStatFilter(statId)}
+                  >
+                    {STAT_NAMES[statId]}
+                  </button>
+                ))}
               </div>
             </div>
 

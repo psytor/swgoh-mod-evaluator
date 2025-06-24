@@ -294,7 +294,7 @@
 /* Sprite Filter Grid - Fixed sprite display */
 .filter-sprites-grid {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(6, 1fr);
   gap: 8px;
 }
 
@@ -335,8 +335,8 @@
 
 /* Fixed sprite container */
 .filter-sprite-container {
-  width: 40px;
-  height: 40px;
+  width: 30px;
+  height: 30px;
   overflow: hidden;
   position: relative;
   margin-bottom: 4px;
@@ -356,6 +356,7 @@
 }
 
 .sprite-filter-item span {
+  display: none;
   font-size: 11px;
   text-align: center;
   color: #94a3b8;
@@ -372,6 +373,7 @@
   display: flex;
   flex-wrap: wrap;
   gap: 8px;
+  overflow-x: auto;
 }
 
 .filter-button {
@@ -398,6 +400,32 @@
 }
 
 /* Tier-specific colors */
+
+.filter-button.tier-grey {
+  background-color: #374151;
+  color: #9ca3af;
+}
+
+.filter-button.tier-green {
+  background-color: #14532d;
+  color: #86efac;
+}
+
+.filter-button.tier-blue {
+  background-color: #1e3a8a;
+  color: #93bbfc;
+}
+
+.filter-button.tier-purple {
+  background-color: #4c1d95;
+  color: #c4b5fd;
+}
+
+.filter-button.tier-gold {
+  background-color: #78350f;
+  color: #fcd34d;
+}
+
 .filter-button.tier-grey.active {
   border-color: #6b7280;
   background-color: rgba(107, 114, 128, 0.2);
