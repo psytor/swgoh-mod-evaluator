@@ -78,7 +78,7 @@ function SlotFilterSprite({ slot, isActive, onClick }) {
           height: '40px',
           backgroundImage: `url(${charactermodsAtlas})`,
           backgroundPosition: `-${sprite.x}px -${sprite.y}px`,
-          backgroundSize: `${atlasWidth}px ${atlasHeight}px`,
+          backgroundSize: 'auto',
           transform: `scale(${40 / sprite.w})`,
           transformOrigin: 'center'
         }}
@@ -105,103 +105,12 @@ function SetFilterSprite({ set, isActive, onClick }) {
           height: '40px',
           backgroundImage: `url(${miscAtlas})`,
           backgroundPosition: `-${sprite.x}px -${sprite.y}px`,
-          backgroundSize: `${atlasWidth}px ${atlasHeight}px`,
+          backgroundSize: 'auto',
           transform: `scale(${40 / sprite.w})`,
           transformOrigin: 'center'
         }}
       />
       <span>{set.split(' ').map(word => word.charAt(0)).join('')}</span>
-    </div>
-  );
-}
-
-// Calculate collection efficiency using pre-calculated values
-function calculateCollectionEfficiency(mods, evaluationMode, tempLockedMods = []) {
-  if (!mods || mods.length === 0) return { average: 0, count: 0, breakdown: {} };
-
-  let totalEfficiency = 0;
-  let modCount = 0;
-  const breakdown = {
-    keep: { total: 0, count: 0 },
-    sell: { total: 0, count: 0 },
-    slice: { total: 0, count: 0 },
-    level: { total: 0, count: 0 }
-  };
-
-  mods.forEach(mod => {
-    // Use pre-calculated efficiency
-    const modEfficiency = mod.efficiency || 0;
-
-    if (modEfficiency > 0) {
-      totalEfficiency += modEfficiency;
-      modCount++;
-
-      const isLocked = mod.locked || tempLockedMods.includes(mod.id);
-      const evaluation = isLocked 
-        ? { verdict: 'keep' } 
-        : evaluateModWithWorkflow(mod, evaluationMode);
-      
-      const verdict = evaluation.verdict;
-      
-      if (breakdown[verdict]) {
-        breakdown[verdict].total += modEfficiency;
-        breakdown[verdict].count++;
-      }
-    }
-  });
-
-  return {
-    average: modCount > 0 ? totalEfficiency / modCount : 0,
-    count: modCount,
-    breakdown: Object.keys(breakdown).reduce((acc, key) => {
-      acc[key] = {
-        ...breakdown[key],
-        average: breakdown[key].count > 0 ? breakdown[key].total / breakdown[key].count : 0
-      };
-      return acc;
-    }, {})
-  };
-}
-
-// Component to display collection efficiency
-function CollectionEfficiencyDisplay({ collectionStats, modStats }) {
-  return (
-    <div className="collection-efficiency">
-      <div className="collection-overall">
-        <span className="efficiency-label">Collection Average:</span>
-        <span className="efficiency-value">{collectionStats.average.toFixed(1)}%</span>
-      </div>
-
-      <div className="collection-breakdown">
-        {modStats.keep > 0 && (
-          <div className="breakdown-item breakdown-keep">
-            <span className="breakdown-label">Keep: {modStats.keep}</span>
-            <span className="breakdown-separator">-</span>
-            <span className="breakdown-value">{collectionStats.breakdown.keep?.average.toFixed(1) || '0.0'}%</span>
-          </div>
-        )}
-        {modStats.sell > 0 && (
-          <div className="breakdown-item breakdown-sell">
-            <span className="breakdown-label">Sell: {modStats.sell}</span>
-            <span className="breakdown-separator">-</span>
-            <span className="breakdown-value">{collectionStats.breakdown.sell?.average.toFixed(1) || '0.0'}%</span>
-          </div>
-        )}
-        {modStats.slice > 0 && (
-          <div className="breakdown-item breakdown-slice">
-            <span className="breakdown-label">Slice: {modStats.slice}</span>
-            <span className="breakdown-separator">-</span>
-            <span className="breakdown-value">{collectionStats.breakdown.slice?.average.toFixed(1) || '0.0'}%</span>
-          </div>
-        )}
-        {modStats.level > 0 && (
-          <div className="breakdown-item breakdown-level">
-            <span className="breakdown-label">Level: {modStats.level}</span>
-            <span className="breakdown-separator">-</span>
-            <span className="breakdown-value">{collectionStats.breakdown.level?.average.toFixed(1) || '0.0'}%</span>
-          </div>
-        )}
-      </div>
     </div>
   );
 }
