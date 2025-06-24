@@ -621,7 +621,9 @@ function ModList({ playerData, evaluationMode, onModeChange }) {
                   if (!sprite) return null;
                   
                   // Scale from 120x120 to 40x40
-                  const scale = 25 / 120;
+                  const scale = Math.min(30 / sprite.w, 120 / sprite.h);
+                  const scaledWidth = sprite.w * scale;
+                  const scaledHeight = sprite.h * scale;
                   
                   return (
                     <div
@@ -633,8 +635,8 @@ function ModList({ playerData, evaluationMode, onModeChange }) {
                         <div
                           className="filter-sprite-set"
                           style={{
-                            width: '40px',
-                            height: '40px',
+                            width: `${scaledWidth}px`,
+                            height: `${scaledHeight}px`,
                             backgroundImage: `url(${miscAtlas})`,
                             backgroundPosition: `-${sprite.x * scale}px -${sprite.y * scale}px`,
                             backgroundSize: `${2048 * scale}px auto`,
