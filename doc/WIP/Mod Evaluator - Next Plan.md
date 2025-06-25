@@ -1,4 +1,4 @@
-Workflow Visualizer
-Advanced Evaluation
-Filters
-Sorting
+Workflow Visualizer;
+Advanced Evaluation;
+Filters;
+Sorting;
