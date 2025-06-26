@@ -1,0 +1,135 @@
+{
+  "checks": {
+    "speed_arrow": {
+      "name": "Speed Arrow Check",
+      "logic": {
+        "conditions": [
+          {
+            "if": { "hasTarget": true },
+            "template": "If it's a Speed Arrow → Level to {target}"
+          },
+          {
+            "if": { "hasTarget": false },
+            "template": "If it's a Speed Arrow → {resultText}"
+          }
+        ]
+      }
+    },
+    "needs_leveling": {
+      "name": "Level Requirement",
+      "logic": {
+        "conditions": [
+          {
+            "if": "always",
+            "template": "If mod is below level {target} → Level to {target}"
+          }
+        ]
+      }
+    },
+    "stat_threshold": {
+      "name": "Stat Threshold Check",
+      "logic": {
+        "conditions": [
+          {
+            "if": { "params.any": true, "hasTarget": true },
+            "template": "If has ANY {params.stat} → Level to {target}"
+          },
+          {
+            "if": { "params.any": true, "hasTarget": false },
+            "template": "If has ANY {params.stat} → {resultText}"
+          },
+          {
+            "if": { "params.min": "_exists", "hasTarget": true },
+            "template": "If {params.stat} ≥ {params.min} → Level to {target}"
+          },
+          {
+            "if": { "params.min": "_exists", "hasTarget": false },
+            "template": "If {params.stat} ≥ {params.min} → {resultText}"
+          }
+        ]
+      }
+    },
+    "combined_stats": {
+      "name": "Combined Stats Check",
+      "logic": {
+        "valueProcessors": {
+          "conditions": {
+            "type": "array",
+            "source": "params.stats",
+            "itemTemplate": "{stat} ≥ {min}",
+            "joiner": " AND "
+          }
+        },
+        "conditions": [
+          {
+            "if": { "hasTarget": true },
+            "template": "If {conditions} → Level to {target}"
+          },
+          {
+            "if": { "hasTarget": false },
+            "template": "If {conditions} → {resultText}"
+          }
+        ]
+      }
+    },
+    "point_threshold": {
+      "name": "Point Threshold Check",
+      "logic": {
+        "conditions": [
+          {
+            "if": { "hasTarget": true },
+            "template": "If total score ≥ {params.threshold} points → Level to {target}"
+          },
+          {
+            "if": { "hasTarget": false },
+            "template": "If total score ≥ {params.threshold} points → {resultText}"
+          }
+        ]
+      }
+    },
+    "default": {
+      "name": "Default Action",
+      "logic": {
+        "conditions": [
+          {
+            "if": { "hasTarget": true },
+            "template": "Otherwise → Level to {target}"
+          },
+          {
+            "if": { "hasTarget": false },
+            "template": "Otherwise → {resultText}"
+          }
+        ]
+      }
+    }
+  },
+  "resultTexts": {
+    "K": "Keep",
+    "S": "Sell",
+    "SL": "Slice",
+    "LV": "Level"
+  },
+  "statDisplayNames": {
+    "Speed": "Speed",
+    "Offense": "Offense",
+    "Critical Chance %": "Crit Chance %",
+    "Defense": "Defense",
+    "Defense %": "Defense %",
+    "Health": "Health",
+    "Health %": "Health %",
+    "Offense %": "Offense %",
+    "Potency %": "Potency %",
+    "Protection": "Protection",
+    "Protection %": "Protection %",
+    "Tenacity %": "Tenacity %",
+    "Critical Damage %": "Crit Damage %"
+  },
+  "tooltips": {
+    "speed_arrow": "Speed arrows are the only source of speed primary stats in the game",
+    "stat_threshold": "Checks if a secondary stat meets certain requirements",
+    "combined_stats": "Multiple stats must meet their thresholds together",
+    "point_threshold": "Total score calculation including synergies",
+    "needs_leveling": "Mod needs more levels to reveal all secondary stats",
+    "default": "Fallback action when no other conditions are met"
+  }
+}

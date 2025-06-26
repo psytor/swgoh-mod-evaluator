@@ -5,6 +5,7 @@ import ModDetailModal from './ModDetailModal'
 import { decodeModData } from '../utils/modDecoder'
 import { evaluateModWithWorkflow } from '../utils/workflowEvaluator';
 import { EVALUATION_WORKFLOWS } from '../config/evaluationWorkflows';
+import WorkflowHelpModal from './WorkflowHelpModal';
 import charactermodsAtlas from '../assets/charactermods_datacard_atlas.png';
 import miscAtlas from '../assets/misc_atlas.png';
 
@@ -130,7 +131,8 @@ function ModList({ playerData, evaluationMode, onModeChange }) {
   const [activeFilters, setActiveFilters] = useState(['all'])
   const [filterPanelOpen, setFilterPanelOpen] = useState(false)
   const [isMobile, setIsMobile] = useState(false)
-
+  const [showWorkflowHelp, setShowWorkflowHelp] = useState(false);
+  
   // Enhanced filter state
   const [advancedFilters, setAdvancedFilters] = useState({
     slots: [],          // ['Square', 'Arrow', ...]
@@ -504,7 +506,16 @@ function ModList({ playerData, evaluationMode, onModeChange }) {
 
             {/* Evaluation Mode Filter */}
             <div className="filter-group">
-              <label>Evaluation Mode:</label>
+              <div className="filter-group-header">
+                <label>Evaluation Mode:</label>
+                <button 
+                  className="workflow-help-button"
+                  onClick={() => setShowWorkflowHelp(true)}
+                  title="How do evaluation methods work?"
+                >
+                  ❓
+                </button>
+              </div>
               <select
                 value={evaluationMode}
                 onChange={(e) => onModeChange(e.target.value)}
@@ -763,6 +774,12 @@ function ModList({ playerData, evaluationMode, onModeChange }) {
         isOpen={isModalOpen}
         onClose={handleModalClose}
         evaluationMode={evaluationMode}
+      />
+
+      <WorkflowHelpModal 
+        isOpen={showWorkflowHelp}
+        onClose={() => setShowWorkflowHelp(false)}
+        initialWorkflow={evaluationMode}
       />
     </div>
   )

@@ -646,3 +646,30 @@
   color: #94a3b8;
   font-size: 18px;
 }
+
+.filter-group-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.workflow-help-button {
+  background-color: #334155;
+  color: #94a3b8;
+  border: 1px solid #475569;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  transition: all 0.2s;
+}
+
+.workflow-help-button:hover {
+  background-color: #3b82f6;
+  color: white;
+  border-color: #3b82f6;
+}
