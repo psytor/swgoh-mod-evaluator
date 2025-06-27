@@ -7,11 +7,11 @@ export const EVALUATION_WORKFLOWS = {
     name: "Beginner Mode",
     description: "Limited in resources, this helps you keep good speed mods that will help you go through the beginning stages of the game.",
     "dot_1-4": {
-      grey: { level_1: [{ check: "default", result: "S" }] },
-      green: { level_1: [{ check: "default", result: "S" }] },
-      blue: { level_1: [{ check: "default", result: "S" }] },
-      purple: { level_1: [{ check: "default", result: "S" }] },
-      gold: { level_1: [{ check: "default", result: "S" }] }
+      Grey: { level_1: [{ check: "default", result: "S" }] },
+      Green: { level_1: [{ check: "default", result: "S" }] },
+      Blue: { level_1: [{ check: "default", result: "S" }] },
+      Purple: { level_1: [{ check: "default", result: "S" }] },
+      Gold: { level_1: [{ check: "default", result: "S" }] }
     },
     dot_5: {
       Grey: {
@@ -30,7 +30,7 @@ export const EVALUATION_WORKFLOWS = {
           { check: "default", result: "S" }
         ]
       },
-      green: {
+      Green: {
         level_1: [
           { check: "speed_arrow", result: "LV", target: 15 },
           { check: "needs_leveling", result: "LV", target: 9 }
@@ -52,7 +52,7 @@ export const EVALUATION_WORKFLOWS = {
           { check: "default", result: "S" }
         ]
       },
-      blue: {
+      Blue: {
         level_1: [
           { check: "speed_arrow", result: "LV", target: 15 },
           { check: "needs_leveling", result: "LV", target: 6 }
@@ -74,7 +74,7 @@ export const EVALUATION_WORKFLOWS = {
           { check: "default", result: "S" }
         ]
       },
-      purple: {
+      Purple: {
         level_1: [
           { check: "speed_arrow", result: "LV", target: 15 },
           { check: "needs_leveling", result: "LV", target: 3 }
@@ -96,7 +96,7 @@ export const EVALUATION_WORKFLOWS = {
           { check: "default", result: "S" }
         ]
       },
-      gold: {
+      Gold: {
         level_1: [
           { check: "speed_arrow", result: "LV", target: 15 },
           { check: "stat_threshold", params: { stat: "Speed", any: true }, result: "LV", target: 12 },
@@ -116,27 +116,27 @@ export const EVALUATION_WORKFLOWS = {
       }
     },
     dot_6: {
-      grey: { 
+      Grey: { 
         level_1: [
           { check: "default", result: "K" }
         ] 
       },
-      green: { 
+      Green: { 
         level_1: [
           { check: "default", result: "K" }
         ] 
       },
-      blue: { 
+      Blue: { 
         level_1: [
           { check: "default", result: "K" }
         ] 
       },
-      purple: { 
+      Purple: { 
         level_1: [
           { check: "default", result: "K" }
         ] 
       },
-      gold: { 
+      Gold: { 
         level_1: [
           { check: "default", result: "K" }
         ] 
@@ -148,14 +148,14 @@ export const EVALUATION_WORKFLOWS = {
     name: "Beginner (Poor)",
     description: "You are Broke and limited in resources, this helps you keep good speed mods that will help you go through the beginning stages of the game.",
     "dot_1-4": {
-      grey: { level_1: [{ check: "default", result: "S" }] },
-      green: { level_1: [{ check: "default", result: "S" }] },
-      blue: { level_1: [{ check: "default", result: "S" }] },
-      purple: { level_1: [{ check: "default", result: "S" }] },
-      gold: { level_1: [{ check: "default", result: "S" }] }
+      Grey: { level_1: [{ check: "default", result: "S" }] },
+      Green: { level_1: [{ check: "default", result: "S" }] },
+      Blue: { level_1: [{ check: "default", result: "S" }] },
+      Purple: { level_1: [{ check: "default", result: "S" }] },
+      Gold: { level_1: [{ check: "default", result: "S" }] }
     },
     dot_5: {
-      grey: {
+      Grey: {
         level_1: [
           { check: "speed_arrow", result: "LV", target: 15 },
           { check: "needs_leveling", result: "LV", target: 9 }
@@ -171,7 +171,7 @@ export const EVALUATION_WORKFLOWS = {
           { check: "default", result: "S" }
         ]
       },
-      green: {
+      Green: {
         level_1: [
           { check: "speed_arrow", result: "LV", target: 15 },
           { check: "needs_leveling", result: "LV", target: 9 }
@@ -193,7 +193,7 @@ export const EVALUATION_WORKFLOWS = {
           { check: "default", result: "S" }
         ]
       },
-      blue: {
+      Blue: {
         level_1: [
           { check: "speed_arrow", result: "LV", target: 15 },
           { check: "needs_leveling", result: "LV", target: 6 }
@@ -215,7 +215,7 @@ export const EVALUATION_WORKFLOWS = {
           { check: "default", result: "S" }
         ]
       },
-      purple: {
+      Purple: {
         level_1: [
           { check: "speed_arrow", result: "LV", target: 15 },
           { check: "needs_leveling", result: "LV", target: 3 }
@@ -237,7 +237,7 @@ export const EVALUATION_WORKFLOWS = {
           { check: "default", result: "S" }
         ]
       },
-      gold: {
+      Gold: {
         level_1: [
           { check: "speed_arrow", result: "LV", target: 15 },
           { check: "stat_threshold", params: { stat: "Speed", any: true }, result: "LV", target: 12 },
@@ -257,27 +257,27 @@ export const EVALUATION_WORKFLOWS = {
       }
     },
     dot_6: {
-      grey: { 
+      Grey: { 
         level_1: [
           { check: "default", result: "K" }  // Keep all 6-dot grey
         ] 
       },
-      green: { 
+      Green: { 
         level_1: [
           { check: "default", result: "K" }  // Keep all 6-dot green
         ] 
       },
-      blue: { 
+      Blue: { 
         level_1: [
           { check: "default", result: "K" }  // Keep all 6-dot blue
         ] 
       },
-      purple: { 
+      Purple: { 
         level_1: [
           { check: "default", result: "K" }  // Keep all 6-dot purple
         ] 
       },
-      gold: { 
+      Gold: { 
         level_1: [
           { check: "default", result: "K" }  // Keep all 6-dot gold
         ] 
@@ -288,61 +288,61 @@ export const EVALUATION_WORKFLOWS = {
     name: "Minimal Template",              // Required - shown in dropdown
     description: "What it does",        // Optional but recommended
     "dot_1-4": {
-      grey: { level_1: [{ check: "default", result: "S" }] },
-      green: { level_1: [{ check: "default", result: "S" }] },
-      blue: { level_1: [{ check: "default", result: "S" }] },
-      purple: { level_1: [{ check: "default", result: "S" }] },
-      gold: { level_1: [{ check: "default", result: "S" }] }
+      Grey: { level_1: [{ check: "default", result: "S" }] },
+      Green: { level_1: [{ check: "default", result: "S" }] },
+      Blue: { level_1: [{ check: "default", result: "S" }] },
+      Purple: { level_1: [{ check: "default", result: "S" }] },
+      Gold: { level_1: [{ check: "default", result: "S" }] }
     },
     dot_5: {                           // Required - 5-dot configuration
-      grey: {                          // Required - all 5 tiers needed
+      Grey: {                          // Required - all 5 tiers needed
         level_1: [                     // Required - at least one level
           { check: "default", result: "K" }  // Required - must have default
         ]
       },
-      green: {                         // Required
+      Green: {                         // Required
         level_1: [
           { check: "default", result: "K" }
         ]
       },
-      blue: {                          // Required
+      Blue: {                          // Required
         level_1: [
           { check: "default", result: "K" }
         ]
       },
-      purple: {                        // Required
+      Purple: {                        // Required
         level_1: [
           { check: "default", result: "K" }
         ]
       },
-      gold: {                          // Required
+      Gold: {                          // Required
         level_1: [
           { check: "default", result: "K" }
         ]
       }
     },
     dot_6: {                           // Required - 6-dot configuration
-      grey: {                          // Required - all 5 tiers needed
+      Grey: {                          // Required - all 5 tiers needed
         level_1: [
           { check: "default", result: "K" }
         ]
       },
-      green: {                         // Required
+      Green: {                         // Required
         level_1: [
           { check: "default", result: "K" }
         ]
       },
-      blue: {                          // Required
+      Blue: {                          // Required
         level_1: [
           { check: "default", result: "K" }
         ]
       },
-      purple: {                        // Required
+      Purple: {                        // Required
         level_1: [
           { check: "default", result: "K" }
         ]
       },
-      gold: {                          // Required
+      Gold: {                          // Required
         level_1: [
           { check: "default", result: "K" }
         ]
