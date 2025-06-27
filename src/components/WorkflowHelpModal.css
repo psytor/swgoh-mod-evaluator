@@ -123,6 +123,10 @@
   padding: 24px;
 }
 
+.workflow-legend .legend-items {
+  padding: 5px;
+}
+
 /* Custom scrollbar */
 .workflow-content::-webkit-scrollbar {
   width: 8px;
