@@ -156,7 +156,7 @@ function WorkflowVisualizer({ workflowKey }) {
     return (
       <div className="tier-section">
         <h4 className={`tier-header tier-${tierName.toLowerCase()}`}>
-          {tierName} Mods
+          {tierName.charAt(0).toUpperCase() + tierName.slice(1)} Mods
         </h4>
         {levels.map(levelKey => {
           const level = parseInt(levelKey.replace('level_', ''));
