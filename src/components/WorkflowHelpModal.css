@@ -145,7 +145,7 @@
 /* Mobile responsive */
 @media (max-width: 768px) {
   .workflow-help-modal-overlay {
-    padding: 15px;
+    padding: 10px;
     padding-top: 70px;
   }
   
