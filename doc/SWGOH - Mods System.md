@@ -112,11 +112,11 @@ Primary stats are the main assigned stat that a mod will increase. There are 11 
 | Slot | Primary Stat |
 |---|---|
 | Square (Transmitter) | Offense |
-| Arrow (Receiver) | Defense |
-| Diamond (Processor) | Health • Protection |
-| Triangle (Holo-Array) | Speed • Accuracy • Critical Avoidance • Health • Protection • Offense • Defense |
-| Circle (Data-Bus) | Critical Chance • Critical Damage • Health • Protection • Offense • Defense |
-| Plus (Multiplexer) | Tenacity • Potency • Health • Protection • Offense • Defense |
+| Diamond (Processor) | Defense |
+| Circle (Data-Bus) | Health • Protection |
+| Arrow (Receiver) | Speed • Accuracy • Critical Avoidance • Health • Protection • Offense • Defense |
+| Triangle (Holo-Array) | Critical Chance • Critical Damage • Health • Protection • Offense • Defense |
+| Cross (Multiplexer) | Tenacity • Potency • Health • Protection • Offense • Defense |
 
 ## Secondary Stats
 In addition to the Primary stat, mods can have lesser increases on up to 4 different stats. Depending on the Tier players acquire the mod at, these are usually applied at random to the mod when it reaches certain Levels.
